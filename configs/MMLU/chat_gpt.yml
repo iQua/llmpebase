@@ -1,0 +1,170 @@
+# include basic settings for the models and the learning process
+
+
+# dataset settings for the original dataset and the corresponding multimodal data processor
+data:
+  datasource_name: MMLU
+  datasource_path: data # path of the source data
+
+  data_name: MMLU
+  data_path: data
+
+  datasource_download_url: http://people.eecs.berkeley.edu/~hendrycks/data.tar # mainly for website
+
+  
+environment:
+  # always utilize the cuda if possible.
+  
+  # do not set this para to use current path as the project dir
+  #  the data is expected in the project dir, i.e., project_dir/data
+  project_dir: None 
+  # project_dir: /data/sijia
+
+  # do not set this para if the experiments are expected to be placed
+  #  in the project_dir directly.
+  # Otherwise, they are placed under project_dir/project_name
+  project_name: None 
+  
+  # always utilize the cuda if possible.
+  # setting -1 to use the gpu with highest memory
+  cuda_device_ids: -1
+  
+  # fix the see for reproducible
+  seed: 15
+
+  distributed: False # True or False
+  distributed_mode: DP # DP or DDP, only DP is supported till now
+  global_rank: 0 # this is the global rank
+  local_rank: 0 # this is the local rank
+  # url used to set up distributed training
+  dist_url: tcp://127.0.0.1:3457
+  dist_backend: nccl
+
+  # url used to set up distributed training
+  ##  if train on multiple GPUs on a single machine, 
+  ##  then the IP is localhost.
+  dist_url: tcp://127.0.0.1:3457
+  dist_backend: nccl
+  # number of distributed processes
+  world_size: 1
+  rank: 0
+  # setting the precision for all float and int data
+  # the network executes all operators with default precision (torch.float32
+  float_precision: float32
+  int_precision: int32
+  
+  
+model:
+
+  model_name: gpt-3.5-turbo # "gpt-3.5-turbo","gpt-4"
+  chatgpt_settings:
+    temperature: 0.7
+    max_tokens: 1000
+    # n here is n_completions_per_prompt
+    n: 1
+    stop: null 
+
+  # whether utilize the pretrained full model,
+  # including grounding model and the grounding head
+  pretrained: # imagenet
+  pretrained_models_dir: experiments/pretrained_models
+
+  language_module_name: language_demo # phrase-bert
+  rgb_module_name: # resnet
+  grounding_module_name: grounding_demo # LG-DVG
+  grounding_header_name: null # null
+
+  language_module: # !include ../languages/phrase_bert_module.yml
+  rgb_module: # !include ../visuals/resnet101.yml
+  grounding_module: # !include ../diffusions/LGDVG_diffusion_proposal200.yml
+  grounding_head: # null
+
+  # num_classes
+  num_classes: # setting to zero when current vg model does not need classes clf.
+
+  # resume from checkpoint
+  #  the name of the checkpoint
+  #  or the url used to access the checkpoint
+  #  if empty, no loading
+  resume: ""
+
+
+train:
+  epochs: 10
+
+logging:
+  # path where to save, empty for no saving
+  experiments_dir: experiments
+  checkpoints_dir: experiments/checkpoints
+  results_dir: experiments/results
+
+  # number of iteration to print training logs
+  tr_log_interval: # 2
+  tr_metric_log_interval: # 10
+  val_log_interval: # 2
+  val_metric_log_interval: # 2
+
+  # visualization dir
+  visualizations_dir: experiments/visualizations
+
+  # visualization frequence
+  # int or 0 for no visualization
+  tr_visual_interval: # 1
+  test_visual_interval: # 1
+  val_visual_interval: # 1
+
+  loggings_dir: experiments/loggings
+
+evaluation:
+
+  # criterion
+  criterion_type: # general
+
+  background_label: # 10
+
+  # box format
+  box_format: # yolo
+
+  # matcher
+  # matcher_type:
+  matcher:
+    matcher_type: # HunMatcher
+    weights:
+      # Class coefficient in the matching cost
+      cost_class: # 2
+      # L1 box coefficient in the matching cost
+      cost_bbox_l1: # 5
+      # giou box coefficient in the matching cost
+      cost_giou: # 2
+
+  # set the losses and the coefficients
+  losses:
+    weights:
+      box:
+        l1: # 2
+        giou: # 5
+    # pseudo_masks:
+    #   focal: 2
+    #   dice: 1
+
+  # set the hyper parameters for performance
+  performance:
+    box:
+      iou_thresholds_values: Null
+      rec_thresholds_values: Null
+      max_queries_thresholds: Null
+    similarity:
+      prob_threshold: 0.5
+
+  # Relative classification weight of the no-object class
+  eos_coef: 0.1
+
+  # auxiliary decoding loss
+  aux_loss: False
+
+  # iterative box refinement
+  with_box_refine: False
+
+
+
+
