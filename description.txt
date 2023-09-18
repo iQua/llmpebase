@@ -1,0 +1,1 @@
+LLMPEBase: a new scalable research framework for the prompt engineering of large language models (LLMs).
