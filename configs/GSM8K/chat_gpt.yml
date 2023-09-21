@@ -126,6 +126,7 @@ logging:
 
 evaluation:
 
+  n_shots: 5
   # criterion
   criterion_type: # general
 
