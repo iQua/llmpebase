@@ -539,4 +539,6 @@ loggings/
 results/
 visualizations/
 
+*.dat
+
 examples/ChainOfThought/gsm8k_prompt/
