@@ -23,6 +23,23 @@ from llmpebase.models.LMs_prompting import mmlu_prompt
 load_dotenv()
 
 
+def do_model_request(chatgpt_api, request_prompt):
+    """Do model request."""
+    ipt_msg = chatgpt_api.create_format_input(
+        user_prompt=request_prompt,
+        sys_prompt="Follow the given examples and answer the question.",
+    )
+    model_responses = chatgpt_api.perform_request(
+        request_input=ipt_msg, per_request_responses=3
+    )
+    print("model_responses: ", model_responses)
+
+    extract_answer = chatgpt_api.extract_answers(model_responses)
+    print(extract_answer)
+    extract_target_answer = chatgpt_api.extract_response_target_answer(extract_answer)
+    print(extract_target_answer)
+
+
 def _main():
     """The core function for model running."""
 
@@ -68,19 +85,7 @@ def _main():
     )
     print(request_prompt)
 
-    chatgpt_api.set_target_answer_format(input_prompt.answer_format_str)
-    ipt_msg = chatgpt_api.create_messages(
-        textual_user_prompt=request_prompt,
-        textual_sys_prompt="Follow the given examples and answer the question.",
-    )
-    model_responses = chatgpt_api.perform_request(
-        messages=ipt_msg, per_request_responses=3
-    )
-    print("model_responses: ", model_responses)
-
-    extract_answer = chatgpt_api.extract_answer(model_responses)
-    print(extract_answer)
-    print(chatgpt_api.extract_tokens(model_responses))
+    do_model_request(chatgpt_api, request_prompt)
 
 
 if __name__ == "__main__":
