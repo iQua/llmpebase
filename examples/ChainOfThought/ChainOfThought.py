@@ -13,7 +13,7 @@ from vgbase.utils.envs_utils import define_env
 from vgbase.config import Config
 from dotenv import load_dotenv
 
-from llmpebase.models.LMs import chatgpts
+from llmpebase.models.LMs import chatgpts, llama_falcon
 
 # from llmpebase.datasets.mmlu import DataSource as mmlu_datasource
 from llmpebase.datasets.mmlu import (
@@ -30,24 +30,24 @@ from llmpebase.models.LMs_prompting import gsm8k_prompt
 load_dotenv()
 
 
-def do_model_request(chatgpt_api, request_prompt):
+def do_model_request(model, request_prompt):
     """Do model request."""
-    ipt_msg = chatgpt_api.create_format_input(
+    ipt_msg = model.create_format_input(
         user_prompt=request_prompt,
         sys_prompt="Follow the given examples and answer the question.",
     )
-    model_responses = chatgpt_api.perform_request(
-        request_input=ipt_msg, per_request_responses=3
+    model_responses = model.perform_request(
+        input_request=ipt_msg, per_request_responses=1
     )
     print("model_responses: ", model_responses)
-
-    extract_answer = chatgpt_api.extract_answers(model_responses)
+    print(ok)
+    extract_answer = model.extract_answers(model_responses)
     print(extract_answer)
-    extract_target_answer = chatgpt_api.extract_response_target_answer(extract_answer)
+    extract_target_answer = model.extract_response_target_answer(extract_answer)
     print(extract_target_answer)
 
 
-def eval_mmlu(chatgpt_api, eval_config):
+def eval_mmlu(model, eval_config):
     """Eval the MMLU."""
     mmlu_data = mmlu_datasource()
     train_set = mmlu_data.get_train_set()
@@ -57,11 +57,10 @@ def eval_mmlu(chatgpt_api, eval_config):
     # input_prompt = mmlu_prompt.MMLUCoTPrompt(
     #     cot_filepath="examples/LMs/ChainOfThought/mmlu-cot-claude.json"
     # )
-    chatgpt_api.set_target_answer_format(input_prompter.answer_format_str)
+    model.set_target_answer_format(input_prompter.answer_format_str)
 
     n_shots = eval_config["n_shots"]
 
-    print("n_shots: ", n_shots)
     assert n_shots <= 5
     for task_name in train_set.tasks_name:
         train_samples = train_set[task_name, -1]
@@ -71,10 +70,10 @@ def eval_mmlu(chatgpt_api, eval_config):
             request_prompt = input_prompter.organize_test_prompt(
                 task_name, shots, test_sample
             )
-            do_model_request(chatgpt_api, request_prompt)
+            do_model_request(model, request_prompt)
 
 
-def eval_gsm8k(chatgpt_api, eval_config):
+def eval_gsm8k(model, eval_config):
     """Eval the GSM8K."""
     gsm_data = gsm8k_datasource()
     train_set = gsm_data.get_train_set()
@@ -84,7 +83,7 @@ def eval_gsm8k(chatgpt_api, eval_config):
     input_prompter = gsm8k_prompt.GSM8KCoTPrompt(
         cot_filepath="examples/ChainOfThought/gsm8k_prompt/prompt_6_9step.txt"
     )
-    chatgpt_api.set_target_answer_format(input_prompter.answer_format_str)
+    model.set_target_answer_format(input_prompter.answer_format_str)
 
     n_shots = eval_config["n_shots"]
 
@@ -95,7 +94,7 @@ def eval_gsm8k(chatgpt_api, eval_config):
         request_prompt = input_prompter.organize_test_prompt(
             task_name=None, few_shot_samples=samples, test_sample=test_sample
         )
-        do_model_request(chatgpt_api, request_prompt)
+        do_model_request(model, request_prompt)
 
 
 datasets_eval = {"GSM8K": eval_gsm8k, "MMLU": eval_mmlu}
@@ -122,14 +121,21 @@ def _main():
 
     #################### Prepare model ####################
     model_config = Config.items_to_dict(model_config._asdict())
-    chatgpt_api = chatgpts.ChatGPTAPIRequest(model_config, env_config)
-    chatgpt_api.get_authorization(
-        organization=os.getenv("OPENAI_ORGAN_KEY"), api_key=os.getenv("OPENAI_API_KEY")
-    )
+
+    if "gpt" in model_config["model_name"]:
+        # this is the chatgpt model
+        request_model = chatgpts.ChatGPTAPIRequest(model_config, env_config)
+        request_model.get_authorization(
+            organization=os.getenv("OPENAI_ORGAN_KEY"),
+            api_key=os.getenv("OPENAI_API_KEY"),
+        )
+
+    if "llama" in model_config["model_name"]:
+        request_model = llama_falcon.LLaMARequest(model_config, env_config)
 
     #################### Do evaluation for the dataset ####################
     eval_config = Config.items_to_dict(eval_config._asdict())
-    datasets_eval[data_config.data_name](chatgpt_api, eval_config)
+    datasets_eval[data_config.data_name](model=request_model, eval_config=eval_config)
 
 
 if __name__ == "__main__":
