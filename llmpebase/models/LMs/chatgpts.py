@@ -20,8 +20,10 @@ from typing import List
 
 import openai
 
+from llmpebase.models.LMs import base
 
-class ChatGPTAPIRequest(object):
+
+class ChatGPTAPIRequest(base.BaseLMRequest):
     """A class to forward the ChatGPT model with API of OPENAI."""
 
     def __init__(self, model_config: dict, envs_config: dict) -> None:
@@ -57,10 +59,6 @@ class ChatGPTAPIRequest(object):
 
         assert self.model_name in ["gpt-3.5-turbo", "gpt-4"]
 
-    def set_target_answer_format(self, solution_format: str = "The answer is: ."):
-        """Setting the target answer format."""
-        self.target_answer_format = solution_format
-
     def get_authorization(self, organization: str, api_key: str):
         """Getting the authorization from openai."""
         openai.organization = organization
@@ -73,12 +71,7 @@ class ChatGPTAPIRequest(object):
         """Completing the forward within the OPENAI."""
         return openai.ChatCompletion.create(**kwargs)
 
-    def create_messages(
-        self,
-        textual_user_prompt: str,
-        textual_sys_prompt: str = None,
-        textual_asst_prompt: str = None,
-    ):
+    def create_format_input(self, user_prompt: str, **kwargs):
         """Creating messages to be used for forwarding.
 
         By default, the messages are created to be in
@@ -88,16 +81,18 @@ class ChatGPTAPIRequest(object):
 
         See [4] for how to organize messages.
         """
-        if textual_sys_prompt is None:
-            textual_sys_prompt = "Follow the given examples and answer the question."
-        textual_sys_prompt = f"""{textual_sys_prompt} Please utilize a sub-sentence '{self.target_answer_format}' to point out the final solution for users to read."""
+        sys_prompt = "Follow the given examples and answer the question."
+        if "sys_prompt" in kwargs and kwargs["sys_prompt"] is not None:
+            sys_prompt = kwargs["sys_prompt"]
+
+        sys_prompt = f"""{sys_prompt} Please utilize a sub-sentence '{self.target_answer_format}' to point out the final solution for users to read."""
 
         sys_message = {
             "role": "system",
-            "content": textual_sys_prompt,
+            "content": sys_prompt,
         }
 
-        requeset_message = {"role": "user", "content": textual_user_prompt}
+        requeset_message = {"role": "user", "content": user_prompt}
         request_messages = [
             sys_message,
             requeset_message,
@@ -107,9 +102,10 @@ class ChatGPTAPIRequest(object):
 
     def perform_request(
         self,
-        messages: List[dict] = None,
+        request_input: List[dict] = None,
         user_prompt: str = None,
         per_request_responses: int = 1,
+        **kwargs,
     ):
         """Performing one request for `per_request_responses`.
 
@@ -118,11 +114,13 @@ class ChatGPTAPIRequest(object):
          The 'choices' includes all responses of the item.
         """
 
-        if messages is None and user_prompt is None:
-            raise ValueError("Either messages or user_prompt should be provided")
+        if request_input is None and user_prompt is None:
+            raise ValueError("Either request_input or user_prompt should be provided")
 
         input_messages = (
-            self.create_messages(user_prompt) if messages is None else messages
+            self.create_format_input(user_prompt)
+            if request_input is None
+            else request_input
         )
         model_responses = []
         while per_request_responses > 0:
@@ -138,7 +136,7 @@ class ChatGPTAPIRequest(object):
 
         return model_responses
 
-    def extract_answer(self, responses: list):
+    def extract_answers(self, responses: list):
         """Extracting answer from the response of the model."""
         answers = []
         for res in responses:
@@ -154,7 +152,7 @@ class ChatGPTAPIRequest(object):
             prompt_tokens += res["usage"]["prompt_tokens"]
         return completion_tokens, prompt_tokens
 
-    def extract_target_answer_response(self, responses: list):
+    def extract_response_target_answer(self, responses: list):
         """Extracting the target answer from the responses."""
 
         prefix = re.escape(self.target_answer_format)
@@ -185,7 +183,7 @@ if __name__ == "__main__":
         textual_user_prompt=user_msg, textual_sys_prompt=system_msg
     )
 
-    response = chatgpt_api.perform_request(messages=created_messages)
+    response = chatgpt_api.perform_request(request_input=created_messages)
     answer = chatgpt_api.extract_answer(response)
     print("\n")
     print(response)

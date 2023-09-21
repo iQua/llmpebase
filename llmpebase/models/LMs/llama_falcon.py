@@ -8,8 +8,9 @@ import torch
 from transformers import LlamaForCausalLM, LlamaTokenizer, AutoModelForCausalLM
 import tensor_parallel as tp
 
-from vgbase.models.LMs.prompt_utlis import batch_split
 from vgbase.utils.folder_utils import directory_contains_subfolder
+
+from llmpebase.models.LMs.prompt_utlis import batch_split
 
 
 class LLaMARequest(object):
