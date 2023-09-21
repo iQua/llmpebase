@@ -3,8 +3,8 @@ The datasource inferance for the MMLU dataset.
 The detaild information of it is shown in 
 https://huggingface.co/datasets/cais/mmlu
 """
-import os, re
-from typing import Tuple, List
+import os
+from typing import Tuple
 import glob
 
 import torch

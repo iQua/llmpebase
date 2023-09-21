@@ -4,14 +4,14 @@ Implementation of the model used for FoT approach.
 import re
 from typing import List
 
-from vgbase.models.LMs_prompting.residual_tree_of_thoughts import ThoughtNode
-from vgbase.models.LMs.chatgpts import ChatGPTAPIRequest
+from llmpebase.models.LMs_prompting.residual_tree_of_thoughts import ThoughtNode
+from llmpebase.models.LMs.chatgpts import ChatGPTAPIRequest
 
 
 class ChatGPTModel(ChatGPTAPIRequest):
     """The class to support the model generation."""
 
-    prompt_head = "You are a TreeofThoughts, a superintelligent AI model devoted to helping humans by any means necessary. You aim to generate a series of intermediate reasoning steps toward addressing a given task described by the user"
+    prompt_head = "You are a superintelligent AI model devoted to helping humans by any means necessary. You aim to generate a series of intermediate reasoning steps toward addressing a given task described by the user"
 
     def organize_thoughs_chain_prompt(self, thoughts_chain: List[ThoughtNode]):
         """Organizing thoughts chain into the prompt."""

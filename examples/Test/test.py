@@ -6,7 +6,7 @@ import re
 
 from typing import List
 
-from vgbase.models.LMs_prompting.residual_tree_of_thoughts import (
+from llmpebase.models.LMs_prompting.residual_tree_of_thoughts import (
     ThoughtNode,
     RToTLevelWise,
     RToTLevelWiseBest,

@@ -6,17 +6,17 @@ import os
 import resource
 
 from vgbase.utils.envs_utils import define_env
-from vgbase.models.LMs import chatgpts
+from vgbase.config import Config
+from dotenv import load_dotenv
 
-# from vgbase.datasets.mmlu import DataSource as mmlu_datasource
-from vgbase.datasets.mmlu import (
+from llmpebase.models.LMs import chatgpts
+
+# from llmpebase.datasets.mmlu import DataSource as mmlu_datasource
+from llmpebase.datasets.mmlu import (
     DataSource as mmlu_datasource,
 )
-from vgbase.models.LMs_prompting import mmlu_prompt
+from llmpebase.models.LMs_prompting import mmlu_prompt
 
-from vgbase.config import Config
-
-from dotenv import load_dotenv
 
 # there must have a .env file containing keywords
 # OPENAI_ORGAN_KEY and OPENAI_API_KEY
