@@ -30,7 +30,7 @@ def do_model_request(chatgpt_api, request_prompt):
         sys_prompt="Follow the given examples and answer the question.",
     )
     model_responses = chatgpt_api.perform_request(
-        request_input=ipt_msg, per_request_responses=3
+        input_request=ipt_msg, per_request_responses=3
     )
     print("model_responses: ", model_responses)
 

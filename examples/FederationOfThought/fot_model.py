@@ -5,13 +5,15 @@ import re
 from typing import List
 
 from llmpebase.models.LMs_prompting.residual_tree_of_thoughts import ThoughtNode
-from llmpebase.models.LMs.chatgpts import ChatGPTAPIRequest
 
 
-class ChatGPTModel(ChatGPTAPIRequest):
-    """The class to support the model generation."""
+class ThoughtModel:
+    """The class to support the thought generation."""
 
     prompt_head = "You are a superintelligent AI model devoted to helping humans by any means necessary. You aim to generate a series of intermediate reasoning steps toward addressing a given task described by the user"
+
+    def __init__(self, request_model) -> None:
+        self.request_model = request_model
 
     def organize_thoughs_chain_prompt(self, thoughts_chain: List[ThoughtNode]):
         """Organizing thoughts chain into the prompt."""
@@ -69,17 +71,19 @@ class ChatGPTModel(ChatGPTAPIRequest):
         """Generating one thought based on the existing thought chain."""
         prompt = self.organize_next_though_prompt(thoughts_chain)
 
-        responses = self.perform_request(
+        responses = self.request_model.perform_request(
             user_prompt=prompt, per_request_responses=num_thoughts
         )
-        thoughts = self.extract_answer(responses)
+        thoughts = self.request_model.extract_answers(responses)
         return thoughts
 
     def evaluate_though_chain(self, thoughts_chain: List[ThoughtNode], thought: str):
         """Evaluating the thought chain by LLMs."""
         prompt = self.organize_though_evaluation_prompt(thoughts_chain, thought)
-        responses = self.perform_request(user_prompt=prompt, per_request_responses=1)
-        evaluation = self.extract_answer(responses)[0]
+        responses = self.request_model.perform_request(
+            user_prompt=prompt, per_request_responses=1
+        )
+        evaluation = self.request_model.extract_answers(responses)[0]
 
         # Extract the evaluation score
         score = 0
@@ -108,8 +112,10 @@ class ChatGPTModel(ChatGPTAPIRequest):
         Show the result by producing a value scale from 0 to 1, where 0 indicates no similarity and 1 indicates identical semantics. \n\n
         The generated response should include one sub-sentence with the format: 'Similarity score:' for users to read. 
         """
-        responses = self.perform_request(user_prompt=prompt, per_request_responses=1)
-        similairity_answer = self.extract_answer(responses)[0]
+        responses = self.request_model.perform_request(
+            user_prompt=prompt, per_request_responses=1
+        )
+        similairity_answer = self.request_model.extract_answers(responses)[0]
 
         # Extract the similairity score
         score = 0
