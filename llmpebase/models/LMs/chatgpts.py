@@ -27,37 +27,40 @@ class ChatGPTAPIRequest(base.BaseLMRequest):
     """A class to forward the ChatGPT model with API of OPENAI."""
 
     def __init__(self, model_config: dict, envs_config: dict) -> None:
-        self.envs_config = envs_config
-        self.model_name = model_config["model_name"]
-        chatgpt_settings = model_config["chatgpt_settings"]
+        super().__init__(model_config, envs_config)
 
+        assert self.model_name in ["gpt-3.5-turbo", "gpt-4"]
+
+    def get_generation_config(self):
+        """Getting the model request config."""
+
+        generation_settings = self.model_config["generation_settings"]
+        self.generation_config = generation_settings
         # set the necessary hyper-parameters
         temperature = (
-            chatgpt_settings["temperature"]
-            if "temperature" in chatgpt_settings
+            generation_settings["temperature"]
+            if "temperature" in generation_settings
             else 0.7
         )
         max_tokens = (
-            chatgpt_settings["max_tokens"] if "max_tokens" in chatgpt_settings else 1000
+            generation_settings["max_tokens"]
+            if "max_tokens" in generation_settings
+            else 1000
         )
         n_completions_per_prompt = (
-            chatgpt_settings["n"] if "n" in chatgpt_settings else 1
+            generation_settings["n"] if "n" in generation_settings else 1
         )
-        stop = chatgpt_settings["stop"] if "stop" in chatgpt_settings else None
+        stop = generation_settings["stop"] if "stop" in generation_settings else None
 
         # set basic default settings for gpt
-        self.gpt_config = {
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "n": n_completions_per_prompt,
-            "stop": stop,
-        }
-
-        # set this such that it is easy for us to
-        # extract the final solution from the results.
-        self.target_answer_format = ""
-
-        assert self.model_name in ["gpt-3.5-turbo", "gpt-4"]
+        self.generation_config.update(
+            {
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "n": n_completions_per_prompt,
+                "stop": stop,
+            }
+        )
 
     def get_authorization(self, organization: str, api_key: str):
         """Getting the authorization from openai."""
@@ -102,7 +105,7 @@ class ChatGPTAPIRequest(base.BaseLMRequest):
 
     def perform_request(
         self,
-        request_input: List[dict] = None,
+        input_request: List[dict] = None,
         user_prompt: str = None,
         per_request_responses: int = 1,
         **kwargs,
@@ -114,23 +117,23 @@ class ChatGPTAPIRequest(base.BaseLMRequest):
          The 'choices' includes all responses of the item.
         """
 
-        if request_input is None and user_prompt is None:
-            raise ValueError("Either request_input or user_prompt should be provided")
+        if input_request is None and user_prompt is None:
+            raise ValueError("Either input_request or user_prompt should be provided")
 
         input_messages = (
             self.create_format_input(user_prompt)
-            if request_input is None
-            else request_input
+            if input_request is None
+            else input_request
         )
         model_responses = []
         while per_request_responses > 0:
             n_responses = min(per_request_responses, 20)
             per_request_responses -= n_responses
-            self.gpt_config["n"] = n_responses
+            self.generation_config["n"] = n_responses
             reponse = self.completion_with_backoff(
                 model=self.model_name,
                 messages=input_messages,
-                **self.gpt_config,
+                **self.generation_config,
             )
             model_responses.append(reponse)
 

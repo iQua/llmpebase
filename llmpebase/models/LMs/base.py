@@ -8,8 +8,9 @@ from typing import Union, List
 class BaseLMRequest:
     """The basic request model for large language model."""
 
-    def __init__(self, model_config: dict, envs_config: dict):
+    def __init__(self, model_config: dict, envs_config: dict, **kwargs):
         self.envs_config = envs_config
+        self.model_config = model_config
         self.model_name = model_config["model_name"]
 
         # a pre-defined format for the request answer
@@ -17,13 +18,21 @@ class BaseLMRequest:
         # response easier
         self.target_answer_format = ""
 
+        self.generation_config = {}
+        self.get_generation_config()
+
+    def get_generation_config(
+        self,
+    ):
+        """Setting the request config for the model."""
+
     def set_target_answer_format(self, solution_format: str = "The answer is: ."):
         """Setting the target answer format."""
         self.target_answer_format = solution_format
 
     def perform_request(
         self,
-        request_input: Union[List[dict], str] = None,
+        input_request: Union[List[dict], str] = None,
         user_prompt: str = None,
         per_request_responses: int = 1,
         **kwargs
