@@ -110,7 +110,7 @@ class LLaMAV2Request(llama_falcon.LLaMARequest):
 
         contents = []
         for res in responses:
-            contents.extend(res["generation"]["content"])
+            contents.append(res["generation"]["content"])
         return contents
 
     def extract_tokens(self, responses: list):
