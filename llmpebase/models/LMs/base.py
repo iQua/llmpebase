@@ -1,7 +1,7 @@
 """
 The implementation of base model for LMs.
 """
-
+import re
 from typing import Union, List
 
 
@@ -35,7 +35,7 @@ class BaseLMRequest:
         input_request: Union[List[dict], str] = None,
         user_prompt: str = None,
         per_request_responses: int = 1,
-        **kwargs
+        **kwargs,
     ):
         """Performing request once.
 
@@ -58,16 +58,25 @@ class BaseLMRequest:
         """Creating the format input received by the"""
         raise NotImplementedError("'create_format_input' has not been implemented yet.")
 
-    def extract_answers(self, responses: list):
-        """Extracting answers from the obtained responses."""
+    def extract_responses_content(self, responses: list):
+        """Extracting main contents from the obtained responses."""
         raise NotImplementedError("'extract_answers' has not been implemented yet.")
 
     def extract_tokens(self, responses: list):
         """Extracting answers from the obtained responses."""
         raise NotImplementedError("'extract_tokens' has not been implemented yet.")
 
-    def extract_response_target_answer(self, responses: list):
-        """Extracting the target answer from the responses."""
-        raise NotImplementedError(
-            "'extract_response_target_answer' has not been implemented yet."
-        )
+    def extract_contents_target_answer(self, responses_content: list):
+        """Extracting the target answer from the contents of responses."""
+
+        prefix = re.escape(self.target_answer_format)
+        # 1. extract the string after the answer format
+        pattern = rf"{prefix}\s*([^.,\n]+)"
+
+        obtained_targets = []
+        for content in responses_content:
+            match = re.search(pattern, content, re.IGNORECASE)
+
+            obtained_targets.append(match.group(1) if match else None)
+
+        return obtained_targets
