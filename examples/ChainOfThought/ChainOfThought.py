@@ -43,6 +43,7 @@ def do_model_request(model, request_prompt, input_prompter):
 
     extracted_contents = model.extract_responses_content(model_responses)
     print("extracted_contents: ", extracted_contents)
+
     extracted_target_answers = input_prompter.extract_contents_target_answer(
         extracted_contents
     )
@@ -73,7 +74,7 @@ def eval_mmlu(model, eval_config):
             request_prompt = input_prompter.organize_test_prompt(
                 task_name, shots, test_sample
             )
-            do_model_request(model, request_prompt)
+            do_model_request(model, request_prompt, input_prompter)
 
 
 def eval_gsm8k(model, eval_config):
