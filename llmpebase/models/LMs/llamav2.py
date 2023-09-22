@@ -59,27 +59,20 @@ class LLaMAV2Request(llama_falcon.LLaMARequest):
         """Creating messages to be used for forwarding."""
 
         sys_prompt = "Follow the given examples and answer the question."
-        sys_prompt = f"""{sys_prompt}."""
+        sys_prompt = f"""{sys_prompt}. Please utilize a sub-sentence '{self.target_answer_format}' to point out the final solution for users to read. """
 
         if "sys_prompt" in kwargs and kwargs["sys_prompt"] is not None:
             sys_prompt = kwargs["sys_prompt"]
-
-        assist_prompt = f""" Please utilize a sub-sentence '{self.target_answer_format}' to point out the final solution for users to read. """
-
-        if "assist_prompt" in kwargs and kwargs["assist_prompt"] is not None:
-            assist_prompt = kwargs["assist_prompt"]
 
         sys_message = {
             "role": "system",
             "content": sys_prompt,
         }
-        assist_message = {"role": "assistant", "content": assist_prompt}
-
         requeset_message = {"role": "user", "content": user_prompt}
+
         request_messages = [
             sys_message,
             requeset_message,
-            assist_message,
         ]
 
         return request_messages
