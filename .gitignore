@@ -540,5 +540,6 @@ results/
 visualizations/
 
 *.dat
+DownloadedLLMs/
 
 examples/ChainOfThought/gsm8k_prompt/
