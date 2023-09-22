@@ -58,6 +58,21 @@ class MMLUStandardPrompt:
         prompt = f"""{fewshot_prompt} \n\n\n With above examples, please answer: \n {test_qa_prompt}"""
         return prompt
 
+    def extract_contents_target_answer(self, contens: List[str]):
+        """Extracting the target answer from the contents of responses."""
+
+        prefix = re.escape(self.answer_format_str)
+        # 1. extract the string after the answer format
+        pattern = rf"{prefix}([\(]?[A-Za-z][,\)]?)"
+
+        obtained_targets = []
+        for content in contens:
+            match = re.search(pattern, content, re.IGNORECASE)
+
+            obtained_targets.append(match.group(1) if match else None)
+
+        return obtained_targets
+
     @staticmethod
     def measure_answers_consistency(src_answer: str, dst_answer: str):
         """Measuring whether answers are consistent with each other."""

@@ -30,6 +30,10 @@ class BaseLMRequest:
         """Setting the target answer format."""
         self.target_answer_format = solution_format
 
+    def set_target_answer_pattern(self, solution_pattern: str = "The answer is: ."):
+        """Setting the target answer format."""
+        self.target_answer_format = solution_format
+
     def perform_request(
         self,
         input_request: Union[List[dict], str] = None,
@@ -65,18 +69,3 @@ class BaseLMRequest:
     def extract_tokens(self, responses: list):
         """Extracting answers from the obtained responses."""
         raise NotImplementedError("'extract_tokens' has not been implemented yet.")
-
-    def extract_contents_target_answer(self, responses_content: list):
-        """Extracting the target answer from the contents of responses."""
-
-        prefix = re.escape(self.target_answer_format)
-        # 1. extract the string after the answer format
-        pattern = rf"{prefix}\s*([^.,\n]+)"
-
-        obtained_targets = []
-        for content in responses_content:
-            match = re.search(pattern, content, re.IGNORECASE)
-
-            obtained_targets.append(match.group(1) if match else None)
-
-        return obtained_targets

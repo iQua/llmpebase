@@ -30,7 +30,7 @@ from llmpebase.models.LMs_prompting import gsm8k_prompt
 load_dotenv()
 
 
-def do_model_request(model, request_prompt):
+def do_model_request(model, request_prompt, input_prompter):
     """Do model request."""
     ipt_msg = model.create_format_input(
         user_prompt=request_prompt,
@@ -43,7 +43,9 @@ def do_model_request(model, request_prompt):
 
     extracted_contents = model.extract_responses_content(model_responses)
     print("extracted_contents: ", extracted_contents)
-    extracted_target_answers = model.extract_contents_target_answer(extracted_contents)
+    extracted_target_answers = input_prompter.extract_contents_target_answer(
+        extracted_contents
+    )
     print("extracted_target_answers: ", extracted_target_answers)
     print(ok)
 
@@ -95,7 +97,7 @@ def eval_gsm8k(model, eval_config):
         request_prompt = input_prompter.organize_test_prompt(
             task_name=None, few_shot_samples=samples, test_sample=test_sample
         )
-        do_model_request(model, request_prompt)
+        do_model_request(model, request_prompt, input_prompter)
 
 
 datasets_eval = {"GSM8K": eval_gsm8k, "MMLU": eval_mmlu}
