@@ -37,7 +37,7 @@ def do_model_request(model, request_prompt):
         sys_prompt="Follow the given examples and answer the question.",
     )
     model_responses = model.perform_request(
-        input_request=ipt_msg, per_request_responses=1
+        input_request=ipt_msg, per_request_responses=2
     )
     print("model_responses: ", model_responses)
 
