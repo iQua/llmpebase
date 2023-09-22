@@ -5,4 +5,4 @@
 #SBATCH --mem=64G
 #SBATCH --output=cot_mmlu_llamav2.out
 
-torchrun --nproc_per_node 1 examples/ChainOfThought/ChainOfThought.py -c configs/MMLU/llamav2.yml -b Test
+torchrun --nproc_per_node 1 examples/ChainOfThought/ChainOfThought.py -c configs/MMLU/llamav2.yml -b ICLR
