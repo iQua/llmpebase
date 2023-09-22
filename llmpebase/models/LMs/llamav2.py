@@ -78,8 +78,8 @@ class LLaMAV2Request(llama_falcon.LLaMARequest):
         requeset_message = {"role": "user", "content": user_prompt}
         request_messages = [
             sys_message,
-            assist_message,
             requeset_message,
+            assist_message,
         ]
 
         return request_messages
