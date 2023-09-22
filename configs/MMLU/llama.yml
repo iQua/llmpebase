@@ -68,6 +68,7 @@ model:
   model_name: meta-llama/Llama-2-7b-chat-hf # name of the model used by the project 
 
   model_type: llama # llama or falcon or llama_pipeline
+
   generation_settings:
     temperature: 0.7
     max_length: 200

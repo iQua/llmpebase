@@ -2,21 +2,9 @@
 Implementation of text generation with llama by using the 
 pipeline.
 """
-"""
-Getting the pre-trained LLaMA model for inference.
-
-Please check https://zhuanlan.zhihu.com/p/653926703
-for hyper-parameters settings.
-
-"""
-
-from typing import List
 
 import torch
 from transformers import pipeline, LlamaTokenizer
-
-from transformers import GenerationConfig
-import tensor_parallel as tp
 
 from vgbase.utils.folder_utils import directory_contains_subfolder
 
@@ -24,7 +12,7 @@ from vgbase.utils.folder_utils import directory_contains_subfolder
 from llmpebase.models.LMs import llama_falcon
 
 
-class LLaMAV2Request(llama_falcon.LLaMARequest):
+class LLaMAPipelineRequest(llama_falcon.LLaMARequest):
     """A class to forward the LLaMA model."""
 
     def load_model(self, model_config: dict, envs_config: dict):
@@ -38,7 +26,7 @@ class LLaMAV2Request(llama_falcon.LLaMARequest):
             checkpoint_dir = model_config["pretrained_models_dir"]
 
         model_type = model_config["model_type"]
-        assert model_type in ["llama", "falcon"]
+        assert model_type in ["llamav2"]
 
         tokenizer = LlamaTokenizer.from_pretrained(
             checkpoint_dir,

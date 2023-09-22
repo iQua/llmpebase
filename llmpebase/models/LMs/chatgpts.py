@@ -14,7 +14,7 @@ A more brief instruction:
 [4]. https://www.datacamp.com/tutorial/using-gpt-models-via-the-openai-api-in-python
 """
 
-import re
+
 import logging
 from typing import List
 
@@ -85,19 +85,27 @@ class ChatGPTAPIRequest(base.BaseLMRequest):
         See [4] for how to organize messages.
         """
         sys_prompt = "Follow the given examples and answer the question."
+        sys_prompt = f"""{sys_prompt}"""
+
         if "sys_prompt" in kwargs and kwargs["sys_prompt"] is not None:
             sys_prompt = kwargs["sys_prompt"]
 
-        sys_prompt = f"""{sys_prompt} Please utilize a sub-sentence '{self.target_answer_format}' to point out the final solution for users to read."""
+        assist_prompt = f""" Please utilize a sub-sentence '{self.target_answer_format}' to point out the final solution for users to read. """
+        if "assist_prompt" in kwargs and kwargs["assist_prompt"] is not None:
+            assist_prompt = kwargs["sys_prompt"]
 
         sys_message = {
             "role": "system",
             "content": sys_prompt,
         }
-
+        assist_message = {
+            "role": "assistant",
+            "content": assist_prompt,
+        }
         requeset_message = {"role": "user", "content": user_prompt}
         request_messages = [
             sys_message,
+            assist_message,
             requeset_message,
         ]
 
@@ -121,7 +129,7 @@ class ChatGPTAPIRequest(base.BaseLMRequest):
             raise ValueError("Either input_request or user_prompt should be provided")
 
         input_messages = (
-            self.create_format_input(user_prompt)
+            self.create_format_input(user_prompt, **kwargs)
             if input_request is None
             else input_request
         )
@@ -139,12 +147,12 @@ class ChatGPTAPIRequest(base.BaseLMRequest):
 
         return model_responses
 
-    def extract_answers(self, responses: list):
-        """Extracting answer from the response of the model."""
-        answers = []
+    def extract_responses_content(self, responses: list):
+        """Extracting main content from the obtained responses."""
+        contents = []
         for res in responses:
-            answers.extend(choice["message"]["content"] for choice in res["choices"])
-        return answers
+            contents.extend(choice["message"]["content"] for choice in res["choices"])
+        return contents
 
     def extract_tokens(self, responses: list):
         """Extracting tokens from the responses."""
@@ -154,21 +162,6 @@ class ChatGPTAPIRequest(base.BaseLMRequest):
             completion_tokens += res["usage"]["completion_tokens"]
             prompt_tokens += res["usage"]["prompt_tokens"]
         return completion_tokens, prompt_tokens
-
-    def extract_response_target_answer(self, responses: list):
-        """Extracting the target answer from the responses."""
-
-        prefix = re.escape(self.target_answer_format)
-        # 1. extract the string after the answer format
-        pattern = rf"{prefix}\s*([^.,\n]+)"
-
-        obtained_targets = []
-        for content in responses:
-            match = re.search(pattern, content, re.IGNORECASE)
-
-            obtained_targets.append(match.group(1) if match else None)
-
-        return obtained_targets
 
 
 if __name__ == "__main__":

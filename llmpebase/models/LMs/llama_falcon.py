@@ -6,7 +6,6 @@ for hyper-parameters settings.
 
 """
 
-from typing import List
 
 import torch
 from transformers import LlamaForCausalLM, LlamaTokenizer, AutoModelForCausalLM
@@ -107,12 +106,6 @@ class LLaMARequest(base.BaseLMRequest):
 
         return model, tokenizer
 
-    def create_format_prompt(self, instruction: str, prompts: List[str]):
-        """Creating prompts for the LLaMA models."""
-        instruction = f"{instruction}\n\n"
-        format_prompt = "\n".join(prompts)
-        return format_prompt
-
     def get_tokens_input(self, prompts):
         """Getting the tokens of prompts"""
         input_tokens = self.tokenizer.batch_encode_plus(
@@ -168,13 +161,10 @@ class LLaMARequest(base.BaseLMRequest):
         if "instruct_prompt" in kwargs and kwargs["instruct_prompt"] is not None:
             instruct_prompt = kwargs["sys_prompt"]
 
-        # prompt = f"""{instruct_prompt} Please utilize a sub-sentence '{self.target_answer_format}' to point out the final solution for users to read. \n\n {user_prompt}"""
-        prompt = "What is the ChapGPT?"
+        prompt = f"""{instruct_prompt} Please utilize a sub-sentence '{self.target_answer_format}' to point out the final solution for users to read. \n\n {user_prompt}"""
+
         return prompt
 
-    def extract_answers(self, responses: list):
-        """Extracting answer from the response of the model."""
-        answers = []
-        for res in responses:
-            answers.extend(choice["message"]["content"] for choice in res["choices"])
-        return answers
+    def extract_responses_content(self, responses: list):
+        """Extracting main contents from the obtained responses."""
+        return responses

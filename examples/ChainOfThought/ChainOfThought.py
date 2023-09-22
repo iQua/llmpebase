@@ -13,7 +13,7 @@ from vgbase.utils.envs_utils import define_env
 from vgbase.config import Config
 from dotenv import load_dotenv
 
-from llmpebase.models.LMs import chatgpts, llama_falcon, llama_pipeline
+from llmpebase.models.LMs import chatgpts, llama_falcon, llama_pipeline, llamav2
 
 # from llmpebase.datasets.mmlu import DataSource as mmlu_datasource
 from llmpebase.datasets.mmlu import (
@@ -40,11 +40,12 @@ def do_model_request(model, request_prompt):
         input_request=ipt_msg, per_request_responses=1
     )
     print("model_responses: ", model_responses)
+
+    extracted_answers = model.extract_responses_content(model_responses)
+    print(extracted_answers)
+    extract_target_answers = model.extract_contents_target_answer(extracted_answers)
+    print(extract_target_answers)
     print(ok)
-    extract_answer = model.extract_answers(model_responses)
-    print(extract_answer)
-    extract_target_answer = model.extract_response_target_answer(extract_answer)
-    print(extract_target_answer)
 
 
 def eval_mmlu(model, eval_config):
@@ -130,11 +131,14 @@ def _main():
             api_key=os.getenv("OPENAI_API_KEY"),
         )
 
-    if "llama_pipeline" == model_config["model_type"]:
-        request_model = llama_pipeline.LLaMAV2Request(model_config, env_config)
+    if "model_type" in model_config and "llama_pipeline" == model_config["model_type"]:
+        request_model = llama_pipeline.LLaMAPipelineRequest(model_config, env_config)
 
-    if "llama" == model_config["model_type"]:
+    if "model_type" in model_config and "llama" == model_config["model_type"]:
         request_model = llama_falcon.LLaMARequest(model_config, env_config)
+
+    if "model_type" in model_config and "llamav2" == model_config["model_type"]:
+        request_model = llamav2.LLaMAV2Request(model_config, env_config)
 
     #################### Do evaluation for the dataset ####################
     eval_config = Config.items_to_dict(eval_config._asdict())
