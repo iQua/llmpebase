@@ -13,7 +13,7 @@ from vgbase.utils.envs_utils import define_env
 from vgbase.config import Config
 from dotenv import load_dotenv
 
-from llmpebase.models.LMs import chatgpts, llama_falcon
+from llmpebase.models.LMs import chatgpts, llama_falcon, llama_pipeline
 
 # from llmpebase.datasets.mmlu import DataSource as mmlu_datasource
 from llmpebase.datasets.mmlu import (
@@ -130,7 +130,10 @@ def _main():
             api_key=os.getenv("OPENAI_API_KEY"),
         )
 
-    if "llama" in model_config["model_name"]:
+    if "llama_pipeline" == model_config["model_type"]:
+        request_model = llama_pipeline.LLaMAV2Request(model_config, env_config)
+
+    if "llama" == model_config["model_type"]:
         request_model = llama_falcon.LLaMARequest(model_config, env_config)
 
     #################### Do evaluation for the dataset ####################

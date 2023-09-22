@@ -15,7 +15,6 @@ import tensor_parallel as tp
 
 from vgbase.utils.folder_utils import directory_contains_subfolder
 
-from llmpebase.models.LMs.prompt_utlis import batch_split
 
 from llmpebase.models.LMs import base
 
@@ -149,8 +148,7 @@ class LLaMARequest(base.BaseLMRequest):
         model_inputs = [model_input for _ in range(per_request_responses)]
 
         encode_inputs = self.get_tokens_input(model_inputs)
-        print("-----")
-        print(self.generation_config)
+
         generate_ids = self.model.generate(
             **encode_inputs,
             generation_config=GenerationConfig(**self.generation_config),
