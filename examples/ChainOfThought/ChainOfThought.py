@@ -42,9 +42,9 @@ def do_model_request(model, request_prompt):
     print("model_responses: ", model_responses)
 
     extracted_contents = model.extract_responses_content(model_responses)
-    print(extracted_contents)
+    print("extracted_contents: ", extracted_contents)
     extracted_target_answers = model.extract_contents_target_answer(extracted_contents)
-    print(extracted_target_answers)
+    print("extracted_target_answers: ", extracted_target_answers)
     print(ok)
 
 
