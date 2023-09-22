@@ -104,10 +104,14 @@ class LLaMAV2Request(llama_falcon.LLaMARequest):
 
     def extract_responses_content(self, responses: list):
         """Extracting answer from the response of the model."""
-        answers = []
+        print("-------- raw responses: ")
+        print(responses)
+        print("---------------------")
+
+        contents = []
         for res in responses:
-            answers.extend(res["generation"]["content"])
-        return answers
+            contents.extend(res["generation"]["content"])
+        return contents
 
     def extract_tokens(self, responses: list):
         """Extracting tokens from the responses."""

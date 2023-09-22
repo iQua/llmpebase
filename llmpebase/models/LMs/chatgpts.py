@@ -166,12 +166,12 @@ if __name__ == "__main__":
     # Define the user message
     user_msg = 'Create a small dataset about total sales over the last year. The format of the dataset should be a data frame with 12 rows and 2 columns. The columns should be called "month" and "total_sales_usd". The "month" column should contain the shortened forms of month names from "Jan" to "Dec". The "total_sales_usd" column should contain random numeric values taken from a normal distribution with mean 100000 and standard deviation 5000. Provide Python code to generate the dataset, then provide the output in the format of a markdown table.'
 
-    created_messages = chatgpt_api.create_messages(
-        textual_user_prompt=user_msg, textual_sys_prompt=system_msg
+    created_messages = chatgpt_api.create_format_input(
+        user_prompt=user_msg, sys_prompt=system_msg
     )
 
     response = chatgpt_api.perform_request(request_input=created_messages)
-    answer = chatgpt_api.extract_answer(response)
+    content = chatgpt_api.extract_responses_content(response)
     print("\n")
     print(response)
-    print(answer)
+    print(content)
