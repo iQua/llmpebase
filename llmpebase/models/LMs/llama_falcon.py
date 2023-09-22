@@ -26,8 +26,6 @@ class LLaMARequest(base.BaseLMRequest):
 
         self.model, self.tokenizer = self.load_model(model_config, envs_config)
 
-        self.model.eval()
-
     def get_generation_config(self):
         """Getting the model request config."""
 
@@ -168,3 +166,7 @@ class LLaMARequest(base.BaseLMRequest):
     def extract_responses_content(self, responses: list):
         """Extracting main contents from the obtained responses."""
         return responses
+
+    def extract_tokens(self, responses: list):
+        """Extracting answers from the obtained responses."""
+        pass
