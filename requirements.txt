@@ -133,12 +133,9 @@ timm==0.6.12
 tokenizers==0.13.2
 tomli==2.0.1
 tomlkit==0.11.6
-torch==2.2.0.dev20230921
 torch-optimizer==0.3.0
-torchaudio==2.2.0.dev20230921
 torchinfo==1.7.1
 torchmetrics==0.11.1
-torchvision==0.17.0.dev20230921
 tqdm==4.64.1
 transformers==4.33.2
 typing_extensions==4.7.1
