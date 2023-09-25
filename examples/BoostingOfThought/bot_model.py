@@ -74,7 +74,7 @@ class ThoughtModel:
         responses = self.request_model.perform_request(
             user_prompt=prompt, per_request_responses=num_thoughts
         )
-        thoughts = self.request_model.extract_answers(responses)
+        thoughts = self.request_model.extract_responses_content(responses)
         return thoughts
 
     def evaluate_though_chain(
@@ -85,7 +85,7 @@ class ThoughtModel:
         responses = self.request_model.perform_request(
             user_prompt=prompt, per_request_responses=1
         )
-        evaluation = self.request_model.extract_answers(responses)[0]
+        evaluation = self.request_model.extract_responses_content(responses)[0]
 
         # Extract the evaluation score
         score = 0
@@ -117,7 +117,7 @@ class ThoughtModel:
         responses = self.request_model.perform_request(
             user_prompt=prompt, per_request_responses=1
         )
-        similairity_answer = self.request_model.extract_answers(responses)[0]
+        similairity_answer = self.request_model.extract_responses_content(responses)[0]
 
         # Extract the similairity score
         score = 0

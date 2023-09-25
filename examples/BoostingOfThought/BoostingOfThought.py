@@ -34,7 +34,7 @@ def do_model_request(chatgpt_api, request_prompt):
     )
     print("model_responses: ", model_responses)
 
-    extract_answer = chatgpt_api.extract_answers(model_responses)
+    extract_answer = chatgpt_api.extract_responses_content(model_responses)
     print(extract_answer)
     extract_target_answer = chatgpt_api.extract_response_target_answer(extract_answer)
     print(extract_target_answer)
