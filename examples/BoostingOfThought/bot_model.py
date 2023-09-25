@@ -40,7 +40,7 @@ class ThoughtModel:
         Below are the previous reasoning steps, presented in order, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.): \n
         {chain_prompt}
 
-        By learning from the given previous reasoning steps, please include one possible next reasoning step toward solving the task in your response. Be simple. Be direct. Provide only one intuitive and logical step as soon as you think of it. In each step, you can only select two from the number set to perform Addition, subtraction, multiplication, or division to obtain a new number, which is combined with the remaining number to get a new number set for the next step.
+        By learning from the given previous reasoning steps, please include one possible next reasoning step toward solving the task in your response. Be simple. Be direct. Provide only one intuitive and logical step as soon as you think of it.
         """
 
         return prompt
