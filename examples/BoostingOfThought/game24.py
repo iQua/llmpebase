@@ -43,7 +43,7 @@ def _main():
 
     root_node = residual_tree_of_thoughts.ThoughtNode(
         name="1",
-        thought="This is a mathematical reasoning challenge, where the goal is to use four given numbers and basic arithmetic operations, including Addition, subtraction, multiplication, and division, to obtain 24. The given four numbers are: 2, 4, 5, 5.",
+        thought="This is a mathematical reasoning challenge, where the goal is to use four given numbers and basic arithmetic operations, including Addition, subtraction, multiplication, and division, to obtain 24. In each step, you can only select two from the number set to perform Addition, subtraction, multiplication, or division to obtain a new number, which is combined with the remaining number to get a new number set for the next step. The given four numbers are: 2, 4, 5, 5.",
         thought_score=None,
     )
 

@@ -37,10 +37,10 @@ class ThoughtModel:
 
         prompt = f"""{self.prompt_head} But, instead of showing the answer as a whole, you should present only one reasoning step in each response by learning from the previous reasoning steps.\n
         Devise the best possible solution for the task: {task_prompt}. \n\n
-        Below are the reasoning steps, presented in order, accompanied by their evaluated scores: \n
+        Below are the previous reasoning steps, presented in order, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.): \n
         {chain_prompt}
 
-        Based on these given steps, please give one possible next reasoning step toward solving the given problem in your response. Be simple. Be direct. Provide one intuitive and logical step as soon as you think of it.
+        By learning from the given previous reasoning steps, please give one possible next reasoning step toward solving the given problem in your response. Be simple. Be direct. Provide one intuitive and logical step as soon as you think of it.
         """
 
         return prompt
