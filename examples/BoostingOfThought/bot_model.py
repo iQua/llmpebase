@@ -25,7 +25,7 @@ class ThoughtModel:
         ]
         intermediate_steps = "\n".join(intermediate_steps)
         reasoning_chain_prompt = f"""
-        ###{intermediate_steps}###
+        {intermediate_steps}
         
         """
         return reasoning_chain_prompt
