@@ -59,7 +59,7 @@ class LLaMAV2Request(llama_falcon.LLaMARequest):
         """Creating messages to be used for forwarding."""
 
         sys_prompt = "Follow the given prompt and answer the question."
-        sys_prompt = f"""{sys_prompt}. Please utilize a sub-sentence '{self.target_answer_format}' to point out the final solution for users to read. """
+        sys_prompt = f"""{sys_prompt}. Please utilize a sub-sentence '{self.target_answer_format}' to point out the core response for users to read. """
 
         if "sys_prompt" in kwargs and kwargs["sys_prompt"] is not None:
             sys_prompt = kwargs["sys_prompt"]
