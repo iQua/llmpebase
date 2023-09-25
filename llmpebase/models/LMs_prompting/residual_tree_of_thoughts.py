@@ -280,7 +280,7 @@ class RedusialTreeofThoughts:
     def get_thoughs_chain(self, node: ThoughtNode = None, node_id: str = None):
         """Organizing the thoughts towards target node."""
         node_path = node.path if node is not None else self.nodes[node_id].path
-        return [(i_node.thought, i_node.thought_score) for i_node in node_path]
+        return [i_node for i_node in node_path]
 
     def get_best_though_chain(self):
         """Getting the best though chain in the tree."""
