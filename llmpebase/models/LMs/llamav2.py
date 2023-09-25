@@ -58,7 +58,7 @@ class LLaMAV2Request(llama_falcon.LLaMARequest):
     def create_format_input(self, user_prompt: str, **kwargs) -> Dialog:
         """Creating messages to be used for forwarding."""
 
-        sys_prompt = "Follow the given prompt and answer the question."
+        sys_prompt = "Follow the given prompt to generate correct response."
         sys_prompt = f"""{sys_prompt}. Please utilize a sub-sentence '{self.target_answer_format}' to point out the core response for users to read. """
 
         if "sys_prompt" in kwargs and kwargs["sys_prompt"] is not None:
@@ -96,6 +96,8 @@ class LLaMAV2Request(llama_falcon.LLaMARequest):
         )
         input_dialogs = [dialog for _ in range(per_request_responses)]
 
+        print("-------")
+        print("input_dialogs: ", input_dialogs)
         responses = self.model.chat_completion(
             input_dialogs,
             **self.generation_config,
