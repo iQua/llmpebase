@@ -32,11 +32,11 @@ class ThoughtModel:
 
     def organize_next_though_prompt(self, thoughts_node_chain: List[ThoughtNode]):
         """Generating the prompt for next thought."""
-        initial_prompt = thoughts_node_chain[0].thought
+        task_prompt = thoughts_node_chain[0].thought
         chain_prompt = self.organize_thoughs_chain_prompt(thoughts_node_chain)
 
-        prompt = f"""{self.prompt_head}. But, instead of showing the answer as a whole, you should present only one reasoning step in each response by learning from the previous reasoning steps.\n
-        Devise the best possible solution for the task: {initial_prompt}. \n\n
+        prompt = f"""{self.prompt_head} But, instead of showing the answer as a whole, you should present only one reasoning step in each response by learning from the previous reasoning steps.\n
+        Devise the best possible solution for the task: {task_prompt}. \n\n
         Below are the reasoning steps, presented in order, accompanied by their evaluated scores: \n
         {chain_prompt}
 
@@ -50,10 +50,10 @@ class ThoughtModel:
     ):
         """Organizing the prompt for thought evaluation."""
 
-        initial_prompt = thoughts_node_chain[0].thought
+        task_prompt = thoughts_node_chain[0].thought
         chain_prompt = self.organize_thoughs_chain_prompt(thoughts_node_chain)
         prompt = f"""{self.prompt_head}. By analyzing the given task and the previous reasoning steps, you should evaluate the newly generated reasoning step by presenting a score to measure how much this step approaches the final solution. \n
-        Devise the best possible solution for the task: {initial_prompt}. \n\n
+        Devise the best possible solution for the task: {task_prompt}. \n\n
         Below are the reasoning steps, presented in order, accompanied by their evaluated scores: \n
         {chain_prompt}
         Based on these given steps, please evaluate this thought:
