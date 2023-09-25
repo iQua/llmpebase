@@ -84,8 +84,8 @@ model:
   downloaded_tokenizer_path: DownloadedLLMs/tokenizer.model
 
   generation_settings:
-    temperature: 0.7
-    top_p: 0.75
+    temperature: 1
+    top_p: 0.9
     max_gen_len: null
 
   # whether utilize the pretrained full model,

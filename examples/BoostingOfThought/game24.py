@@ -39,6 +39,8 @@ def _main():
     if "model_type" in model_config and "llamav2" == model_config["model_type"]:
         request_model = llamav2.LLaMAV2Request(model_config, env_config)
 
+    request_model.set_target_answer_format(solution_format="The answer is: .")
+
     root_node = residual_tree_of_thoughts.ThoughtNode(
         name="1",
         thought="This is a mathematical reasoning challenge, where the goal is to use four given numbers and basic arithmetic operations, including Addition, subtraction, multiplication, and division, to obtain 24. The given four numbers are: 2, 4, 5, 5.",
