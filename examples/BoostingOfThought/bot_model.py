@@ -35,12 +35,12 @@ class ThoughtModel:
         task_prompt = thoughts_node_chain[0].thought
         chain_prompt = self.organize_thoughs_chain_prompt(thoughts_node_chain)
 
-        prompt = f"""{self.prompt_head} But, instead of showing all steps in one response, you should present only one reasoning step in each response by learning from the previous reasoning steps.\n
+        prompt = f"""{self.prompt_head} But, instead of showing all steps in one response, you should present only one reasoning step in each response by learning from the previous reasoning steps.\n 
         Devise the best possible solution for the task: {task_prompt}. \n\n
         Below are the previous reasoning steps, presented in order, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.): \n
         {chain_prompt}
 
-        By learning from the given previous reasoning steps, please include one possible next reasoning step toward solving the task in your response. Be simple. Be direct. Provide only one intuitive and logical step as soon as you think of it.
+        By learning from the given previous reasoning steps, please include one possible next reasoning step toward solving the task in your response. Be simple. Be direct. Provide only one intuitive and logical step as soon as you think of it. In each step, you can only select two from the number set to perform Addition, subtraction, multiplication, or division to obtain a new number, which is combined with the remaining number to get a new number set for the next step.
         """
 
         return prompt
