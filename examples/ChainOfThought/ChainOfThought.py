@@ -90,7 +90,6 @@ def eval_gsm8k(model, eval_config):
     n_shots = eval_config["n_shots"]
 
     n_test_samples = len(test_set)
-    print("n_test_samples: ", n_test_samples)
     for test_idx, test_sample in enumerate(test_set):
         samples = [train_set[random.randint(0, len(test_set))] for _ in range(n_shots)]
         request_prompt = input_prompter.organize_test_prompt(

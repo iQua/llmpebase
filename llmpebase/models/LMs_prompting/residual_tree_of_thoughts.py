@@ -57,10 +57,10 @@ class ThoughtNode(NodeMixin):
         # and no child will be added
         self.is_leaf_terminal = False
 
-    def backup_similar_though(self, though: str, though_score: int):
+    def backup_similar_though(self, though: str, thought_score: int):
         """Inserting a similar though to the backup."""
         self.backup_thoughs.append(though)
-        self.backup_thoughs_scores.append(though_score)
+        self.backup_thoughs_scores.append(thought_score)
 
     def remove_children(self):
         """Removing the children of one node."""
@@ -99,7 +99,7 @@ class RedusialTreeofThoughts:
         self,
         model,
         n_child_nodes: int = 2,
-        **kwargs,
+        model_config: dict = {},
     ):
         # the model used to build the tree
         self.model = model
@@ -117,50 +117,58 @@ class RedusialTreeofThoughts:
 
         self.n_child_nodes = n_child_nodes
 
-        self.set_thresholds(**kwargs)
+        self.tree_config = model_config["tree_settings"]
+
+        self.set_thresholds(self.tree_config)
 
         self.best_thought = None
         self.best_value = float("-inf")
         self.history = []  # added line initalize history
 
-    def set_thresholds(self, **kwargs):
+    def set_thresholds(self, tree_config):
         """Setting the threshold of the tree."""
 
         self.min_thoughts_similarity: float = (
             0.8
-            if "min_thoughts_similarity" not in kwargs
-            else kwargs["min_thoughts_similarity"]
+            if "min_thoughts_similarity" not in tree_config
+            else tree_config["min_thoughts_similarity"]
         )
         self.max_thoughts_score_diff: float = (
             0.1
-            if "max_thoughts_score_diff" not in kwargs
-            else kwargs["max_thoughts_score_diff"]
+            if "max_thoughts_score_diff" not in tree_config
+            else tree_config["max_thoughts_score_diff"]
         )
 
         # num_leaves <= 2**max_depth - 1
-        self.num_leaves: int = 6 if "num_leaves" not in kwargs else kwargs["num_leaves"]
-        self.max_depth: int = 3 if "max_depth" not in kwargs else kwargs["max_depth"]
+        self.num_leaves: int = (
+            6 if "num_leaves" not in tree_config else tree_config["num_leaves"]
+        )
+        self.max_depth: int = (
+            3 if "max_depth" not in tree_config else tree_config["max_depth"]
+        )
 
         # if you use the leaf-wise first, max_steps should be set
         self.max_steps: int = (
-            2**self.max_depth if "max_steps" not in kwargs else kwargs["max_steps"]
+            2**self.max_depth
+            if "max_steps" not in tree_config
+            else tree_config["max_steps"]
         )
 
-        self.min_leaf_though_score: float = (
+        self.min_leaf_thought_score: float = (
             0.3
-            if "min_leaf_though_score" not in kwargs
-            else kwargs["min_leaf_though_score"]
+            if "min_leaf_thought_score" not in tree_config
+            else tree_config["min_leaf_thought_score"]
         )
 
-        self.max_leaf_though_score: float = (
+        self.max_leaf_thought_score: float = (
             0.8
-            if "max_leaf_though_score" not in kwargs
-            else kwargs["max_leaf_though_score"]
+            if "max_leaf_thought_score" not in tree_config
+            else tree_config["max_leaf_thought_score"]
         )
 
     def construct_tree_root(
         self,
-        though: str = None,
+        thought: str = None,
         residual_though: str = None,
         thought_score: float = None,
     ):
@@ -170,7 +178,7 @@ class RedusialTreeofThoughts:
 
         self.root = ResidualThoughtNode(
             name=str(identity_int),
-            thought=though,
+            thought=thought,
             thought_score=thought_score,
             parent=None,
             children=None,
@@ -211,10 +219,10 @@ class RedusialTreeofThoughts:
         return (
             similarity_score >= self.min_thoughts_similarity
             and score_diff <= self.max_thoughts_score_diff
-            and self.is_duplicated_though_chain(node.parent, parent_node)
+            and self.is_duplicated_thought_chain(node.parent, parent_node)
         )
 
-    def is_duplicated_though_chain(
+    def is_duplicated_thought_chain(
         self,
         node_src: ThoughtNode,
         node_tgt: ThoughtNode,
@@ -224,10 +232,18 @@ class RedusialTreeofThoughts:
 
     def is_trigger_leaf_node(self, node: ThoughtNode):
         """Whether to trigger the node to become a leaf node."""
+
+        print("self.max_depth: ", self.max_depth)
+        print("self.min_leaf_thought_score: ", self.min_leaf_thought_score)
+        print("self.max_leaf_thought_score: ", self.max_leaf_thought_score)
+        print("self.num_leaves: ", self.num_leaves)
+        print("node.depth: ", node.depth)
+        print("node.thought_score: ", node.thought_score)
+        print("len(self.root.leaves): ", len(self.root.leaves))
         return (
             node.depth > self.max_depth
-            or node.thought_score <= self.min_leaf_though_score
-            or node.thought_score >= self.max_leaf_though_score
+            or node.thought_score <= self.min_leaf_thought_score
+            or node.thought_score >= self.max_leaf_thought_score
             or len(self.root.leaves) >= self.num_leaves
         )
 
@@ -282,7 +298,7 @@ class RedusialTreeofThoughts:
         node_path = node.path if node is not None else self.nodes[node_id].path
         return [i_node for i_node in node_path]
 
-    def get_best_though_chain(self):
+    def get_best_thought_chain(self):
         """Getting the best though chain in the tree."""
         best_value = 0
         best_leaf_node = None
@@ -327,7 +343,7 @@ class RedusialTreeofThoughts:
             num_thoughts=self.n_child_nodes,
         )
         evaluated_thoughts = {
-            thought: self.model.evaluate_though_chain(thoughts_chain, thought)
+            thought: self.model.evaluate_thought_chain(thoughts_chain, thought)
             for thought in new_thoughts
         }
 

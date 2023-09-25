@@ -20,14 +20,14 @@ class ThoughtModel:
         # initial prompt should be the thought of the root noe
         intermediate_thoughts_node = thoughts_node_chain[1:]
         intermediate_steps = [
-            f"'{thought_node.though}'. 'Evaluate Score: {thought_node.thought_score}'"
-            for thought_node in intermediate_thoughts_node
+            f"""Step str{idx}: '{thought_node.thought}. Evaluate Score: {thought_node.thought_score}'"""
+            for idx, thought_node in enumerate(intermediate_thoughts_node)
         ]
-        intermediate_steps = "\n".join(intermediate_steps)
+        intermediate_steps = "\n\n".join(intermediate_steps)
         reasoning_chain_prompt = f"""{intermediate_steps}"""
         return reasoning_chain_prompt
 
-    def organize_next_though_prompt(self, thoughts_node_chain: List[ThoughtNode]):
+    def organize_next_thought_prompt(self, thoughts_node_chain: List[ThoughtNode]):
         """Generating the prompt for next thought."""
         task_prompt = thoughts_node_chain[0].thought
         chain_prompt = self.organize_thoughs_chain_prompt(thoughts_node_chain)
@@ -36,27 +36,7 @@ class ThoughtModel:
         Devise the best possible solution for the task: {task_prompt}. \n
         Below are the previous reasoning steps, presented in order, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.): \n
         {chain_prompt}
-        By learning from the given previous reasoning steps (you can ignore them when the above space is empty), please include one possible next reasoning step toward solving the task in your response. In each step, you can only select two from the number set to perform Addition, subtraction, multiplication, or division to obtain a new number, which is combined with the remaining number to get a new number set for the next step. So what is the next reasoning step?
-        """
-
-        return prompt
-
-    def organize_though_evaluation_prompt(
-        self, thoughts_node_chain: List[ThoughtNode], thought: str
-    ):
-        """Organizing the prompt for thought evaluation."""
-
-        task_prompt = thoughts_node_chain[0].thought
-        chain_prompt = self.organize_thoughs_chain_prompt(thoughts_node_chain)
-        prompt = f"""{self.prompt_head}. By analyzing the given task and the previous reasoning steps, you should evaluate the newly generated reasoning step by presenting a score to measure how much this step approaches the final solution. \n
-        Devise the best possible solution for the task: {task_prompt}. \n\n
-        Below are the reasoning steps, presented in order, accompanied by their evaluated scores: \n
-        {chain_prompt}
-        Based on these given steps, please evaluate this thought:
-        {thought}
-        \n\n
-        by producing a value ranging from 0 to 1, where 0 means this thought is not related to the final solution and 1 means this thought is the solution. 
-        The generated response should include one sub-sentence with the format: 'Evaluation score:' for users to read. 
+        Based on the obtained previous reasoning steps (you can ignore them when the above space is empty), please include one possible next reasoning step toward solving the task in your response. So what is the next reasoning step? (In each step: First, you randomly select two numbers from the current number set to perform Addition, subtraction, multiplication, or division to obtain a new number. Second, you should delete the selected two numbers from your current set. Then, if the deleted number set does not have the remaining number, the new number set is the obtained new number. If the deleted number set has remaining numbers, you combine the remaining numbers and the obtained new number into a new set for subsequent usage.)
         """
 
         return prompt
@@ -65,7 +45,7 @@ class ThoughtModel:
         self, thoughts_node_chain: List[ThoughtNode], num_thoughts: int = 2
     ) -> List[str]:
         """Generating one thought based on the existing thought chain."""
-        prompt = self.organize_next_though_prompt(thoughts_node_chain)
+        prompt = self.organize_next_thought_prompt(thoughts_node_chain)
 
         print(prompt)
 
@@ -75,11 +55,30 @@ class ThoughtModel:
         thoughts = self.request_model.extract_responses_content(responses)
         return thoughts
 
-    def evaluate_though_chain(
+    def organize_thought_evaluation_prompt(
+        self, thoughts_node_chain: List[ThoughtNode], thought: str
+    ):
+        """Organizing the prompt for thought evaluation."""
+
+        task_prompt = thoughts_node_chain[0].thought
+        chain_prompt = self.organize_thoughs_chain_prompt(thoughts_node_chain)
+        prompt = f"""
+        Devise the best possible solution for the task: {task_prompt}. \n\n
+        Below are the reasoning steps, presented in order, accompanied by their evaluated scores given by you: \n
+        {chain_prompt}
+        {thought}
+
+        Based on these intermediate reasoning steps, whether the task can be solved based on your evaluation? Please give me an evaluation score ranging from 0 to 1, where a higher score means that the task is more likely solved by the given reasoning step. 
+        The generated response should include one sub-sentence with the format: 'Evaluation score:' for users to read. 
+        """
+
+        return prompt
+
+    def evaluate_thought_chain(
         self, thoughts_node_chain: List[ThoughtNode], thought: str
     ):
         """Evaluating the thought chain by LLMs."""
-        prompt = self.organize_though_evaluation_prompt(thoughts_node_chain, thought)
+        prompt = self.organize_thought_evaluation_prompt(thoughts_node_chain, thought)
         responses = self.request_model.perform_request(
             user_prompt=prompt, per_request_responses=1
         )
@@ -92,6 +91,35 @@ class ThoughtModel:
             score = float(match.group(1))
 
         return score
+
+    def organize_thoughts_chain_feedback_prompt(
+        self, thoughts_node_chain: List[ThoughtNode]
+    ):
+        """Organizing the prompt for thoughts feedback."""
+
+        task_prompt = thoughts_node_chain[0].thought
+        chain_prompt = self.organize_thoughs_chain_prompt(thoughts_node_chain)
+        prompt = f"""
+        For the task: {task_prompt}. \n
+        Below are the obtained reasoning steps, presented in order, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.) given by you: \n
+        {chain_prompt}
+
+        Based on these intermediate reasoning steps, whether the task can be solved and the final solution is correct? If not, please analyze these steps and explain the failure's reasons. Otherwise, when these steps are ready to complete the task, please combine them to present a brief and clear solution toward problem solving.
+        """
+
+        return prompt
+
+    def get_thought_chain_feedback(self, thoughts_node_chain: List[ThoughtNode]):
+        """Getting the feedback of the thought chain from the LLMs."""
+        prompt = self.organize_thoughts_chain_feedback_prompt(thoughts_node_chain)
+
+        print("------------ FeedBack --------")
+        print(prompt)
+        responses = self.request_model.perform_request(
+            user_prompt=prompt, per_request_responses=1
+        )
+        feedback = self.request_model.extract_responses_content(responses)
+        return feedback
 
     def measure_similarity(
         self, thought_a, thought_b, priorities: list = None, rejections: list = None
