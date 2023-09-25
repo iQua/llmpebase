@@ -71,6 +71,8 @@ class ThoughtModel:
         """Generating one thought based on the existing thought chain."""
         prompt = self.organize_next_though_prompt(thoughts_node_chain)
 
+        print(prompt)
+
         responses = self.request_model.perform_request(
             user_prompt=prompt, per_request_responses=num_thoughts
         )
