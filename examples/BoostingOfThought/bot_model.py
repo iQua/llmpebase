@@ -36,7 +36,7 @@ class ThoughtModel:
         Devise the best possible solution for the task: {task_prompt}. \n
         Below are the previous reasoning steps, presented in order, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.): \n
         {chain_prompt}
-        By learning from the given previous reasoning steps (you can ignore previous steps when the above space is empty), please include one possible next reasoning step toward solving the task in your response. In each step, you can only select two from the number set to perform Addition, subtraction, multiplication, or division to obtain a new number, which is combined with the remaining number to get a new number set for the next step.
+        By learning from the given previous reasoning steps (you can ignore them when the above space is empty), please include one possible next reasoning step toward solving the task in your response. In each step, you can only select two from the number set to perform Addition, subtraction, multiplication, or division to obtain a new number, which is combined with the remaining number to get a new number set for the next step. So what is the next reasoning step?
         """
 
         return prompt
