@@ -24,10 +24,7 @@ class ThoughtModel:
             for thought_node in intermediate_thoughts_node
         ]
         intermediate_steps = "\n".join(intermediate_steps)
-        reasoning_chain_prompt = f"""
-        {intermediate_steps}
-        
-        """
+        reasoning_chain_prompt = f"""{intermediate_steps}"""
         return reasoning_chain_prompt
 
     def organize_next_though_prompt(self, thoughts_node_chain: List[ThoughtNode]):
@@ -36,10 +33,9 @@ class ThoughtModel:
         chain_prompt = self.organize_thoughs_chain_prompt(thoughts_node_chain)
 
         prompt = f"""{self.prompt_head} But, instead of showing all steps in one response, you should present only one reasoning step in each response by learning from the previous reasoning steps.\n 
-        Devise the best possible solution for the task: {task_prompt}. \n\n
+        Devise the best possible solution for the task: {task_prompt}. \n
         Below are the previous reasoning steps, presented in order, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.): \n
         {chain_prompt}
-
         By learning from the given previous reasoning steps (you can ignore previous steps when the above space is empty), please include one possible next reasoning step toward solving the task in your response. Be simple. Be direct. Provide only one intuitive and logical step as soon as you think of it.
         """
 
