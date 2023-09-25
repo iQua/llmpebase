@@ -50,7 +50,7 @@ def _main():
     gen_model = bot_model.ThoughtModel(request_model=request_model)
 
     answers = gen_model.generate_thoughts(
-        thoughts_node_chain=[root_node], num_thoughts=20
+        thoughts_node_chain=[root_node], num_thoughts=8
     )
     print(answers)
 
