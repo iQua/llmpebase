@@ -39,16 +39,14 @@ def do_model_request(model, request_prompt, input_prompter):
     model_responses = model.perform_request(
         input_request=ipt_msg, per_request_responses=2
     )
-    print("model_responses: ", model_responses)
 
     extracted_contents = model.extract_responses_content(model_responses)
-    print("extracted_contents: ", extracted_contents)
 
     extracted_target_answers = input_prompter.extract_contents_target_answer(
         extracted_contents
     )
-    print("extracted_target_answers: ", extracted_target_answers)
-    print(ok)
+
+    return extracted_target_answers
 
 
 def eval_mmlu(model, eval_config):

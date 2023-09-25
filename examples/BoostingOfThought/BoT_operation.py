@@ -10,7 +10,8 @@ import numpy as np
 from llmpebase.models.LMs_prompting import residual_tree_of_thoughts
 from llmpebase.models.LMs import chatgpts
 
-import fot_model
+import bot_model
+
 import chains_aggregation
 
 
@@ -39,7 +40,7 @@ def perform_user_operation(
     envs_config = local_update_config["envs_config"]
     base_request_model = chatgpts.ChatGPTAPIRequest(model_config, envs_config)
 
-    thought_model = fot_model.ThoughtModel(base_request_model)
+    thought_model = bot_model.ThoughtModel(base_request_model)
     tree_builder = residual_tree_of_thoughts.RToTLevelWiseBest(
         thought_model, n_child_nodes=2
     )
@@ -68,7 +69,7 @@ def perform_server_operation(global_prompt: str, users_update: List[Dict[int, di
 
     aggregated_chain = chains_aggregation.leaf_depend_aggregation(chains=users_chain)
 
-    thought_model = fot_model.ThoughtModel(None)
+    thought_model = bot_model.ThoughtModel(None)
     global_prompt = thought_model.organize_thoughs_chain_prompt(aggregated_chain)
 
     return global_prompt

@@ -10,7 +10,7 @@ from llmpebase.models.LMs_prompting.residual_tree_of_thoughts import ThoughtNode
 class ThoughtModel:
     """The class to support the thought generation."""
 
-    prompt_head = "You are a superintelligent AI model devoted to helping humans by any means necessary. You aim to generate a series of intermediate reasoning steps toward addressing a given task described by the user"
+    prompt_head = "You are a boosting of thoughts, aiming to solve the problem step by step. You should generate a series of intermediate reasoning steps toward addressing a given task described by the user."
 
     def __init__(self, request_model) -> None:
         self.request_model = request_model
@@ -35,11 +35,12 @@ class ThoughtModel:
         initial_prompt, _ = thoughts_chain[0]
         chain_prompt = self.organize_thoughs_chain_prompt(thoughts_chain)
 
-        prompt = f"""{self.prompt_head}. By learning from given previous reasoning steps, you should generate one next possible reasoning step at each time to gradually approach the final solution. \n
+        prompt = f"""{self.prompt_head}. But, instead of showing the answer as a whole, you should present only one reasoning step in each response by learning from the previous reasoning steps.\n
         Devise the best possible solution for the task: {initial_prompt}. \n\n
         Below are the reasoning steps, presented in order, accompanied by their evaluated scores: \n
         {chain_prompt}
-        Based on these given steps, complete the given task by generating only one next reasoning step instead of giving the user all at once. Be simple. Be direct. Provide one intuitive and logical step as soon as you think of it. Thus, please present the user with only one single possible reasoning step and the corresponding solution that is closer to the right solution.
+
+        Based on these given steps, please give one possible next reasoning step toward solving the given problem in your response. Be simple. Be direct. Provide one intuitive and logical step as soon as you think of it.
         """
 
         return prompt
@@ -56,9 +57,8 @@ class ThoughtModel:
         Below are the reasoning steps, presented in order, accompanied by their evaluated scores: \n
         {chain_prompt}
         Based on these given steps, please evaluate this thought:
-        ###
         {thought}
-        ### \n\n
+        \n\n
         by producing a value ranging from 0 to 1, where 0 means this thought is not related to the final solution and 1 means this thought is the solution. 
         The generated response should include one sub-sentence with the format: 'Evaluation score:' for users to read. 
         """
