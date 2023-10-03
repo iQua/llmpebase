@@ -69,7 +69,7 @@ def _main():
         model_config=model_config,
     )
     gob_tree.construct_tree_root(
-        thought=f"""This is a mathematical reasoning challenge, where the goal is to use four given numbers and basic arithmetic operations, including Addition, subtraction, multiplication, and division, to obtain 24. {task_instruction}.
+        thought=f"""This is a mathematical reasoning challenge, where the goal is to use four given numbers and basic arithmetic operations, including addition, subtraction, multiplication, and division, to obtain 24. {task_instruction}.
         The given four numbers are: 2, 4, 5, 5""",
         thought_score=None,
     )

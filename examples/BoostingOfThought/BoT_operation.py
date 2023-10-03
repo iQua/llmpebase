@@ -1,5 +1,5 @@
 """
-Implementation of the federated running structure.
+Implementation of the running structure.
 """
 
 from typing import List, Dict

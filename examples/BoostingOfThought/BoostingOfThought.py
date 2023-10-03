@@ -1,5 +1,5 @@
 """
-The implementation of our Federation of Thought.
+The implementation of our Boosting of Thoughts.
 """
 
 import os

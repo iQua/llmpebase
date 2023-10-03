@@ -2,7 +2,6 @@
 Implementation of the global aggregation, in which users' update - branches 
 are merged into a new one.
 
-
 There are two options:
 - leaf-depend aggregation
 - level-wise aggregation
@@ -29,7 +28,3 @@ def leaf_depend_aggregation(chains: Dict[int, List[ThoughtNode]]):
             best_user = user_id
 
     return chains[best_user]
-
-
-def level_wise_aggregation(chains: List[Dict[int, dict]]):
-    """Aggregating the updates branches level by level."""

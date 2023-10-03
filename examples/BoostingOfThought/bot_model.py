@@ -1,5 +1,5 @@
 """
-Implementation of the model used for FoT approach.
+Implementation of the model used for BoT Model.
 """
 import re
 from typing import List
@@ -20,7 +20,7 @@ class ThoughtModel:
         # initial prompt should be the thought of the root noe
         intermediate_thoughts_node = thoughts_node_chain[1:]
         intermediate_steps = [
-            f"""Step str{idx}: '{thought_node.thought}. Evaluate Score: {thought_node.thought_score}'"""
+            f"""Step {idx+1}: '{thought_node.thought}. Evaluate Score: {thought_node.thought_score}'"""
             for idx, thought_node in enumerate(intermediate_thoughts_node)
         ]
         intermediate_steps = "\n\n".join(intermediate_steps)
@@ -36,7 +36,8 @@ class ThoughtModel:
         Devise the best possible solution for the task: {task_prompt}. \n
         Below are the previous reasoning steps, presented in order, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.): \n
         {chain_prompt}
-        Based on the obtained previous reasoning steps (you can ignore them when the above space is empty), please include one possible next reasoning step toward solving the task in your response. So what is the next reasoning step? (In each step: First, you randomly select two numbers from the current number set to perform Addition, subtraction, multiplication, or division to obtain a new number. Second, you should delete the selected two numbers from your current set. Then, if the deleted number set does not have the remaining number, the new number set is the obtained new number. If the deleted number set has remaining numbers, you combine the remaining numbers and the obtained new number into a new set for subsequent usage.)
+
+        Based on the obtained previous reasoning steps (you can ignore them when the above space is empty), please include one possible next reasoning step toward solving the task in your response.)
         """
 
         return prompt
@@ -52,7 +53,10 @@ class ThoughtModel:
         responses = self.request_model.perform_request(
             user_prompt=prompt, per_request_responses=num_thoughts
         )
-        thoughts = self.request_model.extract_responses_content(responses)
+        answers = self.request_model.extract_responses_content(responses)
+        print(answers)
+        thoughts = self.request_model.extract_contents_target_answer(answers)
+        print(thoughts)
         return thoughts
 
     def organize_thought_evaluation_prompt(
@@ -104,7 +108,9 @@ class ThoughtModel:
         Below are the obtained reasoning steps, presented in order, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.) given by you: \n
         {chain_prompt}
 
-        Based on these intermediate reasoning steps, whether the task can be solved and the final solution is correct? If not, please analyze these steps and explain the failure's reasons. Otherwise, when these steps are ready to complete the task, please combine them to present a brief and clear solution toward problem solving.
+        Please evaluate these reasoning steps by analyzing whether they can be performed step-by-step to obtain a correct solution that reaches the target of the task? There are four alternative conclusions: (1) impossible; (2) possible but more subsequent steps are required; (3) possible but should revise some steps; (4) possible as the idea is correct but need to do it again, (4) possible.
+        
+        If your conclusion is (1), (2), or (3). Please list in detail the reasons for the failure of these steps one by one and also list the corresponding advice on how to fix each of them. 
         """
 
         return prompt
