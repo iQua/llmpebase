@@ -58,7 +58,13 @@ environment:
 model:
 
   model_name: gpt-3.5-turbo # "gpt-3.5-turbo","gpt-4"
-  chatgpt_settings:
+  model_type: gpt
+
+  prompt_type: standard
+
+  authorization_env_path: ./.env
+
+  generation_settings:
     temperature: 0.7
     max_tokens: 1000
     # n here is n_completions_per_prompt

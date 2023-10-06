@@ -542,4 +542,6 @@ visualizations/
 *.dat
 DownloadedLLMs/
 
+commends/
+
 examples/ChainOfThought/gsm8k_prompt/

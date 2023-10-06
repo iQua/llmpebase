@@ -4,33 +4,17 @@ The implementation of Chain Of Thought [1].
 [1]. Wei, et.al., Chain-of-Thought Prompting Elicits Reasoning in Large Language Models, 23.
 """
 
-import os
-import random
 import resource
 
 
 from vgbase.utils.envs_utils import define_env
 from vgbase.config import Config
-from dotenv import load_dotenv
 
-from llmpebase.models.LMs import chatgpts, llama_falcon, llama_pipeline, llamav2
-
-# from llmpebase.datasets.mmlu import DataSource as mmlu_datasource
-from llmpebase.datasets.mmlu import (
-    DataSource as mmlu_datasource,
-)
-from llmpebase.datasets.gsm8k import (
-    DataSource as gsm8k_datasource,
-)
-from llmpebase.models.LMs_prompting import mmlu_prompt
-from llmpebase.models.LMs_prompting import gsm8k_prompt
-
-# there must have a .env file containing keywords
-# OPENAI_ORGAN_KEY and OPENAI_API_KEY
-load_dotenv()
+from llmpebase.models import define_model, define_prompt
+from llmpebase.datasets import define_dataset
 
 
-def do_model_request(model, request_prompt, input_prompter):
+def do_model_request(model, request_prompt):
     """Do model request."""
     ipt_msg = model.create_format_input(
         user_prompt=request_prompt,
@@ -42,63 +26,22 @@ def do_model_request(model, request_prompt, input_prompter):
 
     extracted_contents = model.extract_responses_content(model_responses)
 
-    extracted_target_answers = input_prompter.extract_contents_target_answer(
-        extracted_contents
-    )
-
-    return extracted_target_answers
+    return extracted_contents
 
 
-def eval_mmlu(model, eval_config):
-    """Eval the MMLU."""
-    mmlu_data = mmlu_datasource()
-    train_set = mmlu_data.get_train_set()
-    test_set = mmlu_data.get_test_set()
+def perform_eval(model, train_set, test_set, input_prompter, eval_config):
+    """Performing the evaluation."""
 
-    input_prompter = mmlu_prompt.MMLUStandardPrompt()
-    # input_prompt = mmlu_prompt.MMLUCoTPrompt(
-    #     cot_filepath="examples/LMs/ChainOfThought/mmlu-cot-claude.json"
-    # )
-    model.set_target_answer_format(input_prompter.answer_format_str)
+    for prompt in input_prompter.evaluater(train_set, test_set, eval_config):
+        print(prompt)
 
-    n_shots = eval_config["n_shots"]
+        contents = do_model_request(model, request_prompt=prompt)
 
-    assert n_shots <= 5
-    for task_name in train_set.tasks_name:
-        train_samples = train_set[task_name, -1]
-        test_task_samples = test_set[task_name, -1]
-        shots = train_samples[:n_shots]
-        for test_sample in test_task_samples:
-            request_prompt = input_prompter.organize_test_prompt(
-                task_name, shots, test_sample
-            )
-            do_model_request(model, request_prompt, input_prompter)
-
-
-def eval_gsm8k(model, eval_config):
-    """Eval the GSM8K."""
-    gsm_data = gsm8k_datasource()
-    train_set = gsm_data.get_train_set()
-    test_set = gsm_data.get_test_set()
-
-    # input_prompt = gsm8k_prompt.GSM8KStandardPrompt()
-    input_prompter = gsm8k_prompt.GSM8KCoTPrompt(
-        cot_filepath="examples/ChainOfThought/gsm8k_prompt/prompt_6_9step.txt"
-    )
-    model.set_target_answer_format(input_prompter.answer_format_str)
-
-    n_shots = eval_config["n_shots"]
-
-    n_test_samples = len(test_set)
-    for test_idx, test_sample in enumerate(test_set):
-        samples = [train_set[random.randint(0, len(test_set))] for _ in range(n_shots)]
-        request_prompt = input_prompter.organize_test_prompt(
-            task_name=None, few_shot_samples=samples, test_sample=test_sample
+        extracted_target_answers = input_prompter.extract_contents_target_answer(
+            contents
         )
-        do_model_request(model, request_prompt, input_prompter)
-
-
-datasets_eval = {"GSM8K": eval_gsm8k, "MMLU": eval_mmlu}
+        print(extracted_target_answers)
+        print(ok)
 
 
 def _main():
@@ -116,33 +59,33 @@ def _main():
 
     env_config = Config().environment
     env_config = Config().items_to_dict(env_config._asdict())
+    model_config = Config.items_to_dict(model_config._asdict())
+    data_config = Config.items_to_dict(data_config._asdict())
+    eval_config = Config.items_to_dict(eval_config._asdict())
 
     # define the environment used for learning
     devices, env_config = define_env(env_config=env_config)
 
     #################### Prepare model ####################
-    model_config = Config.items_to_dict(model_config._asdict())
 
-    if "gpt" in model_config["model_name"]:
-        # this is the chatgpt model
-        request_model = chatgpts.ChatGPTAPIRequest(model_config, env_config)
-        request_model.get_authorization(
-            organization=os.getenv("OPENAI_ORGAN_KEY"),
-            api_key=os.getenv("OPENAI_API_KEY"),
-        )
-
-    if "model_type" in model_config and "llama_pipeline" == model_config["model_type"]:
-        request_model = llama_pipeline.LLaMAPipelineRequest(model_config, env_config)
-
-    if "model_type" in model_config and "llama" == model_config["model_type"]:
-        request_model = llama_falcon.LLaMARequest(model_config, env_config)
-
-    if "model_type" in model_config and "llamav2" == model_config["model_type"]:
-        request_model = llamav2.LLaMAV2Request(model_config, env_config)
+    request_model = define_model(model_config, env_config)
 
     #################### Do evaluation for the dataset ####################
-    eval_config = Config.items_to_dict(eval_config._asdict())
-    datasets_eval[data_config.data_name](model=request_model, eval_config=eval_config)
+    datasource = define_dataset(data_config)
+    train_set = datasource.get_train_set()
+    test_set = datasource.get_test_set()
+
+    prompter = define_prompt(data_config, model_config)
+
+    request_model.set_target_answer_format(prompter.answer_format_str)
+
+    perform_eval(
+        request_model,
+        train_set,
+        test_set,
+        input_prompter=prompter,
+        eval_config=eval_config,
+    )
 
 
 if __name__ == "__main__":

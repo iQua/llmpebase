@@ -14,22 +14,32 @@ A more brief instruction:
 [4]. https://www.datacamp.com/tutorial/using-gpt-models-via-the-openai-api-in-python
 """
 
-
+import os
 import logging
 from typing import List
 
 import openai
+from dotenv import load_dotenv
 
 from llmpebase.models.LMs import base
 
 
-class ChatGPTAPIRequest(base.BaseLMRequest):
+class GPTAPIRequest(base.BaseLMRequest):
     """A class to forward the ChatGPT model with API of OPENAI."""
 
     def __init__(self, model_config: dict, envs_config: dict) -> None:
         super().__init__(model_config, envs_config)
 
         assert self.model_name in ["gpt-3.5-turbo", "gpt-4"]
+
+        auth_env_path = model_config["authorization_env_path"]
+        # there must have a .env file containing keywords
+        # OPENAI_ORGAN_KEY and OPENAI_API_KEY
+        load_dotenv(auth_env_path)
+        self.get_authorization(
+            organization=os.getenv("OPENAI_ORGAN_KEY"),
+            api_key=os.getenv("OPENAI_API_KEY"),
+        )
 
     def get_generation_config(self):
         """Getting the model request config."""
@@ -156,7 +166,7 @@ class ChatGPTAPIRequest(base.BaseLMRequest):
 
 
 if __name__ == "__main__":
-    chatgpt_api = ChatGPTAPIRequest(
+    chatgpt_api = GPTAPIRequest(
         model_config={"model_name": "gpt-3.5-turbo"}, envs_config=None
     )
 

@@ -97,6 +97,9 @@ class MMLUDataset(torch.utils.data.Dataset):
         """obtain the number of samples."""
         return len(self.tasks_name)
 
+    def get_sample(self):
+        """Getting one sample"""
+
 
 class DataSource(DataSourceStructure):
     """The MMLU dataset."""
