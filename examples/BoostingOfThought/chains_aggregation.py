@@ -9,7 +9,7 @@ There are two options:
 
 from typing import List, Dict
 
-from llmpebase.models.LMs_prompting.residual_tree_of_thoughts import ThoughtNode
+from llmpebase.models.prompting.residual_tree_of_thoughts import ThoughtNode
 
 
 def leaf_depend_aggregation(chains: Dict[int, List[ThoughtNode]]):

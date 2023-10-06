@@ -9,13 +9,13 @@ from vgbase.utils.envs_utils import define_env
 from vgbase.config import Config
 from dotenv import load_dotenv
 
-from llmpebase.models.LMs import chatgpts
+from llmpebase.models.LMs import gpts
 
 # from llmpebase.datasets.mmlu import DataSource as mmlu_datasource
 from llmpebase.datasets.mmlu import (
     DataSource as mmlu_datasource,
 )
-from llmpebase.models.LMs_prompting import mmlu_prompt
+from llmpebase.models.prompting import mmlu_prompting
 
 
 # there must have a .env file containing keywords
@@ -67,7 +67,7 @@ def _main():
     test_set = mmlu_data.get_test_set()
 
     model_config = Config.items_to_dict(model_config._asdict())
-    chatgpt_api = chatgpts.ChatGPTAPIRequest(model_config, env_config)
+    chatgpt_api = gpts.ChatGPTAPIRequest(model_config, env_config)
     chatgpt_api.get_authorization(
         organization=os.getenv("OPENAI_ORGAN_KEY"), api_key=os.getenv("OPENAI_API_KEY")
     )
@@ -76,7 +76,7 @@ def _main():
     task_samples = train_set[task_name, -1]
     test_sample = test_set[task_name, 0]
 
-    input_prompt = mmlu_prompt.MMLUStandardPrompt()
+    input_prompt = mmlu_prompting.MMLUStandardPrompt()
     # input_prompt = mmlu_prompt.MMLUCoTPrompt(
     #     cot_filepath="examples/LMs/ChainOfThought/mmlu-cot-claude.json"
     # )

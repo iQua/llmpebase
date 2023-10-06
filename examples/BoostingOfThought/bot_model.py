@@ -4,7 +4,7 @@ Implementation of the model used for BoT Model.
 import re
 from typing import List
 
-from llmpebase.models.LMs_prompting.residual_tree_of_thoughts import ThoughtNode
+from llmpebase.models.prompting.residual_tree_of_thoughts import ThoughtNode
 
 
 class ThoughtModel:

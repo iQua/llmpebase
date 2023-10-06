@@ -11,11 +11,11 @@ from dotenv import load_dotenv
 
 
 from llmpebase.models.LMs import llamav2
-from llmpebase.models.LMs import chatgpts
+from llmpebase.models.LMs import gpts
 
 
 import bot_model
-from llmpebase.models.LMs_prompting import residual_tree_of_thoughts
+from llmpebase.models.prompting import residual_tree_of_thoughts
 
 
 # there must have a .env file containing keywords
@@ -48,7 +48,7 @@ def _main():
 
     if "gpt" in model_config["model_name"]:
         # this is the chatgpt model
-        request_model = chatgpts.ChatGPTAPIRequest(model_config, env_config)
+        request_model = gpts.ChatGPTAPIRequest(model_config, env_config)
         request_model.get_authorization(
             organization=os.getenv("OPENAI_ORGAN_KEY"),
             api_key=os.getenv("OPENAI_API_KEY"),

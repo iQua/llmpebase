@@ -7,8 +7,8 @@ from typing import List, Dict
 import numpy as np
 
 
-from llmpebase.models.LMs_prompting import residual_tree_of_thoughts
-from llmpebase.models.LMs import chatgpts
+from llmpebase.models.prompting import residual_tree_of_thoughts
+from llmpebase.models.LMs import gpts
 
 import bot_model
 
@@ -38,7 +38,7 @@ def perform_user_operation(
 
     model_config = local_update_config["model_config"]
     envs_config = local_update_config["envs_config"]
-    base_request_model = chatgpts.ChatGPTAPIRequest(model_config, envs_config)
+    base_request_model = gpts.ChatGPTAPIRequest(model_config, envs_config)
 
     thought_model = bot_model.ThoughtModel(base_request_model)
     tree_builder = residual_tree_of_thoughts.RToTLevelWiseBest(
