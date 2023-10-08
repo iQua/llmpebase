@@ -95,7 +95,7 @@ class GPTAPIRequest(base.BaseLMRequest):
         See [4] for how to organize messages.
         """
         sys_prompt = "Follow the given prompt to generate correct response."
-        sys_prompt = f"""{sys_prompt} Please utilize a sub-sentence '{self.target_answer_format}' to point out the core response for users to read."""
+        sys_prompt = f"""{sys_prompt} Please utilize a sub-sentence '{self.target_answer_format}' to summarize the core response/answer/result for users to read."""
 
         if "sys_prompt" in kwargs and kwargs["sys_prompt"] is not None:
             sys_prompt = kwargs["sys_prompt"]

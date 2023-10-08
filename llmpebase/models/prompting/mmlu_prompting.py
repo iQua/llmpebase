@@ -25,7 +25,7 @@ class MMLUStandardPrompting(base.BasePrompting):
 
         prefix = re.escape(self.answer_format_str)
         # 1. extract the string after the answer format
-        pattern = rf"{prefix}([\(]?[A-Za-z][,\)]?)"
+        pattern = rf"{prefix}\s*([\(]?[A-Za-z][,\)]?)"
 
         obtained_targets = []
         for content in contens:
@@ -57,7 +57,7 @@ class MMLUStandardPrompting(base.BasePrompting):
                 request_prompt = self.organize_test_fewshot_prompt(
                     task_name, shots, test_sample
                 )
-                yield request_prompt
+                yield request_prompt, test_sample, test_sample["answer"]
 
 
 class MMLUCoTPrompting(MMLUStandardPrompting):

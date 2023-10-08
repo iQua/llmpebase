@@ -68,7 +68,6 @@ class BaseLMRequest:
 
     def extract_contents_target_answer(self, responses_content: list):
         """Extracting the target answer from the contents of responses."""
-        print("self.target_answer_format: ", self.target_answer_format)
         prefix = re.escape("In summary")
         # 1. extract the string after the answer format
         pattern = rf"{prefix}\s*(.+)"

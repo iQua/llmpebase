@@ -12,13 +12,14 @@ from vgbase.config import Config
 
 from llmpebase.models import define_model, define_prompt
 from llmpebase.datasets import define_dataset
+from llmpebase.models import prompting_recorder
 
 
 def do_model_request(model, request_prompt):
     """Do model request."""
     ipt_msg = model.create_format_input(
         user_prompt=request_prompt,
-        sys_prompt="Follow the given examples and answer the question.",
+        sys_prompt=f"""Follow the given examples and answer the question. Please utilize a sub-sentence '{model.target_answer_format}' to summarize the core response/answer/result for users to read.""",
     )
     model_responses = model.perform_request(
         input_request=ipt_msg, per_request_responses=2
@@ -32,15 +33,38 @@ def do_model_request(model, request_prompt):
 def perform_eval(model, train_set, test_set, input_prompter, eval_config):
     """Performing the evaluation."""
 
-    for prompt in input_prompter.evaluater(train_set, test_set, eval_config):
+    eval_recorder = prompting_recorder.PromptLLMRecoder(
+        records_filename="records",
+        samples_filename="samples",
+        records_dir="llm_records",
+        is_append=True,
+    )
+    for prompt, eval_sample, eval_groundtruth in input_prompter.evaluater(
+        train_set, test_set, eval_config
+    ):
         print(prompt)
 
         contents = do_model_request(model, request_prompt=prompt)
-
+        print("contents: ", contents)
         extracted_target_answers = input_prompter.extract_contents_target_answer(
             contents
         )
-        print(extracted_target_answers)
+        print("extracted_target_answers: ", extracted_target_answers)
+        print("eval_groundtruth: ", eval_groundtruth)
+        consistency = [
+            input_prompter.measure_answers_consistency(eval_groundtruth, dst_answer)
+            for dst_answer in extracted_target_answers
+        ]
+
+        record = {
+            "request_prompt": prompt,
+            "responses": contents,
+            "extracted_answers": extracted_target_answers,
+            "answers_consistency": consistency,
+        }
+
+        eval_recorder.add_one_record(sample=eval_sample, record=record)
+        eval_recorder.save_records()
         print(ok)
 
 

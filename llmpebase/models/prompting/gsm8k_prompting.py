@@ -72,7 +72,7 @@ class GSM8KStandardPrompting(base.BasePrompting):
 
         prefix = re.escape(self.answer_format_str)
         # 1. extract the string after the answer format
-        pattern = rf"{prefix}((?:[\-]?(\d+\.\d+|\d+)|[\+\-\*\/\(\) ])+)"
+        pattern = rf"{prefix}\s*\$?(\d+)(?:\$)?"
 
         obtained_targets = []
         for content in contens:
@@ -94,7 +94,7 @@ class GSM8KStandardPrompting(base.BasePrompting):
             request_prompt = self.organize_test_fewshot_prompt(
                 task_name=None, few_shot_samples=samples, test_sample=test_sample
             )
-            yield request_prompt
+            yield request_prompt, test_sample, test_sample["target_answer"]
 
     @staticmethod
     def measure_answers_consistency(src_answer: str, dst_answer: str):
@@ -102,7 +102,7 @@ class GSM8KStandardPrompting(base.BasePrompting):
 
         def get_number(answer):
             """Extracting number from string as the float/int"""
-            number = re.findall(r"(\d+\.\d+|\d+\s*[+\-*/]\s*\d+|\d+)", answer)[0]
+            number = re.findall(r"(\d+(?:\.\d+)?)", str(answer))[0]
             return float(number) if "." in number else int(number)
 
         return get_number(src_answer) == get_number(dst_answer)

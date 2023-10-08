@@ -5,7 +5,7 @@ An interface of models and prompts
 
 from llmpebase.models.LMs import gpts, llama_falcon, llama_pipeline, llamav2
 from llmpebase.models.prompting import gsm8k_prompting, mmlu_prompting
-
+from llmpebase.models.prompting import recorder as prompting_recorder
 
 models_factory = {
     "gpt": gpts.GPTAPIRequest,
