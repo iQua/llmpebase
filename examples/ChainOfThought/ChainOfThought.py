@@ -12,7 +12,7 @@ from vgbase.config import Config
 
 from llmpebase.models import define_model, define_prompt
 from llmpebase.datasets import define_dataset
-from llmpebase.models import prompting_recorder
+from vgbase.utils import recorder
 
 
 def do_model_request(model, request_prompt):
@@ -32,25 +32,25 @@ def do_model_request(model, request_prompt):
 
 def perform_eval(model, train_set, test_set, input_prompter, eval_config):
     """Performing the evaluation."""
-
-    eval_recorder = prompting_recorder.PromptLLMRecoder(
+    eval_recorder = recorder.DualExtensionRecoder(
         records_filename="records",
         samples_filename="samples",
         records_dir="llm_records",
         is_append=True,
     )
+
+    eval_recorder.set_check_items(
+        sample_check_item="answer", record_check_item="request_prompt"
+    )
+
     for prompt, eval_sample, eval_groundtruth in input_prompter.evaluater(
         train_set, test_set, eval_config
     ):
-        print(prompt)
-
         contents = do_model_request(model, request_prompt=prompt)
-        print("contents: ", contents)
         extracted_target_answers = input_prompter.extract_contents_target_answer(
             contents
         )
-        print("extracted_target_answers: ", extracted_target_answers)
-        print("eval_groundtruth: ", eval_groundtruth)
+
         consistency = [
             input_prompter.measure_answers_consistency(eval_groundtruth, dst_answer)
             for dst_answer in extracted_target_answers
@@ -63,9 +63,10 @@ def perform_eval(model, train_set, test_set, input_prompter, eval_config):
             "answers_consistency": consistency,
         }
 
-        eval_recorder.add_one_record(sample=eval_sample, record=record)
+        eval_recorder.add_one_record(
+            sample=eval_sample, record=record, sample_id="question"
+        )
         eval_recorder.save_records()
-        print(ok)
 
 
 def _main():
