@@ -7,12 +7,11 @@ The implementation of Chain Of Thought [1].
 import resource
 
 
-from vgbase.utils.envs_utils import define_env
 from vgbase.config import Config
 
 from llmpebase.models import define_model, define_prompt
 from llmpebase.datasets import define_dataset
-from vgbase.utils import recorder
+from llmpebase.utils import recorder
 
 
 def do_model_request(model, request_prompt):
@@ -30,12 +29,15 @@ def do_model_request(model, request_prompt):
     return extracted_contents
 
 
-def perform_eval(model, train_set, test_set, input_prompter, eval_config):
+def perform_eval(
+    model, train_set, test_set, input_prompter, logging_config, eval_config
+):
     """Performing the evaluation."""
     eval_recorder = recorder.DualExtensionRecoder(
         records_filename="records",
         samples_filename="samples",
-        records_dir="llm_records",
+        record_path=logging_config.result_path,
+        record_name="llm_records",
         is_append=True,
     )
 
@@ -78,7 +80,7 @@ def _main():
     # obtain configs
     model_config = Config().model
     data_config = Config().data
-    train_config = Config().train
+    train_config = Config().trainer
     eval_config = Config().evaluation
     logging_config = Config().logging
 
@@ -87,9 +89,6 @@ def _main():
     model_config = Config.items_to_dict(model_config._asdict())
     data_config = Config.items_to_dict(data_config._asdict())
     eval_config = Config.items_to_dict(eval_config._asdict())
-
-    # define the environment used for learning
-    devices, env_config = define_env(env_config=env_config)
 
     #################### Prepare model ####################
 
@@ -109,6 +108,7 @@ def _main():
         train_set,
         test_set,
         input_prompter=prompter,
+        logging_config=logging_config,
         eval_config=eval_config,
     )
 
