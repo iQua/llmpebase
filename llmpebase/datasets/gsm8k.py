@@ -4,7 +4,6 @@ The detaild information of it is shown in
 https://huggingface.co/datasets/gsm8k
 """
 import os
-import re
 from typing import Tuple
 
 import torch
@@ -38,12 +37,12 @@ class GSM8KDataset(torch.utils.data.Dataset):
             answer = data_frame.iloc[row_idx, -1]
             thought_answer = answer.split("####")[0]
             thought_answer = thought_answer.replace("\n", " ").rstrip()
-            target_answer = self.get_target_answer(answer)
+            target_result = answer.split("####")[-1]
             collected_items.append(
                 {
                     "question": question,
                     "answer": thought_answer,
-                    "target_answer": target_answer,
+                    "target_result": target_result,
                 }
             )
 
@@ -52,16 +51,6 @@ class GSM8KDataset(torch.utils.data.Dataset):
     def get_qas(self):
         """Getting the qas of the tasks."""
         return self.data_qas
-
-    def get_target_answer(self, answer):
-        """Getting the target answer."""
-        # Natalia sold 48/2 = <<48/2=24>>24 clips in May. Natalia sold 48+24 = <<48+24=72>>72 clips altogether in April and May. #### 72
-        match = re.search(r"#### (\d+(\.\d+)?)", answer)
-        if match:
-            return (
-                float(match.group(1)) if "." in match.group(1) else int(match.group(1))
-            )
-        return None
 
     def __getitem__(self, idx: Tuple):
         """Get the sample for either training or testing given index."""

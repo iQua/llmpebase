@@ -451,11 +451,7 @@ class Config:
         save_name = "__".join(
             [
                 Config.params["model_name"],
-                Config.model.rgb.name if hasattr(Config.model, "rgb") else "",
-                Config.model.language.name if hasattr(Config.model, "language") else "",
-                Config.model.grounding.name
-                if hasattr(Config.model, "grounding")
-                else "",
+                Config.model.prompt_type,
                 Config.params["data_name"],
             ]
         )

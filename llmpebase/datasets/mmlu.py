@@ -65,13 +65,13 @@ class MMLUDataset(torch.utils.data.Dataset):
             options_str = "\n".join(options_str)
             answer = data_frame.iloc[row_idx, -1]
             answer = f"({answer})"
-            target_answer = answer
+            target_result = answer
             collected_items.append(
                 {
                     "question": question,
                     "options": options_str,
                     "answer": answer,
-                    "target_answer": target_answer,
+                    "target_result": target_result,
                 },
             )
 

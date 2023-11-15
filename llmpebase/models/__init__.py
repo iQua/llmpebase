@@ -18,12 +18,12 @@ prompts_factory = {
     "mmlu": {
         "standard": mmlu_prompting.MMLUStandardPrompting,
         "cot": mmlu_prompting.MMLUCoTPrompting,
-        "zeroshot_cot": mmlu_prompting.MMLUCoTPrompting,
+        "zeroshot_cot": mmlu_prompting.MMLUZeroShotCoTPrompting,
     },
     "gsm8k": {
         "standard": gsm8k_prompting.GSM8KStandardPrompting,
         "cot": gsm8k_prompting.GSM8KCoTPrompting,
-        "zeroshot_cot": gsm8k_prompting.GSM8KCoTPrompting,
+        "zeroshot_cot": gsm8k_prompting.GSM8KZeroShotCoTPrompting,
     },
     "gameof24": {
         "standard": game24_prompting.GameOf24StandardPrompting,
@@ -45,4 +45,4 @@ def define_prompt(data_config: dict, model_config: dict):
     data_name = data_config["data_name"].lower()
     prompt_type = model_config["prompt_type"].lower()
 
-    return prompts_factory[data_name][prompt_type]()
+    return prompts_factory[data_name][prompt_type](model_config)
