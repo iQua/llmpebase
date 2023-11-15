@@ -9,9 +9,8 @@ import glob
 
 import torch
 import pandas as pd
-from vgbase.datasets.datalib import data_utils
-from vgbase.datasets.vgbase_data_structure import DataSourceStructure
-from vgbase.config import Config
+
+from llmpebase.datasets import base
 
 
 class MMLUDataset(torch.utils.data.Dataset):
@@ -101,62 +100,27 @@ class MMLUDataset(torch.utils.data.Dataset):
         """Getting one sample"""
 
 
-class DataSource(DataSourceStructure):
-    """The MMLU dataset."""
+class DataSource(base.DataSource):
+    """The MMLU datasource."""
 
     def __init__(self):
         super().__init__()
 
-        self.supported_modalities = ["text"]
-        self.splits = ["dev", "val", "test"]
-        self.source_data_types = []
-        self.source_data_file_formats = []
-
-        self.build_source_data_structure()
-        self.build_splits_structure()
-
-    def prepare_source_data(self):
-        """Prepare the source data."""
-
-        self.source_data_name = Config().data.datasource_name
-        self.source_data_path = Config().data.datasource_path
-        self.source_data_dir_path = os.path.join(
-            self.source_data_path, self.source_data_name
-        )
-        source_data_download_url = Config().data.datasource_download_url
-        if source_data_download_url is not None:
-            data_utils.download_url_data(
-                download_url_address=source_data_download_url,
-                obtained_file_name=self.source_data_name,
-                put_data_dir=self.source_data_path,
-            )
-        self.connect_source_data(self.source_data_dir_path)
-
-    def build_splits_structure(self):
-        # generate path/type information for splits
-        for split_type in self.splits:
-            self.splits_info[split_type]["path"] = os.path.join(
-                self.source_data_dir_path, split_type
-            )
-            self.splits_info[split_type]["split_file"] = None
+        # Set the splits for MMLU dataset
+        self.splits_info = {
+            "dev": {"path": os.path.join(self.data_path, "dev")},
+            "test": {"path": os.path.join(self.data_path, "test")},
+            "val": {"path": os.path.join(self.data_path, "val")},
+        }
 
     def get_phase_dataset(self, phase: str):
         """Obtain the dataset for the specific phase."""
-        # obtain the datacatalog for desired phase
+        # Obtain the dataset for desired phase
+        self.prepare_source_data(phase)
         dataset = MMLUDataset(splits_info=self.splits_info, phase=phase)
         return dataset
 
     def get_train_set(self):
         """Obtains the training dataset."""
         phase = "dev"
-        return self.get_phase_dataset(phase)
-
-    def get_test_set(self):
-        """Obtains the validation dataset."""
-        phase = "test"
-        return self.get_phase_dataset(phase)
-
-    def get_val_set(self):
-        """Obtains the validation dataset."""
-        phase = "val"
         return self.get_phase_dataset(phase)

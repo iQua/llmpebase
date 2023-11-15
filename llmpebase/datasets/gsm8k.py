@@ -7,12 +7,10 @@ import os
 import re
 from typing import Tuple
 
-
 import torch
 import pandas as pd
-from vgbase.datasets.datalib import data_utils
-from vgbase.datasets.vgbase_data_structure import DataSourceStructure
-from vgbase.config import Config
+
+from llmpebase.datasets import base
 
 
 class GSM8KDataset(torch.utils.data.Dataset):
@@ -26,7 +24,7 @@ class GSM8KDataset(torch.utils.data.Dataset):
         self.phase = phase
 
         data_folder = self.splits_info[phase]["path"]
-        data_file = self.splits_info[phase]["split_file"]
+        data_file = self.splits_info[phase]["filename"]
         self.data_path = os.path.join(data_folder, data_file)
         self.data_qas = self.collect_qas()
 
@@ -74,48 +72,22 @@ class GSM8KDataset(torch.utils.data.Dataset):
         return len(self.data_qas)
 
 
-class DataSource(DataSourceStructure):
-    """The GSM8K dataset."""
+class DataSource(base.DataSource):
+    """The GSM8K datasource."""
 
     def __init__(self):
+        # Extract the data information from the config file
         super().__init__()
 
-        self.supported_modalities = ["text"]
-        self.splits = ["train", "test"]
-        self.source_data_types = []
-        self.source_data_file_formats = []
-
-        self.build_source_data_structure()
-        self.build_splits_structure()
-
-    def prepare_source_data(self):
-        """Prepare the source data."""
-
-        self.source_data_name = Config().data.datasource_name
-        self.source_data_path = Config().data.datasource_path
-        self.source_data_dir_path = os.path.join(
-            self.source_data_path, self.source_data_name
-        )
-        source_data_download_url = Config().data.datasource_download_url
-        if source_data_download_url is not None:
-            data_utils.download_url_data(
-                download_url_address=source_data_download_url,
-                obtained_file_name=self.source_data_name,
-                put_data_dir=self.source_data_path,
-            )
-        self.connect_source_data(self.source_data_dir_path)
-
-    def build_splits_structure(self):
-        # generate path/type information for splits
-        for split_type in self.splits:
-            self.splits_info[split_type]["path"] = os.path.join(
-                self.source_data_dir_path
-            )
-            self.splits_info[split_type]["split_file"] = f"{split_type}.parquet"
+        self.splits_info = {
+            "train": {"path": self.data_path, "filename": "train.parquet"},
+            "test": {"path": self.data_path, "filename": "test.parquet"},
+        }
 
     def get_phase_dataset(self, phase: str):
         """Obtain the dataset for the specific phase."""
         # obtain the datacatalog for desired phase
+        self.prepare_source_data(phase)
         dataset = GSM8KDataset(splits_info=self.splits_info, phase=phase)
         return dataset
 

@@ -6,10 +6,15 @@ from llmpebase.datasets.gsm8k import (
     DataSource as gsm8k_datasource,
 )
 
-
 from llmpebase.datasets.mmlu import DataSource as mmlu_datasource
 
-datasources = {"GSM8K": gsm8k_datasource, "MMLU": mmlu_datasource}
+from llmpebase.datasets.game24 import DataSource as game24_datasource
+
+datasources = {
+    "GSM8K": gsm8k_datasource,
+    "MMLU": mmlu_datasource,
+    "GameOf24": game24_datasource,
+}
 
 
 def define_dataset(data_config):
