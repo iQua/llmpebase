@@ -97,7 +97,7 @@ class DualExtensionRecoder:
 
         else:
             logging.info(
-                "%s does not exist. Will create new one", self.sample_save_path
+                "%s does not exist. Will create new one", self.record_save_path
             )
 
     def load_samples(self):

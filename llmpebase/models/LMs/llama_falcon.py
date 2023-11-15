@@ -3,17 +3,12 @@ Getting the pre-trained LLaMA model for inference.
 
 Please check https://zhuanlan.zhihu.com/p/653926703
 for hyper-parameters settings.
-
 """
-
-
 import torch
 from transformers import LlamaForCausalLM, LlamaTokenizer, AutoModelForCausalLM
 from transformers import GenerationConfig
-import tensor_parallel as tp
 
 from vgbase.utils.folder_utils import directory_contains_subfolder
-
 
 from llmpebase.models.LMs import base
 
@@ -21,10 +16,10 @@ from llmpebase.models.LMs import base
 class LLaMARequest(base.BaseLMRequest):
     """A class to forward the LLaMA model."""
 
-    def __init__(self, model_config: dict, envs_config: dict) -> None:
-        super().__init__(model_config, envs_config)
+    def __init__(self, model_config: dict) -> None:
+        super().__init__(model_config)
 
-        self.model, self.tokenizer = self.load_model(model_config, envs_config)
+        self.model, self.tokenizer = self.load_model(model_config)
 
     def get_generation_config(self):
         """Getting the model request config."""
@@ -61,7 +56,7 @@ class LLaMARequest(base.BaseLMRequest):
             }
         )
 
-    def load_model(self, model_config: dict, envs_config: dict):
+    def load_model(self, model_config: dict):
         """loading the llama models."""
         model_name = model_config["model_name"]
         checkpoint_dir = model_name
@@ -91,10 +86,6 @@ class LLaMARequest(base.BaseLMRequest):
                 device_map="auto",
                 offload_folder="offload",
             )
-            if envs_config["distributed"]:
-                n_gpus = envs_config["world_size"]
-                model = tp.tensor_parallel(model, [i for i in range(n_gpus)])
-
         else:
             model = AutoModelForCausalLM.from_pretrained(
                 checkpoint_dir,
@@ -109,13 +100,6 @@ class LLaMARequest(base.BaseLMRequest):
         input_tokens = self.tokenizer.batch_encode_plus(
             prompts, return_tensors="pt", padding=True
         )
-
-        for t in input_tokens:
-            if torch.is_tensor(input_tokens[t]):
-                if self.envs_config["device"] == "cuda":
-                    input_tokens[t] = input_tokens[t].to("cuda")
-                if self.envs_config["device"] == "mps":
-                    input_tokens[t] = input_tokens[t].to("mps")
 
         return input_tokens
 
@@ -149,7 +133,7 @@ class LLaMARequest(base.BaseLMRequest):
             generate_ids,
             skip_special_tokens=True,
         )
-        print("responses: ", responses)
+
         return responses
 
     def create_format_input(self, user_prompt, **kwargs):
@@ -163,7 +147,7 @@ class LLaMARequest(base.BaseLMRequest):
 
         return prompt
 
-    def extract_responses_content(self, responses: list):
+    def extract_response_contents(self, responses: list):
         """Extracting main contents from the obtained responses."""
         return responses
 

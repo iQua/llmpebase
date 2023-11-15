@@ -27,8 +27,8 @@ from llmpebase.models.LMs import base
 class GPTAPIRequest(base.BaseLMRequest):
     """A class to forward the ChatGPT model with API of OPENAI."""
 
-    def __init__(self, model_config: dict, envs_config: dict) -> None:
-        super().__init__(model_config, envs_config)
+    def __init__(self, model_config: dict) -> None:
+        super().__init__(model_config)
 
         assert self.model_name in ["gpt-3.5-turbo", "gpt-4"]
 
@@ -148,7 +148,7 @@ class GPTAPIRequest(base.BaseLMRequest):
 
         return model_responses
 
-    def extract_responses_content(self, responses: list):
+    def extract_response_contents(self, responses: list):
         """Extracting main content from the obtained responses."""
         contents = []
         for res in responses:
@@ -166,9 +166,7 @@ class GPTAPIRequest(base.BaseLMRequest):
 
 
 if __name__ == "__main__":
-    chatgpt_api = GPTAPIRequest(
-        model_config={"model_name": "gpt-3.5-turbo"}, envs_config=None
-    )
+    chatgpt_api = GPTAPIRequest(model_config={"model_name": "gpt-3.5-turbo"})
 
     # Define the system message
     system_msg = "You are a helpful assistant who understands data science."
@@ -181,7 +179,7 @@ if __name__ == "__main__":
     )
 
     response = chatgpt_api.perform_request(request_input=created_messages)
-    content = chatgpt_api.extract_responses_content(response)
+    content = chatgpt_api.extract_response_contents(response)
     print("\n")
     print(response)
     print(content)

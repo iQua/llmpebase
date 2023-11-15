@@ -1,6 +1,6 @@
 """
 The implementation of adjusting different prompts, including
-CoT, Tree of Thoughts.
+CoT.
 """
 import re
 from typing import List
@@ -11,7 +11,7 @@ from llmpebase.models.prompting import base
 class MMLUStandardPrompting(base.BasePrompting):
     """The standard prompt of MMLU."""
 
-    answer_format_str: str = "The answer is "
+    answer_format_str: str = "The answer is"
 
     def organize_question_prompt(self, sample: dict):
         """Organizing the question prompt."""
@@ -20,29 +20,30 @@ class MMLUStandardPrompting(base.BasePrompting):
         prompt = f"""Question: {ques} \nWhich of the following choices is correct? \n{opts}"""
         return prompt
 
-    def extract_contents_target_answer(self, contens: List[str]):
-        """Extracting the target answer from the contents of responses."""
+    @staticmethod
+    def extract_target_result(target_answer: str):
+        """Extract the target results from the obtained targets."""
+        # Compare the answers
+        pattern = r"\b\([ABCDabcd]\)\b|\b[ABCDabcd]\b|\b\d+\b|\b\d+\.\d+\b|\(\d+\)|\(\d+\.\d+\)"
 
-        prefix = re.escape(self.answer_format_str)
-        # 1. extract the string after the answer format
-        pattern = rf"{prefix}\s*([\(]?[A-Za-z][,\)]?)"
-
-        obtained_targets = []
-        for content in contens:
-            match = re.search(pattern, content, re.IGNORECASE)
-
-            obtained_targets.append(match.group(1) if match else None)
-
-        return obtained_targets
+        result = re.findall(pattern, target_answer)
+        if result:
+            return result[0]
+        else:
+            return None
 
     @staticmethod
-    def measure_answers_consistency(src_answer: str, dst_answer: str):
+    def measure_answers(src_answer: str, dst_answer: str):
         """Measuring whether answers are consistent with each other."""
-        # Remove non-alphanumeric characters and whitespace
-        stripped1 = re.sub(r"[^a-zA-Z0-9]", "", src_answer).lower()
-        stripped2 = re.sub(r"[^a-zA-Z0-9]", "", dst_answer).lower()
 
-        return stripped1 in stripped2 or stripped2 in stripped1
+        # Use re.findall to find all occurrences of the pattern in the text
+        src_result = MMLUStandardPrompting.extract_target_result(src_answer)
+        dst_result = MMLUStandardPrompting.extract_target_result(dst_answer)
+
+        if src_result is not None and dst_result is not None:
+            return src_result == dst_result
+
+        return None
 
     def evaluater(self, train_set, eval_set, eval_config):
         """Evaluating the MMLU dataset."""

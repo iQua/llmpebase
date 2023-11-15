@@ -4,7 +4,7 @@ An interface of models and prompts
 
 
 from llmpebase.models.LMs import gpts, llama_falcon, llama_pipeline, llamav2
-from llmpebase.models.prompting import gsm8k_prompting, mmlu_prompting
+from llmpebase.models.prompting import gsm8k_prompting, mmlu_prompting, game24_prompting
 
 models_factory = {
     "gpt": gpts.GPTAPIRequest,
@@ -25,15 +25,19 @@ prompts_factory = {
         "cot": gsm8k_prompting.GSM8KCoTPrompting,
         "zeroshot_cot": gsm8k_prompting.GSM8KCoTPrompting,
     },
+    "gameof24": {
+        "standard": game24_prompting.GameOf24StandardPrompting,
+        "cot": game24_prompting.GameOf24StandardPrompting,
+        "zeroshot_cot": game24_prompting.GameOf24StandardPrompting,
+    },
 }
 
 
-def define_model(model_config: dict, env_config: dict):
+def define_model(model_config: dict):
     """Define the datasets based on the config file."""
-    model_name = model_config["model_type"].lower()
     model_type = model_config["model_type"].lower()
 
-    return models_factory[model_type](model_config, env_config)
+    return models_factory[model_type](model_config)
 
 
 def define_prompt(data_config: dict, model_config: dict):

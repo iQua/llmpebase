@@ -8,8 +8,7 @@ from typing import Union, List
 class BaseLMRequest:
     """The basic request model for large language model."""
 
-    def __init__(self, model_config: dict, envs_config: dict, **kwargs):
-        self.envs_config = envs_config
+    def __init__(self, model_config: dict):
         self.model_config = model_config
         self.model_name = model_config["model_name"]
 
@@ -58,7 +57,7 @@ class BaseLMRequest:
         """Creating the format input received by the"""
         raise NotImplementedError("'create_format_input' has not been implemented yet.")
 
-    def extract_responses_content(self, responses: list):
+    def extract_response_contents(self, responses: list):
         """Extracting main contents from the obtained responses."""
         raise NotImplementedError("'extract_answers' has not been implemented yet.")
 
@@ -66,7 +65,7 @@ class BaseLMRequest:
         """Extracting answers from the obtained responses."""
         raise NotImplementedError("'extract_tokens' has not been implemented yet.")
 
-    def extract_contents_target_answer(self, responses_content: list):
+    def extract_target_answers(self, responses_content: list):
         """Extracting the target answer from the contents of responses."""
         prefix = re.escape("In summary")
         # 1. extract the string after the answer format

@@ -15,7 +15,7 @@ from llmpebase.models.LMs import llama_falcon
 class LLaMAPipelineRequest(llama_falcon.LLaMARequest):
     """A class to forward the LLaMA model."""
 
-    def load_model(self, model_config: dict, envs_config: dict):
+    def load_model(self, model_config: dict):
         """loading the llama models."""
 
         model_name = model_config["model_name"]

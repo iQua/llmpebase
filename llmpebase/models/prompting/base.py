@@ -2,7 +2,7 @@
 Basic implementation of Prompting class.
 """
 
-
+import re
 import json
 from typing import List
 
@@ -13,7 +13,7 @@ class BasePrompting:
     Note, we set this Base prompt as the QA task with options.
     """
 
-    answer_format_str: str = "The answer is "
+    answer_format_str: str = "The answer is"
 
     def __init__(self, prompt_file_path: str = None) -> None:
         """
@@ -84,9 +84,19 @@ class BasePrompting:
 
         raise NotImplementedError("'evaluater' has not been implemented yet.")
 
-    def extract_contents_target_answer(self, contens: List[str]):
+    def extract_target_answers(self, contents: List[str]):
         """Extracting the target answer from the contents of responses."""
 
-        raise NotImplementedError(
-            "'extract_contents_target_answer' has not been implemented yet."
-        )
+        # 1. extract the string after the answer format
+        pattern = re.escape(self.answer_format_str) + r".*"
+
+        obtained_targets = []
+        for content in contents:
+            match = re.search(pattern, content, re.IGNORECASE | re.DOTALL)
+
+            # Record the matched target answer
+            # or the original content if no match
+            extract_answer = match.group(0) if match else content
+            obtained_targets.append(extract_answer)
+
+        return obtained_targets

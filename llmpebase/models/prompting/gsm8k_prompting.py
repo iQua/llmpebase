@@ -1,6 +1,6 @@
 """
 The implementation of adjusting different prompts, including
-CoT, Tree of Thoughts.
+CoT.
 """
 import re
 import random
@@ -67,20 +67,30 @@ class GSM8KStandardPrompting(base.BasePrompting):
         prompt = f"""{fewshot_prompt} \n\n\n With above examples, please answer: \n \n{test_qa_prompt}"""
         return prompt
 
-    def extract_contents_target_answer(self, contens: List[str]):
-        """Extracting the target answer from the contents of responses."""
+    @staticmethod
+    def extract_target_result(target_answer: str):
+        """Extract the target results from the obtained targets."""
+        # Compare the answers
+        pattern = r"\$?(\d+)(?:\$)?"
 
-        prefix = re.escape(self.answer_format_str)
-        # 1. extract the string after the answer format
-        pattern = rf"{prefix}\s*\$?(\d+)(?:\$)?"
+        target_answer = str(target_answer)
+        result = re.findall(pattern, target_answer)
 
-        obtained_targets = []
-        for content in contens:
-            match = re.search(pattern, content, re.IGNORECASE)
+        if result:
+            return float(result[0])
+        else:
+            return None
 
-            obtained_targets.append(match.group(1) if match else None)
+    @staticmethod
+    def measure_answers(src_answer: str, dst_answer: str):
+        """Measuring whether answers are consistent with each other."""
+        src_result = GSM8KStandardPrompting.extract_target_result(src_answer)
+        dst_result = GSM8KStandardPrompting.extract_target_result(dst_answer)
 
-        return obtained_targets
+        if src_result is not None and dst_result is not None:
+            return src_result == dst_result
+
+        return None
 
     def evaluater(self, train_set, eval_set, eval_config):
         """Evaluating the GSM8K dataset."""
@@ -95,17 +105,6 @@ class GSM8KStandardPrompting(base.BasePrompting):
                 task_name=None, few_shot_samples=samples, test_sample=test_sample
             )
             yield request_prompt, test_sample, test_sample["target_answer"]
-
-    @staticmethod
-    def measure_answers_consistency(src_answer: str, dst_answer: str):
-        """Measuring whether answers are consistent with each other."""
-
-        def get_number(answer):
-            """Extracting number from string as the float/int"""
-            number = re.findall(r"(\d+(?:\.\d+)?)", str(answer))[0]
-            return float(number) if "." in number else int(number)
-
-        return get_number(src_answer) == get_number(dst_answer)
 
 
 class GSM8KCoTPrompting(GSM8KStandardPrompting):

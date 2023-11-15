@@ -1,5 +1,5 @@
 """
-Implementation of Tree of Thought (ToT).
+Implementation of Basic Tree Thought Structures.
 """
 
 import os
@@ -41,8 +41,8 @@ class ThoughtNode(NodeMixin):
         self.thought_score = thought_score
 
         # backup
-        self.backup_thoughs = []
-        self.backup_thoughs_scores = []
+        self.backup_thoughts = []
+        self.backup_thoughts_scores = []
 
         self.parent = parent
         # Add weight to edges and make use of them.
@@ -57,10 +57,10 @@ class ThoughtNode(NodeMixin):
         # and no child will be added
         self.is_leaf_terminal = False
 
-    def backup_similar_though(self, though: str, thought_score: int):
+    def backup_similar_though(self, thought: str, thought_score: int):
         """Inserting a similar though to the backup."""
-        self.backup_thoughs.append(though)
-        self.backup_thoughs_scores.append(thought_score)
+        self.backup_thoughts.append(thought)
+        self.backup_thoughts_scores.append(thought_score)
 
     def remove_children(self):
         """Removing the children of one node."""
@@ -82,14 +82,14 @@ class ResidualThoughtNode(ThoughtNode):
         parent=None,
         children=None,
         edge_weight=None,
-        residual_though=None,
+        residual_thought=None,
     ):
         super(ResidualThoughtNode, self).__init__(
             name, thought, thought_score, parent, children, edge_weight
         )
         # the though that showing the residual obtained
         # from the previous reasoning
-        self.residual_though = residual_though
+        self.residual_thought = residual_thought
 
 
 class RedusialTreeofThoughts:
@@ -99,7 +99,7 @@ class RedusialTreeofThoughts:
         self,
         model,
         n_child_nodes: int = 2,
-        model_config: dict = {},
+        model_config: dict = None,
     ):
         # the model used to build the tree
         self.model = model
@@ -123,6 +123,7 @@ class RedusialTreeofThoughts:
 
         self.best_thought = None
         self.best_value = float("-inf")
+
         self.history = []  # added line initalize history
 
     def set_thresholds(self, tree_config):
@@ -169,7 +170,7 @@ class RedusialTreeofThoughts:
     def construct_tree_root(
         self,
         thought: str = None,
-        residual_though: str = None,
+        residual_thought: str = None,
         thought_score: float = None,
     ):
         """Building the root node and prompt of the tree."""
@@ -183,7 +184,7 @@ class RedusialTreeofThoughts:
             parent=None,
             children=None,
             edge_weight=None,
-            residual_though=residual_though,
+            residual_thought=residual_thought,
         )
         self.nodes[str(identity_int)] = self.root
 
@@ -233,13 +234,13 @@ class RedusialTreeofThoughts:
     def is_trigger_leaf_node(self, node: ThoughtNode):
         """Whether to trigger the node to become a leaf node."""
 
-        print("self.max_depth: ", self.max_depth)
-        print("self.min_leaf_thought_score: ", self.min_leaf_thought_score)
-        print("self.max_leaf_thought_score: ", self.max_leaf_thought_score)
-        print("self.num_leaves: ", self.num_leaves)
-        print("node.depth: ", node.depth)
-        print("node.thought_score: ", node.thought_score)
-        print("len(self.root.leaves): ", len(self.root.leaves))
+        # print("self.max_depth: ", self.max_depth)
+        # print("self.min_leaf_thought_score: ", self.min_leaf_thought_score)
+        # print("self.max_leaf_thought_score: ", self.max_leaf_thought_score)
+        # print("self.num_leaves: ", self.num_leaves)
+        # print("node.depth: ", node.depth)
+        # print("node.thought_score: ", node.thought_score)
+        # print("len(self.root.leaves): ", len(self.root.leaves))
         return (
             node.depth > self.max_depth
             or node.thought_score <= self.min_leaf_thought_score
@@ -293,7 +294,7 @@ class RedusialTreeofThoughts:
 
         return new_node
 
-    def get_thoughs_chain(self, node: ThoughtNode = None, node_id: str = None):
+    def get_thoughts_chain(self, node: ThoughtNode = None, node_id: str = None):
         """Organizing the thoughts towards target node."""
         node_path = node.path if node is not None else self.nodes[node_id].path
         return [i_node for i_node in node_path]
@@ -307,7 +308,7 @@ class RedusialTreeofThoughts:
                 best_leaf_node = node
                 best_value = node.thought_score
 
-        return self.get_thoughs_chain(node=best_leaf_node), best_value
+        return self.get_thoughts_chain(node=best_leaf_node), best_value
 
     def save_tree_to_json(self, file_name, save_dir):
         """Save the tree to json file."""
@@ -334,9 +335,7 @@ class RedusialTreeofThoughts:
     def perform_thoughts_reasoning(self, node: ThoughtNode, **wargs: dict):
         """Performing the generation of thoughts with their evaluation scores."""
 
-        thoughts_chain = self.get_thoughs_chain(node)
-
-        print("node: ", node.name)
+        thoughts_chain = self.get_thoughts_chain(node)
 
         new_thoughts = self.model.generate_thoughts(
             thoughts_chain,

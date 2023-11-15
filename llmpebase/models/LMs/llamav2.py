@@ -38,7 +38,7 @@ class LLaMAV2Request(llama_falcon.LLaMARequest):
             }
         )
 
-    def load_model(self, model_config: dict, envs_config: dict):
+    def load_model(self, model_config: dict):
         """loading the llama models."""
 
         model_name = model_config["model_name"]
@@ -104,7 +104,7 @@ class LLaMAV2Request(llama_falcon.LLaMARequest):
         )
         return responses
 
-    def extract_responses_content(self, responses: list):
+    def extract_response_contents(self, responses: list):
         """Extracting answer from the response of the model."""
         print("-------- raw responses: ")
         print(responses)
