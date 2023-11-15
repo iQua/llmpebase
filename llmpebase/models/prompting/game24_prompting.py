@@ -3,6 +3,7 @@ The implementation of adjusting different prompts, including
 zero-shot CoT.
 """
 import re
+from typing import List
 
 from llmpebase.models.prompting import base
 
@@ -10,22 +11,42 @@ from llmpebase.models.prompting import base
 class GameOf24StandardPrompting(base.BasePrompting):
     """The standard prompt of GameOf24."""
 
-    answer_format_str: str = "The solution equation is"
+    answer_format_str: str = "The solution equation is:"
+
+    instruction: str = "Within each step, two numbers are selected from the current number set to perform +,-,*,/ to obtain a new number. Then, these two selected numbers are deleted from the current set. After deleting, if there is no remaining number, you reach the result. Otherwise, you combine the remaining numbers and the obtained new number into a new set for the subsequent reasoning step"
+
+    analysis_format: str = "Step <idx>, Current set: , Selected two numbers: , Operation: , Remaining numbers: , New set: ."
+
+    notice: str = f"""Only when no remaining numbers, summarizing the steps into one equation with necessary brackets to be presented after '{answer_format_str}'"""
 
     def organize_question_prompt(self, sample: dict):
         """Organizing the question prompt."""
         ques = sample["question"]
-        instruction = "In each step: First, two numbers are selected from the current number set to perform +,-,*,/ to obtain a new number. Second, these two selected numbers are deleted from the current set. After deleting, if there is no remaining number, you reach the result. Otherwise, you combine the remaining numbers and the obtained new number into a new set for the subsequent reasoning step."
 
-        prompt = f"""In the game of 24, you are given four numbers, and the goal is to use basic arithmetic operations (+, -, *, /) to combine these numbers and obtain a result of 24. You can only use each number once, and parentheses can be used to change the order of operations. \n Task instruction {instruction}. \n The given four numbers are: {ques}. Write your answer below. After analysis, please place the summarzied solution equation of these four numbers after '{self.answer_format_str}'."""
-
+        prompt = f"""In the game of 24, you are given four numbers, and the goal is to use basic arithmetic operations (+, -, *, /) to combine these numbers and obtain a result of 24. You can only use each number once, and parentheses can be used to change the order of operations. \n Task rule: {self.instruction}. \n Each analysis step format: {self.analysis_format}. \n Notice: {self.notice}. \n The given four numbers are: {ques}. """
         return prompt
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organizing the answer prompt."""
         answ = sample["answer"]
         answ = "" if not is_answer_included else answ
-        return f"""Answer: {self.answer_format_str} {answ}. """
+        return f"""Let's think step by step. {answ}"""
+
+    def organize_template_prompt(
+        self,
+        samples: List[dict],
+        task_name: str = None,
+    ):
+        """organizing the prompt including the few-shot ."""
+        return ""
+
+    def get_test_prompt(
+        self, task_name: str, test_sample: dict, template_samples: List[dict]
+    ):
+        """Organizing the prompt for test."""
+        test_qa_prompt = self.organize_qa_prompt(test_sample, is_answer_included=False)
+        prompt = f"""{test_qa_prompt}"""
+        return prompt
 
     @staticmethod
     def extract_target_result(target_answer: str):
@@ -51,9 +72,11 @@ class GameOf24StandardPrompting(base.BasePrompting):
 
         return None
 
-    def evaluater(self, train_set, eval_set, eval_config):
+    def evaluater(self, train_set, eval_set, config):
         """Evaluating the GameOf24 dataset."""
 
         for _, test_sample in enumerate(eval_set):
-            request_prompt = self.organize_question_prompt(sample=test_sample)
-            yield request_prompt, test_sample, test_sample["target_answer"]
+            request_prompt = self.get_test_prompt(
+                task_name=None, template_samples=None, test_sample=test_sample
+            )
+            yield request_prompt, test_sample, test_sample["target_result"]

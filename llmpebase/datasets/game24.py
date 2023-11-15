@@ -34,8 +34,8 @@ class GameOf24Dataset(torch.utils.data.Dataset):
             collected_items.append(
                 {
                     "question": data_frame["Puzzles"].iloc[row_idx],
-                    "answer": None,
-                    "target_answer": 24,
+                    "answer": "",
+                    "target_result": 24,
                     "solved_rate": data_frame["Solved rate"].iloc[row_idx],
                     "AMT": data_frame["AMT (s)"].iloc[row_idx],
                     "1_sigma_Mean": data_frame["1-sigma Mean (s)"].iloc[row_idx],

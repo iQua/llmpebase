@@ -381,7 +381,6 @@ class RToTLevelWise(RedusialTreeofThoughts):
         node_queue.put(self.root)
 
         for _ in range(self.max_depth):
-            self.print_tree_structure()
             if node_queue.empty():
                 break
 
@@ -416,7 +415,6 @@ class RToTLevelWiseBest(RToTLevelWise):
         node_queue.put((0, int(self.root.name), self.root))
 
         for _ in range(self.max_depth):
-            self.print_tree_structure()
             if node_queue.empty():
                 break
 
