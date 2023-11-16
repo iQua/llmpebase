@@ -8,7 +8,7 @@ class ReasoningChainCommenter:
 
     system_prompt = "You are an expert AI checker for math answers, dedicated to evaluating the reasoning chain generated towards addressing the mathematical problem. Judge each reasoning step of this reasoning chain by providing detailed analyses on whether the current step is a logical inference of the previous step and whether the reasoning step is beneficial to the correct solution. Provide advice and suggestions for each reasoning step with errors. Provide recommendation or rejection descriptions for each correct reasoning step."
 
-    chain_feedback_format: str = "  Can this reasoning chain complete the task and reach the target correct by executing its reasoning steps? why? Write a long analysis report under 'Anlysis Report:'."
+    chain_feedback_format: str = "  Can this reasoning chain complete the task and reach the target correctly by executing its reasoning steps? why? Write a analysis report with conclusion under 'Anlysis Report:'."
 
     step_feedback_format: str = "  For each reasoning step, please provide a detailed analysis of whether the current step is a logical inference of the previous step and whether the reasoning step is beneficial to the correct solution. For each reasoning step with errors, please provide an error report and the corresponding advice on revision. For each reasoning step, please provide recommendation or rejection descriptions. Comments containg words no less than 50 should follow the format: Reasoning step <idx>. \n Analysis report: .\n Advice: .\n Recommendation or Reject description: . \n"
 
