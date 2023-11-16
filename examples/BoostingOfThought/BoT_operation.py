@@ -6,13 +6,11 @@ from typing import List, Dict
 
 import numpy as np
 
-
-from llmpebase.models.prompting import residual_tree_of_thoughts
-from llmpebase.models.LMs import gpts
-
-import bot_model
-
+import examples.BoostingOfThought.BoT_request_model as BoT_request_model
 import chains_aggregation
+
+from llmpebase.models.prompting import tree_thoughts
+from llmpebase.models.LMs import gpts
 
 
 def perform_user_operation(
@@ -37,22 +35,19 @@ def perform_user_operation(
         global_prompt = None
 
     model_config = local_update_config["model_config"]
-    envs_config = local_update_config["envs_config"]
-    base_request_model = gpts.ChatGPTAPIRequest(model_config, envs_config)
+    base_request_model = gpts.GPTAPIRequest(model_config)
 
-    thought_model = bot_model.ThoughtModel(base_request_model)
-    tree_builder = residual_tree_of_thoughts.RToTLevelWiseBest(
-        thought_model, n_child_nodes=2
-    )
+    thought_model = BoT_request_model.ThoughtModel(base_request_model)
+    tree_builder = tree_thoughts.RTTLevelWiseBest(thought_model, n_child_nodes=2)
     tree_builder.construct_tree_root(
-        though=initial_prompt, residual_though=global_prompt
+        thought=initial_prompt, residual_thought=global_prompt
     )
 
     # perform the reasoning with the tree structure
     tree_builder.build_thought_tree()
 
     # extracting the best reasoning chain from the tree
-    thought_chain = tree_builder.get_best_though_chain()
+    thought_chain = tree_builder.get_best_thought_chain()
 
     # organizing the best chain to be a prompt
     local_prompt = thought_model.organize_thoughs_chain_prompt(thought_chain)
@@ -69,19 +64,19 @@ def perform_server_operation(global_prompt: str, users_update: List[Dict[int, di
 
     aggregated_chain = chains_aggregation.leaf_depend_aggregation(chains=users_chain)
 
-    thought_model = bot_model.ThoughtModel(None)
+    thought_model = BoT_request_model.ThoughtModel(None)
     global_prompt = thought_model.organize_thoughs_chain_prompt(aggregated_chain)
 
     return global_prompt
 
 
-def do_fot_reasoning(initial_prompt: str, fot_config: dict):
+def do_bot_reasoning(initial_prompt: str, bot_config: dict):
     """Do the FoT reasoning for the question solving."""
-    num_rounds = fot_config["num_rounds"]
-    num_users = fot_config["num_users"]
-    num_users_per_round = fot_config["num_users_per_round"]
+    num_rounds = bot_config["num_rounds"]
+    num_users = bot_config["num_users"]
+    num_users_per_round = bot_config["num_users_per_round"]
 
-    local_update_config = fot_config["local_update"]
+    local_update_config = bot_config["local_update"]
 
     # create users id
     users_id = list(range(1, num_users + 1))

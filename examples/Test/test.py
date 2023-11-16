@@ -3,17 +3,16 @@ Testing the tree building approaches.
 """
 import random
 import re
-
 from typing import List
 
-from llmpebase.models.prompting.residual_tree_of_thoughts import (
+from llmpebase.models.prompting.tree_thoughts import (
     ThoughtNode,
-    RToTLevelWise,
-    RToTLevelWiseBest,
-    RToTLeafWise,
+    # RTTLevelWise,
+    # RTTLevelWiseBest,
+    RTTLeafWise,
 )
 
-from vgbase.config import Config
+from llmpebase.config import Config
 
 
 class TestModel:
@@ -210,19 +209,19 @@ def _main():
 
     model_config = Config().model
     model_config = Config.items_to_dict(model_config._asdict())
-    # tree = RToTLevelWise(
+    # tree = RTTLevelWise(
     #     model=test_model, n_child_nodes=2, **model_config["tree_settings"]
     # )
-    # tree = RToTLevelWiseBest(
+    # tree = RTTLevelWiseBest(
     #     model=test_model, n_child_nodes=2, **model_config["tree_settings"]
     # )
 
-    tree = RToTLeafWise(
+    tree = RTTLeafWise(
         model=test_model, n_child_nodes=2, **model_config["tree_settings"]
     )
 
     tree.construct_tree_root(
-        though="This is an interesting test for the proposed approach"
+        thought="This is an interesting test for the proposed approach"
     )
 
     tree.build_thought_tree()
