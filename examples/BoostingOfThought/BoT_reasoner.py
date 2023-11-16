@@ -23,12 +23,6 @@ class ExperienceRecallReasoner:
         # A container to store each experience
         self.experience_container = []
 
-    def create_experience(self, feedback: str, chain_content_prompt: str):
-        """Create the experience."""
-
-        experience = f"""{chain_content_prompt}\n\n {feedback}"""
-        return experience
-
     def memory_experience(self, feedback: str):
         """
         Collect the experience from the feedback, which contains error reports
@@ -47,19 +41,6 @@ class ExperienceRecallReasoner:
 
         stop_line = "##################################################################"
         self.experiences = f"""{self.experiences}\n {stop_line}"""
-
-    def organize_though_chain_prompt(self, node_thought_chain: List[ThoughtNode]):
-        """Organizing thoughts chain into the prompt."""
-        # initial prompt should be the thought of the root noe
-        intermediate_thoughts_node = node_thought_chain[1:]
-
-        intermediate_steps = [
-            f"""Reasoning Step {idx+1}: {thought_node.thought}. Evaluate Score: {thought_node.thought_score}"""
-            for idx, thought_node in enumerate(intermediate_thoughts_node)
-        ]
-        intermediate_steps = "\n\n\t".join(intermediate_steps)
-        reasoning_chain_prompt = f"""{intermediate_steps}"""
-        return reasoning_chain_prompt
 
     def organize_next_thought_prompt(self, node_thought_chain: List[ThoughtNode]):
         """Generating the prompt for next thought."""
@@ -180,3 +161,24 @@ class ExperienceRecallReasoner:
         if match:
             score = float(match.group(1))
         return score
+
+    @staticmethod
+    def organize_though_chain_prompt(node_thought_chain: List[ThoughtNode]):
+        """Organizing thoughts chain into the prompt."""
+        # initial prompt should be the thought of the root noe
+        intermediate_thoughts_node = node_thought_chain[1:]
+
+        intermediate_steps = [
+            f"""Reasoning Step {idx+1}: {thought_node.thought}. Evaluate Score: {thought_node.thought_score}"""
+            for idx, thought_node in enumerate(intermediate_thoughts_node)
+        ]
+        intermediate_steps = "\n\n\t".join(intermediate_steps)
+        reasoning_chain_prompt = f"""{intermediate_steps}"""
+        return reasoning_chain_prompt
+
+    @staticmethod
+    def create_experience(feedback: str, chain_content_prompt: str):
+        """Create the experience."""
+
+        experience = f"""{chain_content_prompt}\n\n {feedback}"""
+        return experience
