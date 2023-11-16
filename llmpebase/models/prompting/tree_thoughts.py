@@ -1,5 +1,8 @@
 """
 Implementation of Basic Tree Thought Structures.
+
+Note that the root of the tree will not be counted as one level 
+or height or depth.
 """
 
 import os
@@ -92,8 +95,8 @@ class ResidualThoughtNode(ThoughtNode):
         self.residual_thought = residual_thought
 
 
-class RedusialTreeofThoughts:
-    """A base class for the tree of thoughts with redusial (RToT)."""
+class ResidualThoughtTree:
+    """A base class for the thought tree with residual (RTT)."""
 
     def __init__(
         self,
@@ -140,12 +143,14 @@ class RedusialTreeofThoughts:
             else tree_config["max_thoughts_score_diff"]
         )
 
-        # num_leaves <= 2**max_depth - 1
-        self.num_leaves: int = (
-            6 if "num_leaves" not in tree_config else tree_config["num_leaves"]
-        )
         self.max_depth: int = (
             3 if "max_depth" not in tree_config else tree_config["max_depth"]
+        )
+        # max_leaves <= 2**max_depth - 1
+        self.max_leaves: int = (
+            2**self.max_depth - 1
+            if "max_leaves" not in tree_config
+            else tree_config["max_leaves"]
         )
 
         # if you use the leaf-wise first, max_steps should be set
@@ -232,20 +237,20 @@ class RedusialTreeofThoughts:
         return node_src.path == node_tgt.path
 
     def is_trigger_leaf_node(self, node: ThoughtNode):
-        """Whether to trigger the node to become a leaf node."""
+        """Whether to trigger the node to become a leaf node.
 
-        # print("self.max_depth: ", self.max_depth)
-        # print("self.min_leaf_thought_score: ", self.min_leaf_thought_score)
-        # print("self.max_leaf_thought_score: ", self.max_leaf_thought_score)
-        # print("self.num_leaves: ", self.num_leaves)
-        # print("node.depth: ", node.depth)
-        # print("node.thought_score: ", node.thought_score)
-        # print("len(self.root.leaves): ", len(self.root.leaves))
+        Generally, we set a large 'max_leaf_thought_score: 1.0' as the generation model
+        is very confidence about its evaluation score on the thought.
+
+        TODO One prehaps utilize a generation model that is different from the one used
+        for thought generation to perform the evaluation.
+        """
+
         return (
-            node.depth > self.max_depth
+            node.depth >= self.max_depth
+            or len(self.root.leaves) >= self.max_leaves
             or node.thought_score <= self.min_leaf_thought_score
             or node.thought_score >= self.max_leaf_thought_score
-            or len(self.root.leaves) >= self.num_leaves
         )
 
     def make_node_leaf(self, node: ThoughtNode = None, node_id: str = None):
@@ -279,22 +284,24 @@ class RedusialTreeofThoughts:
                 parent=parent_node,
             )
             self.nodes[str(identity_number)] = new_node
-
+            if self.is_trigger_leaf_node(new_node):
+                self.make_node_leaf(new_node)
+                logging.info(
+                    "Made the added node with id %s to be leaf node.",
+                    str(identity_number),
+                )
         else:
-            # backup though for the existing node
+            # Backup though for the existing node
             matched_node = searched_nodes[0]
             matched_node.backup_similar_though(thought, evaluation)
             logging.info(
                 "Extended the thought for an existing node %s",
                 matched_node.name,
             )
-        # converting node to leaf when possible
-        if new_node is not None and self.is_trigger_leaf_node(new_node):
-            self.make_node_leaf(new_node)
 
         return new_node
 
-    def get_thoughts_chain(self, node: ThoughtNode = None, node_id: str = None):
+    def get_reasoning_chain(self, node: ThoughtNode = None, node_id: str = None):
         """Organizing the thoughts towards target node."""
         node_path = node.path if node is not None else self.nodes[node_id].path
         return [i_node for i_node in node_path]
@@ -303,12 +310,11 @@ class RedusialTreeofThoughts:
         """Getting the best though chain in the tree."""
         best_value = 0
         best_leaf_node = None
-        for node in self.nodes:
+        for _, node in self.nodes.items():
             if node.is_leaf and node.thought_score > best_value:
                 best_leaf_node = node
                 best_value = node.thought_score
-
-        return self.get_thoughts_chain(node=best_leaf_node), best_value
+        return self.get_reasoning_chain(node=best_leaf_node), best_value
 
     def save_tree_to_json(self, file_name, save_dir):
         """Save the tree to json file."""
@@ -329,20 +335,21 @@ class RedusialTreeofThoughts:
     def print_tree_structure(self):
         """Showing the structure of the tree."""
         for pre, fill, node in RenderTree(self.root):
-            treestr = "%s%s" % (pre, node.name)
-            print(treestr.ljust(8), node.thought, node.thought_score)
+            treestr = f"{pre}{node.name}"
+            node_content = f"{node.thought}. Evaluation Score: {node.thought_score}"
+            print(treestr.ljust(8), node_content)
 
-    def perform_thoughts_reasoning(self, node: ThoughtNode, **wargs: dict):
+    def perform_thought_reasoning(self, node: ThoughtNode, **wargs: dict):
         """Performing the generation of thoughts with their evaluation scores."""
 
-        thoughts_chain = self.get_thoughts_chain(node)
+        reasoning_chain = self.get_reasoning_chain(node)
 
         new_thoughts = self.model.generate_thoughts(
-            thoughts_chain,
+            reasoning_chain,
             num_thoughts=self.n_child_nodes,
         )
         evaluated_thoughts = {
-            thought: self.model.evaluate_thought_chain(thoughts_chain, thought)
+            thought: self.model.evaluate_reasoning_thought(reasoning_chain, thought)
             for thought in new_thoughts
         }
 
@@ -368,29 +375,25 @@ class RedusialTreeofThoughts:
         """Building the tree."""
 
 
-class RToTLevelWise(RedusialTreeofThoughts):
-    """RToT with BFS (Breadth First Search or Level Order Traversal or level-first or level-wise).
+class RTTLevelWise(ResidualThoughtTree):
+    """RTT with BFS (Breadth First Search or Level Order Traversal or level-first or level-wise).
     This the level-wise growth strategy used by XGBoost."""
 
     def build_thought_tree(self):
         """Building the tree with the level-first/Level-wise growth strategy."""
 
         visited_nodes_id = set()
-        node_queue = Queue()
+        node_queue = Queue(maxsize=self.max_leaves)
 
         node_queue.put(self.root)
-
-        for _ in range(self.max_depth):
-            if node_queue.empty():
-                break
-
+        while not node_queue.empty():
             node = node_queue.get()
             if node.name in visited_nodes_id:
                 continue
 
             visited_nodes_id.add(node.name)
 
-            evaluated_thoughts = self.perform_thoughts_reasoning(node)
+            evaluated_thoughts = self.perform_thought_reasoning(node)
 
             created_nodes = self.perform_tree_growth(node, evaluated_thoughts)
 
@@ -401,8 +404,8 @@ class RToTLevelWise(RedusialTreeofThoughts):
                     node_queue.put(node)
 
 
-class RToTLevelWiseBest(RToTLevelWise):
-    """RToT with BFS but extending the `RToTLevelWise` to be the best
+class RTTLevelWiseBest(RTTLevelWise):
+    """RTT with BFS but extending the `RTTLevelWise` to be the best
     node first - in each level, the node with highest thought score will be
     growth at first."""
 
@@ -410,14 +413,11 @@ class RToTLevelWiseBest(RToTLevelWise):
         """Building the tree with the level-first/Level-wise growth strategy."""
 
         visited_nodes_id = set()
-        node_queue = PriorityQueue()
+        node_queue = PriorityQueue(maxsize=self.max_leaves)
 
         node_queue.put((0, int(self.root.name), self.root))
 
-        for _ in range(self.max_depth):
-            if node_queue.empty():
-                break
-
+        while not node_queue.empty():
             left_score, _, node = node_queue.get()
             thought_score = 1 - left_score
 
@@ -426,7 +426,7 @@ class RToTLevelWiseBest(RToTLevelWise):
 
             visited_nodes_id.add(node.name)
 
-            evaluated_thoughts = self.perform_thoughts_reasoning(node)
+            evaluated_thoughts = self.perform_thought_reasoning(node)
 
             created_nodes = self.perform_tree_growth(node, evaluated_thoughts)
 
@@ -442,29 +442,26 @@ class RToTLevelWiseBest(RToTLevelWise):
                     node_queue.put((left_score, int(node.name), node))
 
 
-class RToTLeafWise(RedusialTreeofThoughts):
-    """RToT with DFS (Deep First Search or best-first or leaf-wise).
+class RTTLeafWise(ResidualThoughtTree):
+    """RTT with DFS (Deep First Search or best-first or leaf-wise).
     This the leaf-wise growth strategy used by XGBoost."""
 
     def build_thought_tree(self):
         """Building the tree with the depth-first/leaf-wise growth strategy."""
 
         visited_nodes_id = set()
-        node_queue = Queue()
+        node_queue = Queue(maxsize=self.max_leaves)
 
         node_queue.put(self.root)
 
-        for _ in range(self.max_steps):
-            if node_queue.empty():
-                break
-
+        while not node_queue.empty():
             node = node_queue.get()
             if node.name in visited_nodes_id:
                 continue
 
             visited_nodes_id.add(node.name)
 
-            evaluated_thoughts = self.perform_thoughts_reasoning(node)
+            evaluated_thoughts = self.perform_thought_reasoning(node)
 
             created_nodes = self.perform_tree_growth(node, evaluated_thoughts)
 
