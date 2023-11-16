@@ -40,16 +40,15 @@ model:
   tree_settings:
     n_child_nodes: 2
     num_leaves: 50
-    max_depth: 20
-    min_leaf_though_score: 0.3
-    max_leaf_though_score: 0.9
+    max_depth: 3
+    min_leaf_though_score: 0.1
+    max_leaf_though_score: 0.95
     min_thoughts_similarity: 0.6
     max_thoughts_score_diff: 0.3
 
   pretrained_models_path: experiments/pretrained_models
 
 trainer:
-
 
 logging:
   # path where to save, empty for no saving
