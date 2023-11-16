@@ -13,17 +13,17 @@ class GameOf24StandardPrompting(base.BasePrompting):
 
     answer_format_str: str = "The solution equation is:"
 
-    instruction: str = "Within each step, two numbers are selected from the current number set to perform +,-,*,/ to obtain a new number. Then, these two selected numbers are deleted from the current set. After deleting, if there is no remaining number, you reach the result. Otherwise, you combine the remaining numbers and the obtained new number into a new set for the subsequent reasoning step"
+    instruction: str = " Within each step, two numbers are selected from the current number set to perform +,-,*,/ to obtain a new number. Then, these two selected numbers are deleted from the current set. After deleting, if there is no remaining number, you reach the result. Otherwise, you combine the remaining numbers and the obtained new number into a new set for the subsequent reasoning step. Therefore, the current number set of this step is the new set of the previous step."
 
-    analysis_format: str = "Step <idx>, Current set: , Selected two numbers: , Operation: , Remaining numbers: , New set: ."
+    analysis_format: str = " Step <idx>, Current set: , Selected two numbers: , Operation: , Computed new number: , Remaining numbers: , New set: "
 
-    notice: str = f"""Only when no remaining numbers, summarizing the steps into one equation with necessary brackets to be presented after '{answer_format_str}'"""
+    notice: str = f""" Only when no remaining numbers, summarizing the steps into one equation with necessary brackets to be presented after '{answer_format_str}'"""
 
     def organize_question_prompt(self, sample: dict):
         """Organizing the question prompt."""
         ques = sample["question"]
 
-        prompt = f"""In the game of 24, you are given four numbers, and the goal is to use basic arithmetic operations (+, -, *, /) to combine these numbers and obtain a result of 24. You can only use each number once, and parentheses can be used to change the order of operations. \n Task rule: {self.instruction}. \n Each analysis step format: {self.analysis_format}. \n Notice: {self.notice}. \n The given four numbers are: {ques}. """
+        prompt = f"""In the game of 24, you are given four numbers, and the goal is to use basic arithmetic operations (+, -, *, /) to combine these numbers and obtain a result of 24. You can only use each number once, and parentheses can be used to change the order of operations. \n  Task rule: {self.instruction}. \n  Analysis format of each step: {self.analysis_format}. \n  Notice: 1. {self.notice}, 2. Do not add any words apart from the Analysis format. \n\nThe given four numbers are: {ques}. """
         return prompt
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
