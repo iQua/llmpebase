@@ -1,13 +1,10 @@
 """
-The implementation of Chain Of Thought [1].
+Implementation of Chain Of Thought [1].
 
 [1]. Wei, et.al., Chain-of-Thought Prompting Elicits Reasoning in Large Language Models, 23.
 """
 
-import resource
-
-
-from vgbase.config import Config
+from llmpebase.config import Config
 
 from llmpebase.models import define_model, define_prompt
 from llmpebase.datasets import define_dataset
@@ -24,14 +21,12 @@ def do_model_request(model, request_prompt):
         input_request=ipt_msg, per_request_responses=2
     )
 
-    extracted_contents = model.extract_responses_content(model_responses)
+    extracted_contents = model.extract_response_contents(model_responses)
 
     return extracted_contents
 
 
-def perform_eval(
-    model, train_set, test_set, input_prompter, logging_config, eval_config
-):
+def perform_eval(model, train_set, test_set, input_prompter, logging_config, config):
     """Performing the evaluation."""
     eval_recorder = recorder.DualExtensionRecoder(
         records_filename="records",
@@ -46,15 +41,18 @@ def perform_eval(
     )
 
     for prompt, eval_sample, eval_groundtruth in input_prompter.evaluater(
-        train_set, test_set, eval_config
+        train_set, test_set, config
     ):
         contents = do_model_request(model, request_prompt=prompt)
-        extracted_target_answers = input_prompter.extract_contents_target_answer(
-            contents
-        )
-
+        extracted_target_answers = input_prompter.extract_target_answers(contents)
+        extracted_target_results = [
+            input_prompter.extract_target_result(dst_answer)
+            for dst_answer in extracted_target_answers
+        ]
         consistency = [
-            input_prompter.measure_answers_consistency(eval_groundtruth, dst_answer)
+            input_prompter.measure_answers(
+                dst_answer=eval_groundtruth, src_answer=dst_answer
+            )
             for dst_answer in extracted_target_answers
         ]
 
@@ -62,7 +60,8 @@ def perform_eval(
             "request_prompt": prompt,
             "responses": contents,
             "extracted_answers": extracted_target_answers,
-            "answers_consistency": consistency,
+            "extracted_results": extracted_target_results,
+            "is_correct_answers": consistency,
         }
 
         eval_recorder.add_one_record(
@@ -74,25 +73,19 @@ def perform_eval(
 def _main():
     """The core function for model running."""
 
-    rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
-    resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
-
     # obtain configs
     model_config = Config().model
     data_config = Config().data
-    train_config = Config().trainer
     eval_config = Config().evaluation
     logging_config = Config().logging
 
-    env_config = Config().environment
-    env_config = Config().items_to_dict(env_config._asdict())
     model_config = Config.items_to_dict(model_config._asdict())
     data_config = Config.items_to_dict(data_config._asdict())
     eval_config = Config.items_to_dict(eval_config._asdict())
 
     #################### Prepare model ####################
 
-    request_model = define_model(model_config, env_config)
+    request_model = define_model(model_config)
 
     #################### Do evaluation for the dataset ####################
     datasource = define_dataset(data_config)
@@ -109,7 +102,7 @@ def _main():
         test_set,
         input_prompter=prompter,
         logging_config=logging_config,
-        eval_config=eval_config,
+        config=model_config,
     )
 
 
