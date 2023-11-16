@@ -65,6 +65,11 @@ class BaseLMRequest:
         """Extracting answers from the obtained responses."""
         raise NotImplementedError("'extract_tokens' has not been implemented yet.")
 
+    def has_request_limit(self):
+        """Whether the request model has limited request rate."""
+
+        return False
+
     def extract_target_answers(self, responses_content: list):
         """Extracting the target answer from the contents of responses."""
         prefix = re.escape("In summary")
