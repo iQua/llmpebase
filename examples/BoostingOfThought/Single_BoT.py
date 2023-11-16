@@ -41,6 +41,7 @@ def perform_bot_reasoning(
     gob_tree.build_thought_tree()
     gob_tree.print_tree_structure()
 
+    # Get the best chain which is a list of thought nodes
     best_chain, _ = gob_tree.get_best_thought_chain()
 
     print("best_chain:", best_chain)
