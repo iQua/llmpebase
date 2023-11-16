@@ -66,8 +66,12 @@ class GPTAPIRequest(base.BaseLMRequest):
         max_tokens = (
             generation_settings["max_tokens"]
             if "max_tokens" in generation_settings
-            else 1000
+            else 3000
         )
+        # Top P ranges from 0 to 1 (default), and a lower Top P means the model samples from
+        # a narrower selection of words. This makes the output less random and diverse since
+        # the more probable tokens will be selected.
+        top_p = generation_settings["top_p"] if "top_p" in generation_settings else 0.7
 
         stop = generation_settings["stop"] if "stop" in generation_settings else None
 
@@ -80,8 +84,13 @@ class GPTAPIRequest(base.BaseLMRequest):
                 "max_tokens": max_tokens,
                 "n": 1,
                 "stop": stop,
+                "top_p": top_p,
             }
         )
+
+    def update_generation_config(self, new_config):
+        """Update the generation config with the given kwargs."""
+        self.generation_config.update(new_config)
 
     def get_authorization(self, organization: str, api_key: str):
         """Getting the authorization from openai."""

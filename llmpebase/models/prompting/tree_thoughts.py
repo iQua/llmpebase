@@ -119,15 +119,15 @@ class ResidualThoughtTree:
         self.node_id_tracker = -1
 
         self.n_child_nodes = n_child_nodes
-
         self.tree_config = model_config["tree_settings"]
 
         self.set_thresholds(self.tree_config)
 
-        self.best_thought = None
-        self.best_value = float("-inf")
-
-        self.history = []  # added line initalize history
+    def reset_tree(self):
+        """Reset the tee."""
+        self.root: ResidualThoughtNode = None
+        self.nodes.clear()
+        self.node_id_tracker = -1
 
     def set_thresholds(self, tree_config):
         """Setting the threshold of the tree."""
@@ -302,19 +302,27 @@ class ResidualThoughtTree:
         return new_node
 
     def get_reasoning_chain(self, node: ThoughtNode = None, node_id: str = None):
-        """Organizing the thoughts towards target node."""
+        """Organize the thoughts towards target node."""
         node_path = node.path if node is not None else self.nodes[node_id].path
         return [i_node for i_node in node_path]
 
     def get_best_thought_chain(self):
-        """Getting the best though chain in the tree."""
+        """
+        Get the best though chain in the tree.
+        The metric is the sum of thought scores contained in the chain.
+        """
         best_value = 0
-        best_leaf_node = None
+        best_chain = None
         for _, node in self.nodes.items():
-            if node.is_leaf and node.thought_score > best_value:
-                best_leaf_node = node
-                best_value = node.thought_score
-        return self.get_reasoning_chain(node=best_leaf_node), best_value
+            if node.is_leaf:
+                thought_chain = self.get_reasoning_chain(node=node)
+                chain_metric = sum(
+                    [float(node.thought_score) for node in thought_chain[1:]]
+                )
+                if chain_metric > best_value:
+                    best_chain = thought_chain
+                    best_value = chain_metric
+        return best_chain, best_value
 
     def save_tree_to_json(self, file_name, save_dir):
         """Save the tree to json file."""
