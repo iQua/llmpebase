@@ -29,7 +29,7 @@ class ReasoningChainAggregator:
         best_score = 0
         for chain_id in chain_ids:
             chain = chains[chain_id]
-            chain_score = sum([float(node.thought_score) for node in chain])
+            chain_score = sum([float(node.thought_score) for node in chain[1:]])
             if chain_score > best_score:
                 best_score = chain_score
                 best_id = chain_id

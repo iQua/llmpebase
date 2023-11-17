@@ -95,7 +95,7 @@ class ExperienceRecallReasoner:
 
         # Wait for 30 seconds to avoid the rate limit of the API
         if self.request_model.has_request_limit():
-            time.sleep(40)
+            time.sleep(10)
 
         return thoughts
 

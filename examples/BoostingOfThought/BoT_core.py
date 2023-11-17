@@ -1,12 +1,12 @@
 """
 The implementation of applying BoT on the Game of 24.
 """
+import logging
 import random
 from typing import List
 from collections import OrderedDict
 
 import BoT_reasoner
-import BoT_commenter
 import BoT_aggregator
 
 
@@ -24,7 +24,7 @@ class BoostOfThoughts:
     def __init__(self, experience_reasoner, chain_commenter, model_config) -> None:
         self.model_config = model_config
         # The core generation config
-        self.generation_config = self.model_config["generation_config"]
+        self.base_generation_config = self.model_config["generation_settings"]
         # The number of iteration to be performed
         self.n_iteration = self.model_config["n_iteration"]
 
@@ -47,7 +47,7 @@ class BoostOfThoughts:
         for tree_id in range(n_trees):
             tree_temperature = random.choice([0.2, 0.4, 0.6, 0.7, 0.9, 1.1, 1.5])
             tree_top_p = random.choice([0.1, 0.3, 0.5, 0.7, 0.9])
-            generation_config = self.model_config["generation_config"]
+            generation_config = self.model_config["generation_settings"]
             generation_config["temperature"] = tree_temperature
             generation_config["top_p"] = tree_top_p
 
@@ -63,6 +63,12 @@ class BoostOfThoughts:
                 n_child_nodes=self.model_config["tree_settings"]["n_child_nodes"],
                 model_config=self.model_config,
             )
+            logging.info(
+                "Built %s-th %s tree with generation config %s ",
+                tree_id + 1,
+                selected_type,
+                generation_config,
+            )
 
     def perform_local_reasoning(
         self, task_prompt: str, tree_id: int
@@ -73,7 +79,7 @@ class BoostOfThoughts:
         # Clean the old tree
         local_tree.reset_tree()
         # Update the generation config for this tree
-        local_tree.model.update_generation_config(generation_config)
+        local_tree.model.request_model.update_generation_config(generation_config)
 
         # Add the initial task prompt to the root node
         local_tree.construct_tree_root(
@@ -99,7 +105,7 @@ class BoostOfThoughts:
         # Convert the chain to the prompt
         # Update the config to be the core oen
         self.experience_reasoner.request_model.update_generation_config(
-            self.generation_config
+            self.base_generation_config
         )
         # Get the chain prompt
         chain_prompt = (
@@ -129,11 +135,10 @@ class BoostOfThoughts:
         aggregated_chain = None
         for _ in range(self.n_iteration):
             # Perform the local reasoning on each tree
-            local_chains = []
+            local_chains = {}
             for tree_id in self.heterogeneity_trees:
                 best_chain = self.perform_local_reasoning(task_prompt, tree_id)
-                local_chains.append(best_chain)
-
+                local_chains[tree_id] = best_chain
             # Perform the global aggregation
             aggregated_chain = self.perform_global_aggregation(
                 task_prompt, local_chains
