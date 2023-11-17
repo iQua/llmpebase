@@ -17,7 +17,7 @@ class GameOf24StandardPrompting(base.BasePrompting):
 
     analysis_format: str = " Step <idx>, Current set: , Selected two numbers: , Operation: , Computed new number: , Remaining numbers: , New set: "
 
-    notice: str = f""" Only when no remaining numbers, summarizing the steps into one equation with necessary brackets to be presented after '{answer_format_str}'"""
+    notice: str = """ When no remaining numbers, the result of the reasoning chain will be the number in the Computed new number of the analysis. The analysis steps are correct only when this number equals 24 mathematically. """
 
     def organize_question_prompt(self, sample: dict):
         """Organizing the question prompt."""

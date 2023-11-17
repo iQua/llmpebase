@@ -342,10 +342,13 @@ class ResidualThoughtTree:
 
     def print_tree_structure(self):
         """Showing the structure of the tree."""
+        print("\nTree Structure:")
+        print("*" * 20)
         for pre, fill, node in RenderTree(self.root):
             treestr = f"{pre}{node.name}"
             node_content = f"{node.thought}. Evaluation Score: {node.thought_score}"
             print(treestr.ljust(8), node_content)
+        print("*" * 20)
 
     def perform_thought_reasoning(self, node: ThoughtNode, **wargs: dict):
         """Performing the generation of thoughts with their evaluation scores."""

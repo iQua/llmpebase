@@ -71,8 +71,8 @@ class ExperienceRecallReasoner:
         """
 
         prompt = self.organize_next_thought_prompt(node_thought_chain)
-        print("-----------------------------------------------------------")
-        print(prompt)
+        # print("-----------------------------------------------------------")
+        # print(prompt)
 
         # To ensure the diversity of the generated thoughts
         diverse_scale = 5
@@ -90,12 +90,12 @@ class ExperienceRecallReasoner:
             answers = answers * max(1, num_thoughts // len(answers))
 
         thoughts = random.sample(answers, num_thoughts)
-        print(thoughts)
-        print("-----------------------------------------------------------")
+        # print(thoughts)
+        # print("-----------------------------------------------------------")
 
         # Wait for 30 seconds to avoid the rate limit of the API
         if self.request_model.has_request_limit():
-            time.sleep(10)
+            time.sleep(20)
 
         return thoughts
 
@@ -173,7 +173,8 @@ class ExperienceRecallReasoner:
             for idx, thought_node in enumerate(intermediate_thoughts_node)
         ]
         intermediate_steps = "\n\n\t".join(intermediate_steps)
-        reasoning_chain_prompt = f"""{intermediate_steps}"""
+        end_format = "-----------------------------------"
+        reasoning_chain_prompt = f"""{intermediate_steps}\n {end_format}"""
         return reasoning_chain_prompt
 
     @staticmethod

@@ -1,5 +1,11 @@
 """
 The implementation of the BoT.
+
+In the simplest case, the BoT is implemented with one single tree and a single reasoning process on the Game of 24.
+
+This BoT variant can be compared with the tree of thoughts [1], which performs the reasoning by building thoughts in a tree structure.
+
+[1]. Tree of Thoughts: Deliberate Problem Solving with Large Language Models, 2023.
 """
 
 import BoT_reasoner
@@ -28,8 +34,6 @@ def perform_bot_eval(
         sample_check_item="answer", record_check_item="request_prompt"
     )
 
-    # Remove the notice, which is not suitable for BoT
-    data_prompter.notice = ""
     # Visit all test samples for evaluation
     for task_prompt, eval_sample, eval_groundtruth in data_prompter.evaluater(
         train_set=None, eval_set=test_set, config=None

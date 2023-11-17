@@ -12,7 +12,7 @@ class ReasoningChainCommenter:
 
     step_feedback_format: str = "  For each reasoning step, please provide a detailed analysis of whether the current step is a logical inference of the previous step and whether the reasoning step is beneficial to the correct solution. For each reasoning step with errors, please provide an error report and the corresponding advice on revision. For each reasoning step, please provide recommendation or rejection descriptions. Comments containg words no less than 50 should follow the format: Reasoning step <idx>. \n Analysis report: .\n Advice: .\n Recommendation or Reject description: . \n"
 
-    confidence_feedback_format: str = "  What is your confidence score on these your evaluations and comments? Please select one value from [0.1, 0.3, 0.5, 0.7, 0.9, 1.0] as the score, where a higher value means a high confidence. The score should be placed after 'Confidence score:' for users to read."
+    confidence_feedback_format: str = "  What is your confidence score on these your evaluations and comments? Please select one value from [0.1, 0.3, 0.5, 0.7, 0.9, 1.0]. The score should be placed after 'Confidence score:' for users to read."
 
     Notice: str = "Do NOT repeat the listed reasoning step in your comments but only show step index."
 
@@ -21,7 +21,7 @@ class ReasoningChainCommenter:
 
     def organize_chain_content_prompt(self, reasoning_chain_content: str):
         """Organize the prompt for the content of the chain."""
-        chain_content_prompt = f"""Below is a reasoning chain containing multiple reasoning steps presented in order:\n
+        chain_content_prompt = f"""Below is a reasoning chain containing reasoning steps presented in order:\n
         {reasoning_chain_content}"""
         return chain_content_prompt
 

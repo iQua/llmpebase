@@ -45,11 +45,15 @@ class BoostOfThoughts:
         self.global_experience = OrderedDict()
 
         for tree_id in range(n_trees):
-            tree_temperature = random.choice([0.2, 0.4, 0.6, 0.7, 0.9, 1.1, 1.5])
-            tree_top_p = random.choice([0.1, 0.3, 0.5, 0.7, 0.9])
-            generation_config = self.model_config["generation_settings"]
-            generation_config["temperature"] = tree_temperature
-            generation_config["top_p"] = tree_top_p
+            generation_config = self.base_generation_config
+            # Set the first tree to be the base generation in the
+            # config file
+            if tree_id > 1:
+                tree_temperature = random.choice([0.2, 0.4, 0.6, 0.7, 0.9, 1.1, 1.5])
+                tree_top_p = random.choice([0.1, 0.3, 0.5, 0.7, 0.9])
+                generation_config = self.model_config["generation_settings"]
+                generation_config["temperature"] = tree_temperature
+                generation_config["top_p"] = tree_top_p
 
             self.tree_generation_config[tree_id] = generation_config
             tree_types = {
@@ -88,7 +92,6 @@ class BoostOfThoughts:
         )
         # Build the thought tree to perform the reasoning
         local_tree.build_thought_tree()
-        local_tree.print_tree_structure()
 
         # Get the best chain which is a list of thought nodes
         best_chain, _ = local_tree.get_best_thought_chain()
@@ -143,4 +146,6 @@ class BoostOfThoughts:
             aggregated_chain = self.perform_global_aggregation(
                 task_prompt, local_chains
             )
+            print(self.heterogeneity_trees[0].model.experiences)
+
         return aggregated_chain

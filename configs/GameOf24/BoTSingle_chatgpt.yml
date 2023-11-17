@@ -31,7 +31,7 @@ model:
   authorization_env_path: ./.env
 
   num_trees: 1
-  n_iteration: 1
+  n_iteration: 2
   aggregation_type: best_first
   
   generation_settings:
