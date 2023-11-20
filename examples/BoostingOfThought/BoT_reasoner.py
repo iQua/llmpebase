@@ -23,6 +23,9 @@ class ExperienceRecallReasoner:
         # A container to store each experience
         self.experience_container = []
 
+        # Organize the experiences in the container
+        self.organize_container_experiences()
+
     def memory_experience(self, feedback: str):
         """
         Collect the experience from the feedback, which contains error reports
@@ -47,7 +50,7 @@ class ExperienceRecallReasoner:
         task_prompt = node_thought_chain[0].thought
         chain_prompt = self.organize_though_chain_prompt(node_thought_chain)
 
-        prompt = f"""{task_prompt}. \n First of all, Recall historical reasoning experience: \n\n {self.experiences} \n\n Please make one step of reasoning to generate only one next possible reasoning step. This next reasoning step is the subsequential step from the following ordered previous steps, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.): \n\t{chain_prompt}\n\n Based on listed previous reasoning steps (ignore them when the above space is empty), generate one single next possible step following the Task rule. (Emphasize: Please generate only one single next possible reasoning step of the given steps.))
+        prompt = f"""{task_prompt}. \n Recall historical reasoning experience (Ignore when experience is empty): \n\n {self.experiences} \n Pay attention to analysis and advice in the above experience to avoid making similar mistakes by following the advice. \n\n Below is a list of ordered reasoning steps, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.): \n\t{chain_prompt}\n\nBased on listed reasoning steps only within the above "------------" (i.e., Not the ones in the experience block), please make one step of reasoning to generate only one subsequential possible reasoning step. Just ignore them when there is no listed steps. Notice: Do NOT mistakenly generate the reasoning steps next to the ones in experience, i.e., when the listed reasoning steps within "------------" is empty, you should generate step 1!
         """
 
         return prompt
@@ -75,7 +78,7 @@ class ExperienceRecallReasoner:
         # print(prompt)
 
         # To ensure the diversity of the generated thoughts
-        diverse_scale = 5
+        diverse_scale = 1
         num_diverse_thoughts = min(num_thoughts * diverse_scale, 20)
 
         responses = self.request_model.perform_request(
@@ -90,13 +93,11 @@ class ExperienceRecallReasoner:
             answers = answers * max(1, num_thoughts // len(answers))
 
         thoughts = random.sample(answers, num_thoughts)
-        # print(thoughts)
-        # print("-----------------------------------------------------------")
 
         # Wait for 30 seconds to avoid the rate limit of the API
-        if self.request_model.has_request_limit():
-            time.sleep(20)
-
+        # if self.request_model.has_request_limit():
+        #     time.sleep(30)
+        # # print(thoughts)
         return thoughts
 
     def organize_chain_evaluation_prompt(
@@ -129,24 +130,11 @@ class ExperienceRecallReasoner:
 
         return score
 
-    def measure_similarity(
-        self, thought_a, thought_b, priorities: list = None, rejections: list = None
-    ):
+    def measure_similarity(self, thought_a, thought_b):
         """Measuring the similarity between two thoughts."""
-        priority = ", ".join(priorities) if priorities is not None else ""
-        rejection = (
-            ", ".join(rejections) if rejections is not None else "sentence structure"
-        )
         prompt = f"""
-        Evaluate similarity between two paragraphs, prioritizing {priority} but ignoring {rejection}: \n 
-        ###
-        First paragraph:
-        {thought_a} \n
-        Second paragraph:
-        {thought_b} \n
-        ###
-        Show the result by producing a value scale from 0 to 1, where 0 indicates no similarity and 1 indicates identical semantics. \n\n
-        The generated response should include one sub-sentence with the format: 'Similarity score:' for users to read. 
+        Evaluate the similarity between two paragraphs by showing the percentage of the same words and mathematical numbers: \n 
+        ### \nFirst paragraph:{thought_a} \n\nSecond paragraph:\n{thought_b} \n\n###\n\nThe generated response should only contain the computed percentage with the format: 'Similarity score:' for users to read. 
         """
         responses = self.request_model.perform_request(
             user_prompt=prompt, per_request_responses=1
@@ -163,18 +151,30 @@ class ExperienceRecallReasoner:
         return score
 
     @staticmethod
-    def organize_though_chain_prompt(node_thought_chain: List[ThoughtNode]):
+    def organize_though_chain_prompt(
+        node_thought_chain: List[ThoughtNode], with_step_idx=False, with_start_end=True
+    ):
         """Organizing thoughts chain into the prompt."""
         # initial prompt should be the thought of the root noe
         intermediate_thoughts_node = node_thought_chain[1:]
 
+        # prefix of the step.
+        prefix_fn = lambda idx: f"Reasoning Step {idx+1}: " if with_step_idx else ""
+
         intermediate_steps = [
-            f"""Reasoning Step {idx+1}: {thought_node.thought}. Evaluate Score: {thought_node.thought_score}"""
+            f"""{prefix_fn(idx)} {thought_node.thought}. Evaluate Score: {thought_node.thought_score}"""
             for idx, thought_node in enumerate(intermediate_thoughts_node)
+            if with_step_idx
         ]
         intermediate_steps = "\n\n\t".join(intermediate_steps)
+        start_format = "-----------------------------------"
         end_format = "-----------------------------------"
-        reasoning_chain_prompt = f"""{intermediate_steps}\n {end_format}"""
+        if with_start_end:
+            reasoning_chain_prompt = (
+                f"""{start_format}\n{intermediate_steps}\n\t{end_format}"""
+            )
+        else:
+            reasoning_chain_prompt = f"""{intermediate_steps}\n"""
         return reasoning_chain_prompt
 
     @staticmethod

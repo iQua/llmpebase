@@ -1,9 +1,9 @@
 """
 The implementation of the BoT.
 
-In the simplest case, the BoT is implemented with one single tree and a single reasoning process on the Game of 24.
-
-This BoT variant can be compared with the tree of thoughts [1], which performs the reasoning by building thoughts in a tree structure.
+In the simplest case, the BoT is implemented with one single tree and a single reasoning 
+process on the Game of 24. This BoT variant can be compared with the tree of thoughts [1], 
+which performs the reasoning by building thoughts in  a tree structure.
 
 [1]. Tree of Thoughts: Deliberate Problem Solving with Large Language Models, 2023.
 """
@@ -19,9 +19,7 @@ from llmpebase.datasets import define_dataset
 from llmpebase.utils import recorder
 
 
-def perform_bot_eval(
-    bot_model, test_set, data_prompter, logging_config: dict, model_config: dict
-):
+def perform_bot_eval(bot_model, test_set, data_prompter, logging_config: dict):
     """Performing the evaluation with BoT."""
     eval_recorder = recorder.DualExtensionRecoder(
         records_filename="records",
@@ -35,14 +33,24 @@ def perform_bot_eval(
     )
 
     # Visit all test samples for evaluation
+    my_idx = 0
     for task_prompt, eval_sample, eval_groundtruth in data_prompter.evaluater(
         train_set=None, eval_set=test_set, config=None
     ):
-        best_reasoning_chain = bot_model.perform_bot_reasoning(task_prompt=task_prompt)
-        print("best_reasoning_chain: ")
-        print(best_reasoning_chain)
+        if my_idx > 600:
+            best_reasoning_chain = bot_model.perform_bot_reasoning(
+                task_prompt=task_prompt
+            )
+            print("best_reasoning_chain: ")
+            print(best_reasoning_chain)
+            print(
+                BoT_reasoner.ExperienceRecallReasoner.organize_though_chain_prompt(
+                    best_reasoning_chain
+                )
+            )
 
-        print(ok)
+            print(ok)
+        my_idx += 1
 
 
 def _main():
@@ -90,7 +98,6 @@ def _main():
         test_set=test_set,
         data_prompter=prompter,
         logging_config=logging_config,
-        model_config=model_config,
     )
 
 

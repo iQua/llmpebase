@@ -10,7 +10,7 @@ class ReasoningChainCommenter:
 
     chain_feedback_format: str = "  Can this reasoning chain complete the task and reach the target correctly by executing its reasoning steps? why? Write a analysis report with conclusion under 'Anlysis Report:'."
 
-    step_feedback_format: str = "  For each reasoning step, please provide a detailed analysis of whether the current step is a logical inference of the previous step and whether the reasoning step is beneficial to the correct solution. For each reasoning step with errors, please provide an error report and the corresponding advice on revision. For each reasoning step, please provide recommendation or rejection descriptions. Comments containg words no less than 50 should follow the format: Reasoning step <idx>. \n Analysis report: .\n Advice: .\n Recommendation or Reject description: . \n"
+    step_feedback_format: str = "  For each reasoning step, please provide a detailed analysis of whether the current step is a logical inference of the previous step and whether the reasoning step is beneficial to the correct solution. For each reasoning step with errors, please provide an error report and the corresponding advice on revision. For each reasoning step, please provide recommendation or rejection descriptions. Comments should be brief, avoid repeating the same analysis in different steps and follow the format: Reasoning step <idx>. \n Analysis report: .\n Advice: .\n Recommendation or Reject description: . \n"
 
     confidence_feedback_format: str = "  What is your confidence score on these your evaluations and comments? Please select one value from [0.1, 0.3, 0.5, 0.7, 0.9, 1.0]. The score should be placed after 'Confidence score:' for users to read."
 

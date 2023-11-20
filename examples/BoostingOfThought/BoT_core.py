@@ -113,7 +113,7 @@ class BoostOfThoughts:
         # Get the chain prompt
         chain_prompt = (
             BoT_reasoner.ExperienceRecallReasoner.organize_though_chain_prompt(
-                node_thought_chain=aggregated_chain
+                node_thought_chain=aggregated_chain, with_start_end=False
             )
         )
         # Get the feedback
@@ -146,6 +146,6 @@ class BoostOfThoughts:
             aggregated_chain = self.perform_global_aggregation(
                 task_prompt, local_chains
             )
-            print(self.heterogeneity_trees[0].model.experiences)
+            # print(self.heterogeneity_trees[0].model.experiences)
 
         return aggregated_chain
