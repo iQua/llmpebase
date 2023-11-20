@@ -158,23 +158,27 @@ class ExperienceRecallReasoner:
         # initial prompt should be the thought of the root noe
         intermediate_thoughts_node = node_thought_chain[1:]
 
-        # prefix of the step.
-        prefix_fn = lambda idx: f"Reasoning Step {idx+1}: " if with_step_idx else ""
+        intermediate_steps = []
 
-        intermediate_steps = [
-            f"""{prefix_fn(idx)} {thought_node.thought}. Evaluate Score: {thought_node.thought_score}"""
-            for idx, thought_node in enumerate(intermediate_thoughts_node)
-            if with_step_idx
-        ]
-        intermediate_steps = "\n\n\t".join(intermediate_steps)
+        for idx, thought_node in enumerate(intermediate_thoughts_node):
+            prefix_str = ""
+            if with_step_idx:
+                prefix_str = f"Reasoning Step {idx+1}: "
+
+            intermediate_steps.append(
+                f"""\t{prefix_str}{thought_node.thought}. Evaluate Score: {thought_node.thought_score}"""
+            )
+
+        intermediate_steps = "\n".join(intermediate_steps)
+        reasoning_chain_prompt = f"""{intermediate_steps}\n"""
+
         start_format = "-----------------------------------"
         end_format = "-----------------------------------"
         if with_start_end:
             reasoning_chain_prompt = (
-                f"""{start_format}\n{intermediate_steps}\n\t{end_format}"""
+                f"""{start_format}\n{reasoning_chain_prompt}\n{end_format}"""
             )
-        else:
-            reasoning_chain_prompt = f"""{intermediate_steps}\n"""
+
         return reasoning_chain_prompt
 
     @staticmethod

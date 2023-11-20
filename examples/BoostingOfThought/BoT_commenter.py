@@ -14,15 +14,14 @@ class ReasoningChainCommenter:
 
     confidence_feedback_format: str = "  What is your confidence score on these your evaluations and comments? Please select one value from [0.1, 0.3, 0.5, 0.7, 0.9, 1.0]. The score should be placed after 'Confidence score:' for users to read."
 
-    Notice: str = "Do NOT repeat the listed reasoning step in your comments but only show step index."
+    Notice: str = """Do NOT repeat the listed reasoning step within "------------" in your comments but only show step index."""
 
     def __init__(self, request_model) -> None:
         self.request_model = request_model
 
     def organize_chain_content_prompt(self, reasoning_chain_content: str):
         """Organize the prompt for the content of the chain."""
-        chain_content_prompt = f"""Below is a reasoning chain containing reasoning steps presented in order:\n
-        {reasoning_chain_content}"""
+        chain_content_prompt = f"""Below is a reasoning chain containing reasoning steps presented in order:\n{reasoning_chain_content}"""
         return chain_content_prompt
 
     def organize_chain_feedback_prompt(

@@ -45,9 +45,15 @@ class BoostOfThoughts:
         self.global_experience = OrderedDict()
 
         for tree_id in range(n_trees):
+            tree_types = {
+                "levelwise": tree_thoughts.RTTLevelWise,
+                "levelwisebest": tree_thoughts.RTTLevelWiseBest,
+                "leafwise": tree_thoughts.RTTLeafWise,
+            }
             generation_config = self.base_generation_config
             # Set the first tree to be the base generation in the
             # config file
+            selected_type = "levelwise"
             if tree_id > 1:
                 tree_temperature = random.choice([0.2, 0.4, 0.6, 0.7, 0.9, 1.1, 1.5])
                 tree_top_p = random.choice([0.1, 0.3, 0.5, 0.7, 0.9])
@@ -55,13 +61,10 @@ class BoostOfThoughts:
                 generation_config["temperature"] = tree_temperature
                 generation_config["top_p"] = tree_top_p
 
+                selected_type = random.choice(list(tree_types.keys()))
+
             self.tree_generation_config[tree_id] = generation_config
-            tree_types = {
-                "levelwise": tree_thoughts.RTTLevelWise,
-                "levelwisebest": tree_thoughts.RTTLevelWiseBest,
-                "leafwise": tree_thoughts.RTTLeafWise,
-            }
-            selected_type = random.choice(list(tree_types.keys()))
+
             self.heterogeneity_trees[tree_id] = tree_types[selected_type](
                 self.experience_reasoner,
                 n_child_nodes=self.model_config["tree_settings"]["n_child_nodes"],
@@ -113,9 +116,10 @@ class BoostOfThoughts:
         # Get the chain prompt
         chain_prompt = (
             BoT_reasoner.ExperienceRecallReasoner.organize_though_chain_prompt(
-                node_thought_chain=aggregated_chain, with_start_end=False
+                node_thought_chain=aggregated_chain
             )
         )
+
         # Get the feedback
         feedback_content = self.chain_commenter.get_thought_chain_feedback(
             task_prompt, reasoning_chain_content=chain_prompt
@@ -125,6 +129,7 @@ class BoostOfThoughts:
         experience = BoT_reasoner.ExperienceRecallReasoner.create_experience(
             comment_feedback, chain_prompt
         )
+
         self.experience_reasoner.memory_experience(experience)
 
         return aggregated_chain
@@ -146,6 +151,6 @@ class BoostOfThoughts:
             aggregated_chain = self.perform_global_aggregation(
                 task_prompt, local_chains
             )
-            # print(self.heterogeneity_trees[0].model.experiences)
+            print(self.heterogeneity_trees[0].model.experiences)
 
         return aggregated_chain
