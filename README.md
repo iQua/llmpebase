@@ -1,5 +1,5 @@
 # Overview
-We built the codebase `llmpebase` as a unified platform to perform prompt engineering in large language models (LLMs). It supports the experiments of ChatGPT and LlamaV2 models on the Game of 24, GSM8K, and MMLU datasets with the corresponding task prompts. `llmpebase` is designed to support fairness comparison and reproducibility. More importantly, `llmpebase` is _easy to use_. Therefore, it was used to perform all experiments and analyses in the ICLR submission. 
+We built the codebase `llmpebase` as a unified platform to perform prompt engineering in large language models (LLMs). The currently released code supports the experiments of ChatGPT and LlamaV2 models on the Game of 24, GSM8K, and MMLU datasets with the corresponding task prompts. `llmpebase` is designed to support fairness comparison and reproducibility. More importantly, `llmpebase` is _easy to use_. Therefore, it was used to perform all experiments and analyses in the ICLR submission. 
 
 ## Code structure
 The structure of `llmpebase` is 
@@ -27,8 +27,7 @@ Finally, the tree thought structures mentioned in our submission are implemented
 # How to use 
 Anyone can run `examples/` of `llmpebase` by executing the following three steps: 
 
-0. (Optional). To use ChatGPT API, one needs to have the _OPENAI_API_KEY_, _OPENAI_ORGAN_KEY_, and _ANTHROPIC_KEY_ and set them 
-in the file `.env` under the root directory.
+0. (Optional). To use ChatGPT API, one needs to have the _OPENAI_API_KEY_, _OPENAI_ORGAN_KEY_, and _ANTHROPIC_KEY_ and set them in the file `.env` under the root directory.
 
 1. Install `llmpebase` by running 
     ```console
@@ -50,7 +49,7 @@ Limited by space, we provide two streams of experiments, including the baseline 
 
 ## Baseline Prompt engineering algorithms
 
-There are three baseline algorithms, including Few-shot prompting, Chain-of-Thought (CoT) prompting, and Zero Shot Chain-of-Thought. To apply these algorithms on on the Game of 24, GSM8K, and MMLU datasets, one may need to perform the following comments.
+There are three baseline algorithms, including Few-shot prompting, Chain-of-Thought (CoT) prompting, and Zero Shot Chain-of-Thought. To apply these algorithms on the Game of 24, GSM8K, and MMLU datasets, one may need to perform the following comments.
 
 1. Perform these algorithms with ChatGPT on the GSM8K dataset by running 
     ```console
