@@ -24,7 +24,6 @@ class ReasoningChainAggregator:
         """Aggregate the reasoning chains by selecting the best chain."""
         # Get the id of each chain
         chain_ids = list(chains.keys())
-        print("chain_ids: ", chain_ids)
         best_id = 0
         best_score = 0
         for chain_id in chain_ids:

@@ -37,19 +37,11 @@ def perform_bot_eval(bot_model, test_set, data_prompter, logging_config: dict):
     for task_prompt, eval_sample, eval_groundtruth in data_prompter.evaluater(
         train_set=None, eval_set=test_set, config=None
     ):
-        if my_idx > 600:
+        if my_idx > 500:
             best_reasoning_chain = bot_model.perform_bot_reasoning(
                 task_prompt=task_prompt
             )
-            print("best_reasoning_chain: ")
-            print(best_reasoning_chain)
-            print(
-                BoT_reasoner.ExperienceRecallReasoner.organize_though_chain_prompt(
-                    best_reasoning_chain
-                )
-            )
 
-            print(ok)
         my_idx += 1
 
 

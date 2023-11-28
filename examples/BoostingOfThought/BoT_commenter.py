@@ -14,7 +14,7 @@ class ReasoningChainCommenter:
 
     confidence_feedback_format: str = "  What is your confidence score on these your evaluations and comments? Please select one value from [0.1, 0.3, 0.5, 0.7, 0.9, 1.0]. The score should be placed after 'Confidence score:' for users to read."
 
-    Notice: str = """Do NOT repeat the listed reasoning step within "------------" in your comments but only show step index."""
+    Notice: str = """Do NOT repeat the listed reasoning step within "------------" in the feedback but only show step index."""
 
     def __init__(self, request_model) -> None:
         self.request_model = request_model
@@ -42,6 +42,7 @@ class ReasoningChainCommenter:
             reasoning_chain_content
         )
         prompt = self.organize_chain_feedback_prompt(task_prompt, chain_content_prompt)
+
         # Forward the generation model to get responses
         responses = self.request_model.perform_request(
             user_prompt=prompt, per_request_responses=3, sys_prompt=self.system_prompt

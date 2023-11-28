@@ -50,8 +50,12 @@ class ExperienceRecallReasoner:
         task_prompt = node_thought_chain[0].thought
         chain_prompt = self.organize_though_chain_prompt(node_thought_chain)
 
-        prompt = f"""{task_prompt}. \n Recall historical reasoning experience (Ignore when experience is empty): \n\n {self.experiences} \n Pay attention to analysis and advice in the above experience to avoid making similar mistakes by following the advice. \n\n Below is a list of ordered reasoning steps, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.): \n\t{chain_prompt}\n\nBased on listed reasoning steps only within the above "------------" (i.e., Not the ones in the experience block), please make one step of reasoning to generate only one subsequential possible reasoning step. Just ignore them when there is no listed steps. Notice: Do NOT mistakenly generate the reasoning steps next to the ones in experience, i.e., when the listed reasoning steps within "------------" is empty, you should generate step 1!
+        prompt = f"""{task_prompt}. Please split the problem into several problems and solve them step by step.\n \n Recall historical reasoning experience (Ignore when experience is empty): \n\n {self.experiences} \n Pay attention to analysis and advice in the above experience to avoid making similar mistakes by following the advice. \n\n Below is a list of ordered reasoning steps, accompanied by their evaluated scores (A higher score means the reasoning step is more likely to complete the task.): \n\t{chain_prompt}\n\nBased on listed reasoning steps only within the above "------------" (i.e., Not the ones in the experience block), please make one step of reasoning to generate only one subsequential possible reasoning step. Just ignore them when there is no listed steps. Notice: Do NOT mistakenly generate the reasoning steps next to the ones in experience, i.e., when the listed reasoning steps within "------------" is empty, you should generate step 1!
         """
+
+        # print("prompt: ")
+        # print(prompt)
+        # print(ok)
 
         return prompt
 
