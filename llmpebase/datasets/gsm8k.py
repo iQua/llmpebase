@@ -10,6 +10,7 @@ import torch
 import pandas as pd
 
 from llmpebase.datasets import base
+from llmpebase.utils import extracter
 
 
 class GSM8KDataset(torch.utils.data.Dataset):
@@ -35,9 +36,14 @@ class GSM8KDataset(torch.utils.data.Dataset):
         for row_idx in range(n_itmes):
             question = data_frame.iloc[row_idx, 0]
             answer = data_frame.iloc[row_idx, -1]
+
             thought_answer = answer.split("####")[0]
             thought_answer = thought_answer.replace("\n", " ").rstrip()
-            target_result = answer.split("####")[-1]
+            target_sent = extracter.extract_final_sentence(answer)
+            target_result = extracter.extract_target_result(
+                target_sent, target_format="#"
+            )
+            target_result = target_result[-1]
             collected_items.append(
                 {
                     "question": question,
