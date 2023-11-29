@@ -3,6 +3,7 @@ Basic implementation of Prompting class.
 """
 
 import re
+import random
 from typing import List
 
 
@@ -69,14 +70,23 @@ class BasePrompting:
         prompt = f"""{fewshot_prompt} \n\n\n With above examples, please answer: \n \n{test_qa_prompt}"""
         return prompt
 
-    def evaluater(self, train_set, eval_set, config) -> str:
-        """Evaluating the prompting on the testset.
-        This function should be implemented as a yield-based iterator.
+    def evaluater(self, train_set, eval_set, config):
+        """Evaluating the Base dataset.
 
-        :return request_prompt: A `str` showing the prompting.
+        The defualt way is to randomly sample the few-shot samples from the train set and
+        thus the sampled samples are used as the demonstrations in the prompt.
         """
 
-        raise NotImplementedError("'evaluater' has not been implemented yet.")
+        n_shots = config["n_shots"]
+
+        for _, test_sample in enumerate(eval_set):
+            samples = [
+                train_set[random.randint(0, len(eval_set))] for _ in range(n_shots)
+            ]
+            request_prompt = self.get_test_prompt(
+                task_name=None, template_samples=samples, test_sample=test_sample
+            )
+            yield request_prompt, test_sample, test_sample["groundtruth"]
 
     def extract_target_answers(self, contents: List[str]):
         """Extracting the target answer from the contents of responses."""

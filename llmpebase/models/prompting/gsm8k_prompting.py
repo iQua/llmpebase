@@ -2,7 +2,6 @@
 The implementation of different prompts.
 """
 import re
-import random
 from typing import List
 
 from llmpebase.models.prompting import base
@@ -20,10 +19,10 @@ class GSM8KStandardPrompting(base.BasePrompting):
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organizing the answer prompt."""
         answ = sample["answer"]
-        target_result = sample["target_result"]
+        groundtruth = sample["groundtruth"]
         answ = "" if not is_answer_included else answ
-        target_result = "" if not is_answer_included else target_result
-        return f"""Answer: {answ}. {self.answer_format_str} {target_result}"""
+        groundtruth = "" if not is_answer_included else groundtruth
+        return f"""Answer: {answ}. {self.answer_format_str} {groundtruth}"""
 
     def organize_template_prompt(
         self,
@@ -44,7 +43,7 @@ class GSM8KStandardPrompting(base.BasePrompting):
         return prompt
 
     @staticmethod
-    def extract_target_result(target_answer: str):
+    def extract_groundtruth(target_answer: str):
         """Extract the target results from the obtained targets."""
         # Compare the answers
         pattern = r"\$?(\d+)(?:\$)?"
@@ -60,27 +59,13 @@ class GSM8KStandardPrompting(base.BasePrompting):
     @staticmethod
     def measure_answers(src_answer: str, dst_answer: str):
         """Measuring whether answers are consistent with each other."""
-        src_result = GSM8KStandardPrompting.extract_target_result(src_answer)
-        dst_result = GSM8KStandardPrompting.extract_target_result(dst_answer)
+        src_result = GSM8KStandardPrompting.extract_groundtruth(src_answer)
+        dst_result = GSM8KStandardPrompting.extract_groundtruth(dst_answer)
 
         if src_result is not None and dst_result is not None:
             return src_result == dst_result
 
         return None
-
-    def evaluater(self, train_set, eval_set, config):
-        """Evaluating the GSM8K dataset."""
-
-        n_shots = config["n_shots"]
-
-        for _, test_sample in enumerate(eval_set):
-            samples = [
-                train_set[random.randint(0, len(eval_set))] for _ in range(n_shots)
-            ]
-            request_prompt = self.get_test_prompt(
-                task_name=None, template_samples=samples, test_sample=test_sample
-            )
-            yield request_prompt, test_sample, test_sample["target_result"]
 
 
 class GSM8KCoTPrompting(GSM8KStandardPrompting):
@@ -97,6 +82,12 @@ class GSM8KCoTPrompting(GSM8KStandardPrompting):
         )
         with open(cot_filepath, "r", encoding="utf-8") as txt_file:
             self.cot_prompt = txt_file.read()
+
+    def organize_answer_prompt(self, sample, is_answer_included=True):
+        """Organizing the answer prompt."""
+        answ = sample["answer"]
+        answ = "" if not is_answer_included else answ
+        return """Answer: Let's think step by step. """
 
     def organize_template_prompt(
         self,
@@ -118,7 +109,7 @@ class GSM8KCoTPrompting(GSM8KStandardPrompting):
             request_prompt = self.get_test_prompt(
                 task_name=None, test_sample=test_sample, template_samples=None
             )
-            yield request_prompt, test_sample, test_sample["target_result"]
+            yield request_prompt, test_sample, test_sample["groundtruth"]
 
 
 class GSM8KZeroShotCoTPrompting(GSM8KStandardPrompting):
@@ -150,4 +141,4 @@ class GSM8KZeroShotCoTPrompting(GSM8KStandardPrompting):
             request_prompt = self.get_test_prompt(
                 task_name=None, test_sample=test_sample, template_samples=None
             )
-            yield request_prompt, test_sample, test_sample["target_result"]
+            yield request_prompt, test_sample, test_sample["groundtruth"]

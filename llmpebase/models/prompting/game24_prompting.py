@@ -30,7 +30,7 @@ class GameOf24StandardPrompting(base.BasePrompting):
         """Organizing the answer prompt."""
         answ = sample["answer"]
         answ = "" if not is_answer_included else answ
-        return f"""Let's think step by step. {answ}"""
+        return f"""Answer: Let's think step by step. {answ}"""
 
     def organize_template_prompt(
         self,
@@ -49,7 +49,7 @@ class GameOf24StandardPrompting(base.BasePrompting):
         return prompt
 
     @staticmethod
-    def extract_target_result(target_answer: str):
+    def extract_groundtruth(target_answer: str):
         """Extract the target results from the obtained targets."""
         # Get the core equation such as (4+5)*6-7
 
@@ -65,7 +65,7 @@ class GameOf24StandardPrompting(base.BasePrompting):
     def measure_answers(src_answer: str, dst_answer: int = 24):
         """Measuring whether answers are consistent with each other."""
 
-        src_result = GameOf24StandardPrompting.extract_target_result(src_answer)
+        src_result = GameOf24StandardPrompting.extract_groundtruth(src_answer)
 
         if src_result is not None:
             return eval(src_result) == dst_answer
@@ -79,4 +79,4 @@ class GameOf24StandardPrompting(base.BasePrompting):
             request_prompt = self.get_test_prompt(
                 task_name=None, template_samples=None, test_sample=test_sample
             )
-            yield request_prompt, test_sample, test_sample["target_result"]
+            yield request_prompt, test_sample, test_sample["groundtruth"]

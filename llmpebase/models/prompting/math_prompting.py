@@ -4,49 +4,62 @@ The implementation of different prompts.
 import re
 import random
 from typing import List
-import json
 
 from llmpebase.models.prompting import base
 
 
-class MMLUStandardPrompting(base.BasePrompting):
-    """The standard prompt of MMLU."""
-
-    answer_format_str: str = "The final choice is"
+class MATHStandardPrompting(base.BasePrompting):
+    """The standard prompt of MATH."""
 
     def organize_question_prompt(self, sample: dict):
         """Organizing the question prompt."""
-
         ques = sample["question"]
-        opts = sample.auxiliary["option_str"]
-        prompt = f"""Question: {ques} \nWhich of the following choices is correct? \n{opts}"""
+        prompt = f"""Question: {ques} \n"""
         return prompt
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organizing the answer prompt."""
         answ = sample["answer"]
         answ = "" if not is_answer_included else answ
-        return f"""Answer: {self.answer_format_str} {answ}. """
+        return f"""Answer: {answ}."""
+
+    def organize_template_prompt(
+        self,
+        samples: List[dict],
+        task_name: str = None,
+    ):
+        """organizing the prompt including the few-shot ."""
+        intro_prompt = (
+            "The following examples are questions with answers about algebra problems."
+        )
+        task_content = []
+        for sample in samples:
+            task_content.append(self.organize_qa_prompt(sample))
+        fewshots = "\n\n".join(task_content)
+
+        prompt = f"""{intro_prompt}\n\n {fewshots}"""
+
+        return prompt
 
     @staticmethod
     def extract_groundtruth(target_answer: str):
         """Extract the target results from the obtained targets."""
         # Compare the answers
-        pattern = r"\b\([ABCDabcd]\)\b|\b[ABCDabcd]\b|\b\d+\b|\b\d+\.\d+\b|\(\d+\)|\(\d+\.\d+\)"
+        pattern = r"\$?(\d+)(?:\$)?"
 
+        target_answer = str(target_answer)
         result = re.findall(pattern, target_answer)
+
         if result:
-            return result[0]
+            return float(result[0])
         else:
             return None
 
     @staticmethod
     def measure_answers(src_answer: str, dst_answer: str):
         """Measuring whether answers are consistent with each other."""
-
-        # Use re.findall to find all occurrences of the pattern in the text
-        src_result = MMLUStandardPrompting.extract_groundtruth(src_answer)
-        dst_result = MMLUStandardPrompting.extract_groundtruth(dst_answer)
+        src_result = MATHStandardPrompting.extract_groundtruth(src_answer)
+        dst_result = MATHStandardPrompting.extract_groundtruth(dst_answer)
 
         if src_result is not None and dst_result is not None:
             return src_result == dst_result
@@ -54,27 +67,22 @@ class MMLUStandardPrompting(base.BasePrompting):
         return None
 
     def evaluater(self, train_set, eval_set, config):
-        """Evaluating the MMLU dataset."""
+        """Evaluating the MATH dataset."""
 
         n_shots = config["n_shots"]
 
         for _, test_sample in enumerate(eval_set):
-            task_name = test_sample["auxiliary"]["task_name"]
-            sample_indexs = train_set.get_task_sample_indexs(task_name)
-            fewshot_indexs = (
-                random.sample(sample_indexs, n_shots)
-                if len(sample_indexs) > n_shots
-                else sample_indexs
-            )
-            samples = [train_set[idx] for idx in fewshot_indexs]
+            samples = [
+                train_set[random.randint(0, len(eval_set))] for _ in range(n_shots)
+            ]
             request_prompt = self.get_test_prompt(
-                task_name=task_name, template_samples=samples, test_sample=test_sample
+                task_name=None, template_samples=samples, test_sample=test_sample
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]
 
 
-class MMLUCoTPrompting(MMLUStandardPrompting):
-    """The CoT prompt of MMLU."""
+class MATHCoTPrompting(MATHStandardPrompting):
+    """The CoT prompt of MATH."""
 
     # This should be the same as the answer format in the cot_filepath
     # Current CoT ones use "The answer is".
@@ -86,18 +94,7 @@ class MMLUCoTPrompting(MMLUStandardPrompting):
             cot_filepath if cot_filepath is not None else model_config["cot_filepath"]
         )
         with open(cot_filepath, "r", encoding="utf-8") as txt_file:
-            self.cot_prompt = json.load(txt_file)
-
-    def load_cot_prompt(self, task_name: str):
-        """Load the cot prompt."""
-        task_name = task_name.replace(" ", "_")
-        return self.cot_prompt[task_name]
-
-    def organize_answer_prompt(self, sample, is_answer_included=True):
-        """Organizing the answer prompt."""
-        answ = sample["answer"]
-        answ = "" if not is_answer_included else answ
-        return """Answer: Let's think step by step."""
+            self.cot_prompt = txt_file.read()
 
     def organize_template_prompt(
         self,
@@ -106,29 +103,24 @@ class MMLUCoTPrompting(MMLUStandardPrompting):
     ):
         """organizing the prompt including the few-shot ."""
         intro_prompt = (
-            f"""The following examples are questions with answers about {task_name}."""
+            "The following examples are questions with answers about algebra problems."
         )
-        task_cot_prompt = self.load_cot_prompt(task_name)
-        prompt = f"""{intro_prompt}\n\n {task_cot_prompt}"""
+
+        prompt = f"""{intro_prompt}\n\n {self.cot_prompt}"""
         return prompt
 
     def evaluater(self, train_set, eval_set, config):
-        """Evaluating the MMLU dataset."""
+        """Evaluating the MATH dataset."""
 
         for _, test_sample in enumerate(eval_set):
-            task_name = test_sample["auxiliary"]["task_name"]
             request_prompt = self.get_test_prompt(
-                task_name=task_name,
-                template_samples=None,
-                test_sample=test_sample,
+                task_name=None, test_sample=test_sample, template_samples=None
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]
 
 
-class MMLUZeroShotCoTPrompting(MMLUStandardPrompting):
-    """The zeroshot CoT prompt of MMLU."""
-
-    answer_format_str: str = "The final choice is"
+class MATHZeroShotCoTPrompting(MATHStandardPrompting):
+    """The zeroshot CoT prompt of MATH."""
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organize the answer prompt."""
@@ -150,13 +142,10 @@ class MMLUZeroShotCoTPrompting(MMLUStandardPrompting):
         return prompt
 
     def evaluater(self, train_set, eval_set, config):
-        """Evaluating the MMLU dataset."""
+        """Evaluating the MATH dataset."""
 
         for _, test_sample in enumerate(eval_set):
-            task_name = test_sample["auxiliary"]["task_name"]
             request_prompt = self.get_test_prompt(
-                task_name=task_name,
-                template_samples=None,
-                test_sample=test_sample,
+                task_name=None, test_sample=test_sample, template_samples=None
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]
