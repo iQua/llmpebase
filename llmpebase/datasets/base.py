@@ -3,22 +3,66 @@ A base datasource class.
 """
 
 import os
-import re
+import json
 import logging
 
+import torch
 from torchvision.datasets.utils import download_url, extract_archive
 
+from llmpebase.datasets.data_generic import (
+    DatasetMetaCatalog,
+    DatasetCatalog,
+)
 from llmpebase.config import Config
+from llmpebase.utils.extracter import extract_compression_style
 
 
-def extract_compression_style(url):
-    """Extract the style of compression from the url."""
-    pattern = r"\.(zip|tar|tar\.gz)$"
-    match = re.search(pattern, url)
-    if match is not None:
-        return match.group(1)
+class BaseDataset(torch.utils.data.Dataset):
+    """The Base dataset."""
 
-    return "zip"
+    def __init__(self, data_meta_catalog: DatasetMetaCatalog, phase: str):
+        super().__init__()
+
+        self.phase = phase
+        self.phase_data_path = data_meta_catalog.split_path[phase]
+        catalog_filename = f"{phase}_data_catalog.json"
+        self.data_catalog_path = os.path.join(
+            data_meta_catalog.dataset_path, catalog_filename
+        )
+
+        self.customize_data_catalog = DatasetCatalog
+        self.data_catalog: DatasetCatalog = None
+
+    def create_data_catalog(self):
+        """Create the data catalog for the dataset."""
+        raise NotImplementedError(
+            "An implementation of create_data_catalog is required."
+        )
+
+    def configuration(self):
+        """Configure the catalog of the dataset"""
+
+        if os.path.exists(self.data_catalog_path):
+            with open(self.data_catalog_path, "r", encoding="utf-8") as f:
+                self.data_catalog = self.customize_data_catalog(**json.load(f))
+            logging.info("Loaded data catalog from %s.", self.data_catalog_path)
+        else:
+            self.data_catalog = self.create_data_catalog()
+            with open(self.data_catalog_path, "w", encoding="utf-8") as f:
+                json.dump(self.data_catalog, f)
+            logging.info("Created data catalog in %s.", self.data_catalog_path)
+
+    def get_sample(self, idx):
+        """Get one sample."""
+        raise NotImplementedError("An implementation of get_sample is required.")
+
+    def __getitem__(self, idx: int):
+        """Get the sample from the given idx."""
+        return self.get_sample(idx)
+
+    def __len__(self):
+        """Obtain the number of samples."""
+        return self.data_catalog.data_statistics["num_samples"]
 
 
 class DataSource:
@@ -31,19 +75,42 @@ class DataSource:
         self.download_url = Config().data.datasource_download_url
         self.data_path = os.path.join(self.source_data_path, self.source_data_name)
 
-        self.splits_info = {
-            "train": {"path": self.data_path, "filename": ""},
-            "test": {"path": self.data_path, "filename": ""},
-        }
+        self.meta_catalog_path = os.path.join(self.data_path, "meta_catalog.json")
 
-    def prepare_source_data(self, phase: str):
+        self.data_meta_catalog: DatasetMetaCatalog = None
+
+        # Set the base dataset
+        self.base_dataset = BaseDataset
+
+    def create_meta_catalog(self):
+        """Create the meta catalog for the dataset."""
+        raise NotImplementedError(
+            "An implementation of one specific dataset is required."
+        )
+
+    def configuration(self):
+        """Configure the dataset."""
+
+        if os.path.exists(self.meta_catalog_path):
+            with open(self.meta_catalog_path, "r", encoding="utf-8") as f:
+                self.data_meta_catalog = DatasetMetaCatalog(**json.load(f))
+            logging.info("Loaded meta catalog from %s.", self.meta_catalog_path)
+        else:
+            self.data_meta_catalog = self.create_meta_catalog()
+            with open(self.meta_catalog_path, "w", encoding="utf-8") as f:
+                json.dump(self.data_meta_catalog, f)
+
+    def prepare_data(self, phase: str):
         """Prepare the source data."""
-        split_info = self.splits_info[phase]
-        phase_data_path = split_info["path"]
+        # Configuration the dataset
+        self.configuration()
 
-        if "filename" in split_info and split_info["filename"] != "":
-            phase_data_path = os.path.join(phase_data_path, split_info["filename"])
-
+        phase_data_path = self.data_meta_catalog["split_path"][phase]
+        phase_data_path = (
+            phase_data_path[0]
+            if isinstance(phase_data_path, (list, tuple))
+            else phase_data_path
+        )
         if self.download_url is not None and not os.path.exists(phase_data_path):
             compression = extract_compression_style(self.download_url)
             filename = self.source_data_name + "." + compression
@@ -72,11 +139,13 @@ class DataSource:
 
     def get_phase_dataset(self, phase: str):
         """Obtain the dataset for the specific phase."""
-        self.prepare_source_data(phase)
-        # Obtain the datacatalog for desired phase
-        raise NotImplementedError(
-            "An implementation of one specific dataset is required."
+
+        self.prepare_data(phase)
+        dataset = self.base_dataset(
+            data_meta_catalog=self.data_meta_catalog, phase=phase
         )
+        dataset.configuration()
+        return dataset
 
     def get_train_set(self):
         """Obtains the training dataset."""

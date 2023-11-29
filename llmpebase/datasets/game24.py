@@ -2,77 +2,76 @@
 The datasource inferance for the Game of 24 dataset.
 """
 import os
-from typing import Tuple
 
-import torch
 import pandas as pd
 
 from llmpebase.datasets import base
+from llmpebase.datasets.data_generic import (
+    DatasetMetaCatalog,
+    DatasetCatalog,
+    BaseQASample,
+    BaseQASampleInfo,
+    DatasetStatistics,
+)
 
 
-class GameOf24Dataset(torch.utils.data.Dataset):
+class GameOf24Dataset(base.BaseDataset):
     """
     An interface for the GameOf24 dataset.
     """
 
-    def __init__(self, splits_info, phase):
-        # a path showing where the data is stored
-        self.splits_info = splits_info
-        self.phase = phase
-
-        data_folder = self.splits_info[phase]["path"]
-        data_file = self.splits_info[phase]["filename"]
-        self.data_path = os.path.join(data_folder, data_file)
-        self.data_qas = self.collect_qas()
-
-    def collect_qas(self):
-        """Collecting the question and the correspondin answer."""
-        data_frame = pd.read_csv(self.data_path)
+    def create_data_catalog(self):
+        data_frame = pd.read_csv(self.phase_data_path)
         n_itmes = data_frame.shape[0]
-        collected_items = []
-        for row_idx in range(n_itmes):
-            collected_items.append(
-                {
-                    "question": data_frame["Puzzles"].iloc[row_idx],
-                    "answer": "",
-                    "target_result": 24,
-                    "solved_rate": data_frame["Solved rate"].iloc[row_idx],
-                    "AMT": data_frame["AMT (s)"].iloc[row_idx],
-                    "1_sigma_Mean": data_frame["1-sigma Mean (s)"].iloc[row_idx],
-                    "1_sigma_STD": data_frame["1-sigma STD (s)"].iloc[row_idx],
-                }
+
+        collected_items = [
+            BaseQASampleInfo(
+                sample_id=data_frame["Rank"].iloc[i].item(),
+                sample_filepath=self.phase_data_path,
             )
+            for i in range(n_itmes)
+        ]
+        return DatasetCatalog(
+            data_phase=self.phase,
+            qa_sample_files=collected_items,
+            data_statistics=DatasetStatistics(num_samples=n_itmes),
+        )
 
-        return collected_items
-
-    def get_qas(self):
-        """Getting the qas of the tasks."""
-        return self.data_qas
-
-    def __getitem__(self, idx: Tuple):
-        """Get the sample for either training or testing given index."""
-        return self.data_qas[idx]
-
-    def __len__(self):
-        """obtain the number of samples."""
-        return len(self.data_qas)
+    def get_sample(self, idx):
+        """Get one sample."""
+        sample_path = self.data_catalog.qa_sample_files[idx]["sample_filepath"]
+        data_frame = pd.read_csv(sample_path)
+        return BaseQASample(
+            question=data_frame["Puzzles"].iloc[idx],
+            answer="",
+            conclusion="",
+            groundtruth=24,
+            auxiliary={
+                "solved_rate": data_frame["Solved rate"].iloc[idx],
+                "AMT": data_frame["AMT (s)"].iloc[idx],
+                "1_sigma_Mean": data_frame["1-sigma Mean (s)"].iloc[idx],
+                "1_sigma_STD": data_frame["1-sigma STD (s)"].iloc[idx],
+            },
+        )
 
 
 class DataSource(base.DataSource):
     """The GameOf24 dataset."""
 
     def __init__(self):
-        # Extract the data information from the config file
         super().__init__()
 
-        self.splits_info = {
-            "train": {"path": self.data_path, "filename": "24.csv"},
-            "test": {"path": self.data_path, "filename": "24.csv"},
-        }
+        self.base_dataset = GameOf24Dataset
 
-    def get_phase_dataset(self, phase: str):
-        """Obtain the dataset for the specific phase."""
-        self.prepare_source_data(phase)
-        # obtain the datacatalog for desired phase
-        dataset = GameOf24Dataset(splits_info=self.splits_info, phase=phase)
-        return dataset
+    def create_meta_catalog(self):
+        """Configure the dataset."""
+        return DatasetMetaCatalog(
+            dataset_name="GameOf24",
+            problem_type="Mathematical Reasoning",
+            dataset_path=self.data_path,
+            split_path={
+                "train": os.path.join(self.data_path, "24.csv"),
+                "test": os.path.join(self.data_path, "24.csv"),
+                "val": os.path.join(self.data_path, "24.csv"),
+            },
+        )

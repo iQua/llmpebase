@@ -4,100 +4,139 @@ The detaild information of it is shown in
 https://huggingface.co/datasets/cais/mmlu
 """
 import os
-from typing import Tuple
+from collections import OrderedDict
 import glob
 
-import torch
 import pandas as pd
 
 from llmpebase.datasets import base
+from llmpebase.datasets.data_generic import (
+    DatasetMetaCatalog,
+    MMLUDatasetCatalog,
+    BaseQASample,
+    BaseQASampleInfo,
+    MMLUDatasetStatistics,
+)
 
 
-class MMLUDataset(torch.utils.data.Dataset):
+def extract_task_name(filename: str, phase: str):
+    """Extract the task name from the filepath."""
+    filename = filename.split(".csv")[0]
+    phase = "dev" if phase == "train" else phase
+    return filename.replace(phase, "").replace("_", " ").rstrip()
+
+
+class MMLUDataset(base.BaseDataset):
     """
     An interface for the MMLU dataset.
     """
 
-    def __init__(self, splits_info, phase):
-        # a path showing where the data is stored
-        self.splits_info = splits_info
-        self.phase = phase
-        self.data_folder = self.splits_info[phase]["path"]
-        self.tasks_name = []
-        self.tasks_file_mapper = {}
-        self.tasks_data = {}
-        self.tasks_qas = {}
+    def __init__(self, data_meta_catalog: DatasetMetaCatalog, phase: str):
+        super().__init__(data_meta_catalog, phase)
 
-        self.collect_tasks()
+        self.customize_data_catalog = MMLUDatasetCatalog
 
-    def collect_tasks(self):
-        """Collecting tasks of MMLU dataset."""
-        csv_files = glob.glob(self.data_folder + "/*.csv")
-
-        for file_path in csv_files:
-            file_name = os.path.basename(file_path)
-            file_name_no_extension = file_name.split(".csv")[0]
-            task_name = (
-                file_name_no_extension.replace(self.phase, "")
-                .replace("_", " ")
-                .rstrip()
-            )
-            self.tasks_name.append(task_name)
-
-            self.tasks_file_mapper[task_name] = file_path
-            data_frame = pd.read_csv(file_path, header=None)
-
-            self.tasks_data[task_name] = data_frame
-            self.tasks_qas[task_name] = self.collect_qas(data_frame)
-
-    def collect_qas(self, data_frame):
-        """Collecting the question and the correspondin answer."""
-        n_itmes = data_frame.shape[0]
-        collected_items = []
-        for row_idx in range(n_itmes):
-            question = data_frame.iloc[row_idx, 0]
-            options = data_frame.iloc[row_idx, 1:-1]
-            choices_letters = [chr(ord("A") + num) for num in range(len(options))]
-            options_str = [
-                f"({letter}) {choice}"
-                for choice, letter in zip(options, choices_letters)
-            ]
-            options_str = "\n".join(options_str)
-            answer = data_frame.iloc[row_idx, -1]
-            answer = f"({answer})"
-            target_result = answer
-            collected_items.append(
-                {
-                    "question": question,
-                    "options": options_str,
-                    "answer": answer,
-                    "target_result": target_result,
-                },
-            )
-
-        return collected_items
-
-    def get_task_qas(self, task_name):
-        """Getting the qas of the tasks."""
-        return self.tasks_qas[task_name]
-
-    def __getitem__(self, task_and_idx: Tuple):
-        """Get the sample for either training or testing given index."""
-        task_name, idx = task_and_idx
-        task_qas = self.tasks_qas[task_name]
-
-        # get all qas of this task
-        if idx == -1:
-            return task_qas
+    def create_data_catalog(self):
+        csv_files = []
+        if isinstance(self.phase_data_path, (list, tuple)):
+            for path in self.phase_data_path:
+                csv_files.extend(glob.glob(path + "/*.csv"))
         else:
-            return task_qas[idx]
+            csv_files = glob.glob(self.phase_data_path + "/*.csv")
 
-    def __len__(self):
-        """obtain the number of samples."""
-        return len(self.tasks_name)
+        category_count = OrderedDict()
+        collected_items = []
+        n_samples = 0
+        # Visit all files under the folder to get data information
+        for idx, file_path in enumerate(csv_files):
+            file_name = os.path.basename(file_path)
+            task_name = extract_task_name(file_name, phase=self.phase)
 
-    def get_sample(self):
-        """Getting one sample"""
+            data_frame = pd.read_csv(file_path, header=None)
+            task_n_samples = data_frame.shape[0]
+            category_count[task_name] = task_n_samples
+            n_samples += task_n_samples
+            # Create sample info
+            #  sample_id: using iteration idx as the
+            # prefix while the row index as the suffix
+            collected_items.extend(
+                [
+                    BaseQASampleInfo(
+                        sample_id=f"{idx}_{i}",
+                        sample_task=task_name,
+                        sample_filepath=file_path,
+                    )
+                    for i in range(task_n_samples)
+                ]
+            )
+
+        return MMLUDatasetCatalog(
+            data_phase=self.phase,
+            data_statistics=MMLUDatasetStatistics(
+                num_samples=n_samples, category_count=category_count
+            ),
+            qa_sample_files=collected_items,
+            problem_category=list(category_count.keys()),
+        )
+
+    def get_sample(self, idx):
+        sample_info = self.data_catalog.qa_sample_files[idx]
+        sample_id = sample_info["sample_id"]
+        sample_task = sample_info["sample_task"]
+        sample_filepath = sample_info["sample_filepath"]
+
+        data_frame = pd.read_csv(sample_filepath, header=None)
+        row_idx = int(sample_id.split("_")[-1])
+        # Extract data from the loaded csv
+        question = data_frame.iloc[row_idx, 0]
+        options = data_frame.iloc[row_idx, 1:-1]
+        choice_letters = [chr(ord("A") + num) for num in range(len(options))]
+        options_str = [
+            f"({letter}) {choice}" for choice, letter in zip(options, choice_letters)
+        ]
+        options_str = "\n".join(options_str)
+        answer = data_frame.iloc[row_idx, -1]
+        answer = f"{answer}"
+
+        return BaseQASample(
+            question=question,
+            answer=answer,
+            conclusion=answer,
+            groundtruth=answer,
+            auxiliary={
+                "options": options,
+                "choice_letters": choice_letters,
+                "option_str": options_str,
+                "task_name": sample_task,
+            },
+        )
+
+    def get_task_sample_indexs(
+        self,
+        task_name: str,
+    ):
+        """Get samples fro one specific task."""
+        n_samples = self.data_catalog.data_statistics["num_samples"]
+        problem_category = self.data_catalog.problem_category
+        category_idx = problem_category.index(task_name)
+
+        # Jump to the samples of the given task
+        category_count = self.data_catalog.data_statistics["category_count"].values()
+        category_count = list(category_count)
+        sample_idx = sum(category_count[:category_idx])
+
+        # Collect samples's index of the given task
+        sample_indexs = []
+        for i in range(sample_idx, n_samples):
+            sample_info = self.data_catalog.qa_sample_files[i]
+            sample_task = sample_info["sample_task"]
+            if sample_task == task_name:
+                sample_indexs.append(i)
+            else:
+                # Once the task name is changed, break the loop
+                # as subsequent samples are not the given task
+                break
+        return sample_indexs
 
 
 class DataSource(base.DataSource):
@@ -106,21 +145,20 @@ class DataSource(base.DataSource):
     def __init__(self):
         super().__init__()
 
-        # Set the splits for MMLU dataset
-        self.splits_info = {
-            "dev": {"path": os.path.join(self.data_path, "dev")},
-            "test": {"path": os.path.join(self.data_path, "test")},
-            "val": {"path": os.path.join(self.data_path, "val")},
-        }
+        self.base_dataset = MMLUDataset
 
-    def get_phase_dataset(self, phase: str):
-        """Obtain the dataset for the specific phase."""
-        # Obtain the dataset for desired phase
-        self.prepare_source_data(phase)
-        dataset = MMLUDataset(splits_info=self.splits_info, phase=phase)
-        return dataset
-
-    def get_train_set(self):
-        """Obtains the training dataset."""
-        phase = "dev"
-        return self.get_phase_dataset(phase)
+    def create_meta_catalog(self):
+        """Configure the dataset."""
+        return DatasetMetaCatalog(
+            dataset_name="MMLU",
+            problem_type="Mathematical Reasoning",
+            dataset_path=self.data_path,
+            split_path={
+                "train": [
+                    os.path.join(self.data_path, "dev"),
+                    os.path.join(self.data_path, "auxiliary_train"),
+                ],
+                "test": os.path.join(self.data_path, "test"),
+                "val": os.path.join(self.data_path, "val"),
+            },
+        )

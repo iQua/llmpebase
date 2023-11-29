@@ -4,94 +4,81 @@ The detaild information of it is shown in
 https://huggingface.co/datasets/gsm8k
 """
 import os
-from typing import Tuple
 
-import torch
 import pandas as pd
 
+
 from llmpebase.datasets import base
+from llmpebase.datasets.data_generic import (
+    DatasetMetaCatalog,
+    DatasetCatalog,
+    BaseQASample,
+    BaseQASampleInfo,
+    DatasetStatistics,
+)
 from llmpebase.utils import extracter
 
 
-class GSM8KDataset(torch.utils.data.Dataset):
+class GSM8KDataset(base.BaseDataset):
     """
     An interface for the GSM8K dataset.
     """
 
-    def __init__(self, splits_info, phase):
-        # a path showing where the data is stored
-        self.splits_info = splits_info
-        self.phase = phase
-
-        data_folder = self.splits_info[phase]["path"]
-        data_file = self.splits_info[phase]["filename"]
-        self.data_path = os.path.join(data_folder, data_file)
-        self.data_qas = self.collect_qas()
-
-    def collect_qas(self):
-        """Collecting the question and the correspondin answer."""
-        data_frame = pd.read_parquet(self.data_path, engine="pyarrow")
+    def create_data_catalog(self):
+        data_frame = pd.read_parquet(self.phase_data_path, engine="pyarrow")
         n_itmes = data_frame.shape[0]
-        collected_items = []
-        for row_idx in range(n_itmes):
-            question = data_frame.iloc[row_idx, 0]
-            answer = data_frame.iloc[row_idx, -1]
 
-            thought_answer = answer.split("####")[0]
-            thought_answer = thought_answer.replace("\n", " ").rstrip()
-            target_sent = extracter.extract_final_sentence(answer)
-            target_result = extracter.extract_target_result(
-                target_sent, target_format="#"
+        collected_items = [
+            BaseQASampleInfo(
+                sample_id=i + 1,
+                sample_filepath=self.phase_data_path,
             )
-            target_result = target_result[-1]
-            collected_items.append(
-                {
-                    "question": question,
-                    "answer": thought_answer,
-                    "target_result": target_result,
-                }
-            )
+            for i in range(n_itmes)
+        ]
+        return DatasetCatalog(
+            data_phase=self.phase,
+            qa_sample_files=collected_items,
+            data_statistics=DatasetStatistics(num_samples=n_itmes),
+        )
 
-        return collected_items
+    def get_sample(self, idx):
+        """Get one sample."""
+        sample_path = self.data_catalog.qa_sample_files[idx]["sample_filepath"]
+        data_frame = pd.read_parquet(sample_path, engine="pyarrow")
 
-    def get_qas(self):
-        """Getting the qas of the tasks."""
-        return self.data_qas
+        raw_answer = data_frame.iloc[idx, -1]
+        answer = raw_answer.split("####")[0]
+        answer = answer.replace("\n", " ").rstrip()
+        target_sent = extracter.extract_sentences(answer)[-1]
+        groundtruth = extracter.extract_target_result(target_sent, target_format="#")
+        groundtruth = groundtruth[-1]
 
-    def __getitem__(self, idx: Tuple):
-        """Get the sample for either training or testing given index."""
-        return self.data_qas[idx]
-
-    def __len__(self):
-        """obtain the number of samples."""
-        return len(self.data_qas)
+        return BaseQASample(
+            question=data_frame.iloc[idx, 0],
+            answer=answer,
+            conclusion=target_sent,
+            groundtruth=groundtruth,
+            auxiliary={"raw_answer": raw_answer},
+        )
 
 
 class DataSource(base.DataSource):
     """The GSM8K datasource."""
 
     def __init__(self):
-        # Extract the data information from the config file
         super().__init__()
 
-        self.splits_info = {
-            "train": {"path": self.data_path, "filename": "train.parquet"},
-            "test": {"path": self.data_path, "filename": "test.parquet"},
-        }
+        self.base_dataset = GSM8KDataset
 
-    def get_phase_dataset(self, phase: str):
-        """Obtain the dataset for the specific phase."""
-        # obtain the datacatalog for desired phase
-        self.prepare_source_data(phase)
-        dataset = GSM8KDataset(splits_info=self.splits_info, phase=phase)
-        return dataset
-
-    def get_train_set(self):
-        """Obtains the training dataset."""
-        phase = "train"
-        return self.get_phase_dataset(phase)
-
-    def get_test_set(self):
-        """Obtains the validation dataset."""
-        phase = "test"
-        return self.get_phase_dataset(phase)
+    def create_meta_catalog(self):
+        """Configure the dataset."""
+        return DatasetMetaCatalog(
+            dataset_name="GSM8K",
+            problem_type="Mathematical Reasoning",
+            dataset_path=self.data_path,
+            split_path={
+                "train": os.path.join(self.data_path, "train.parquet"),
+                "test": os.path.join(self.data_path, "test.parquet"),
+                "val": os.path.join(self.data_path, "test.parquet"),
+            },
+        )
