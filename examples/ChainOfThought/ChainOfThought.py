@@ -43,10 +43,12 @@ def perform_eval(model, train_set, test_set, input_prompter, logging_config, con
     for prompt, eval_sample, eval_groundtruth in input_prompter.evaluater(
         train_set, test_set, config
     ):
+        print(prompt)
+        print(ok)
         contents = do_model_request(model, request_prompt=prompt)
         extracted_target_answers = input_prompter.extract_target_answers(contents)
-        extracted_target_results = [
-            input_prompter.extract_target_result(dst_answer)
+        extracted_groundtruths = [
+            input_prompter.extract_groundtruth(dst_answer)
             for dst_answer in extracted_target_answers
         ]
         consistency = [
@@ -60,7 +62,7 @@ def perform_eval(model, train_set, test_set, input_prompter, logging_config, con
             "request_prompt": prompt,
             "responses": contents,
             "extracted_answers": extracted_target_answers,
-            "extracted_results": extracted_target_results,
+            "extracted_results": extracted_groundtruths,
             "is_correct_answers": consistency,
         }
 
