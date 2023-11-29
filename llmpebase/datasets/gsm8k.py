@@ -16,7 +16,7 @@ from llmpebase.datasets.data_generic import (
     BaseQASampleInfo,
     DatasetStatistics,
 )
-from llmpebase.utils import extracter
+from llmpebase.utils import extractor
 
 
 class GSM8KDataset(base.BaseDataset):
@@ -49,8 +49,8 @@ class GSM8KDataset(base.BaseDataset):
         raw_answer = data_frame.iloc[idx, -1]
         answer = raw_answer.split("####")[0]
         answer = answer.replace("\n", " ").rstrip()
-        target_sent = extracter.extract_sentences(answer)[-1]
-        groundtruth = extracter.extract_target_result(target_sent, target_format="#")
+        target_sent = extractor.extract_sentences(answer)[-1]
+        groundtruth = extractor.extract_target_result(target_sent, target_format="#")
         groundtruth = groundtruth[-1]
 
         return BaseQASample(

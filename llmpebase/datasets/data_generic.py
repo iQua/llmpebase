@@ -29,6 +29,8 @@ class BaseQASampleInfo(FieldFrozenContainer):
     sample_task: Optional[str] = None
     sample_filepath: Optional[str] = None
 
+    auxiliary: Optional[Dict] = None
+
 
 @dataclass
 class DatasetMetaCatalog(FieldFrozenContainer):
@@ -100,14 +102,19 @@ class MMLUDatasetCatalog(DatasetCatalog):
     problem_category: List[str] = None
 
 
-# @dataclass
-# class MATHDatasetStatistics(DatasetStatistics):
-#     """The statistics of the dataset."""
+@dataclass
+class MATHDatasetStatistics(DatasetStatistics):
+    """The statistics of the dataset."""
+
+    category_count: Optional[Dict[str, int]] = None
+    category_difficulty_count: Optional[Dict[str, Dict[str, int]]] = None
+    difficulty_count: Optional[Dict[str, int]] = None
 
 
-# @dataclass
-# class MATHDatasetCatalog(DatasetCatalog):
-#     """The samples catalog of one dataset."""
+@dataclass
+class MATHDatasetCatalog(DatasetCatalog):
+    """The samples catalog of one dataset."""
 
-#     data_category: List[str]
-#     data_statistics: Optional[MATHDatasetStatistics] = None
+    problem_category: List[str] = None
+    difficulty_level: List[str] = None
+    category_difficulty: Optional[Dict[str, List[str]]] = None

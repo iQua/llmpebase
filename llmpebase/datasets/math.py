@@ -10,27 +10,65 @@ from typing import Tuple
 import torch
 
 from llmpebase.datasets import base
-from llmpebase.utils import extracter
+from llmpebase.datasets.data_generic import (
+    DatasetMetaCatalog,
+    DatasetCatalog,
+    BaseQASample,
+    BaseQASampleInfo,
+    DatasetStatistics,
+)
+
+from llmpebase.utils import extractor
 
 
-class MATHDataset(torch.utils.data.Dataset):
+def format_category_name(name):
+    """Convert a category name to be format."""
+    # Replace _ to whitespace
+    # Capitalize the first letter of each word
+    name = name.replace("_", " ").replace("and", "&").title()
+    return name
+
+
+class MATHDataset(base.BaseDataset):
     """
     An interface for the MATH dataset.
     """
 
-    def __init__(self, splits_info, phase):
-        # A path showing where the data is stored
-        self.splits_info = splits_info
-        self.phase = phase
+    def create_data_catalog(self):
+        category_names = [
+            folder_name
+            for folder_name in os.listdir(self.phase_data_path)
+            if os.path.isdir(os.path.join(self.phase_data_path, folder_name))
+        ]
 
-        data_folder = self.splits_info[phase]["path"]
-        data_phase_folder = self.splits_info[phase]["foldername"]
-        self.data_path = os.path.join(data_folder, data_phase_folder)
+        collected_items = []
+        n_samples = 0
+        for name in category_names:
+            category_path = os.path.join(self.phase_data_path, name)
+            qa_files = os.listdir(category_path)
+            qa_files = [file for file in qa_files if file.endswith(".json")]
+            format_name = format_category_name(name)
 
-        self.data_statistic_path = os.path.join(self.data_path, "data_statistic.json")
+            for filename in qa_files:
+                n_samples += 1
 
-        self.data_statistic = {}
-        self.data_statistic = self.get_data_statistic()
+                filepath = os.path.join(category_path, filename)
+
+                with open(filepath, "r", encoding="utf-8") as json_file:
+                    # Load the JSON data from the file
+                    data = json.load(json_file)
+
+                difficulty_level = data["level"]
+                if difficulty_level in data_statistic[format_name]:
+                    data_statistic[format_name][difficulty_level] += 1
+                else:
+                    data_statistic[format_name].update({difficulty_level: 1})
+
+                data_statistic["total_samples"] += 1
+                BaseQASampleInfo(
+                    sample_id=sample_idx + 1,
+                    sample_filepath=self.phase_data_path,
+                )
 
     def get_one_sample(self, filepath: str):
         """Get one sample from the file."""
@@ -43,13 +81,13 @@ class MATHDataset(torch.utils.data.Dataset):
         difficulty_level = data["level"]
         solution = data["solution"].rstrip()
 
-        sents = extracter.extract_sentences(solution)
+        sents = extractor.extract_sentences(solution)
         sents = [sent for sent in sents if "=" in sent or "\\boxed" in sent]
         conclusion = sents[-1]
 
-        groundtruths = extracter.extract_target_equations(conclusion)
+        groundtruths = extractor.extract_target_equations(conclusion)
         result = groundtruths[-1]
-        final_result = extracter.extract_equation_result(result)
+        final_result = extractor.extract_equation_result(result)
 
         return {
             "question": data["problem"],
@@ -107,51 +145,24 @@ class MATHDataset(torch.utils.data.Dataset):
 
         return data_statistic
 
-    def get_qas(self):
-        """Getting the qas of the tasks."""
-        return self.data_qas
-
-    def __getitem__(self, idx: Tuple):
-        """Get the sample for either training or testing given index."""
-        return self.data_qas[idx]
-
-    def __len__(self):
-        """obtain the number of samples."""
-        return len(self.data_qas)
-
-    def format_category_name(self, name):
-        """Convert a category name to be format."""
-        # Replace _ to whitespace
-        # Capitalize the first letter of each word
-        name = name.replace("_", " ").replace("and", "&").title()
-        return name
-
 
 class DataSource(base.DataSource):
     """The MATH datasource."""
 
     def __init__(self):
-        # Extract the data information from the config file
         super().__init__()
 
-        self.splits_info = {
-            "train": {"path": self.data_path, "foldername": "MATH/train"},
-            "test": {"path": self.data_path, "foldername": "MATH/test"},
-        }
+        self.base_dataset = MATHDataset
 
-    def get_phase_dataset(self, phase: str):
-        """Obtain the dataset for the specific phase."""
-        # obtain the datacatalog for desired phase
-        self.prepare_data(phase)
-        dataset = MATHDataset(splits_info=self.splits_info, phase=phase)
-        return dataset
-
-    def get_train_set(self):
-        """Obtains the training dataset."""
-        phase = "train"
-        return self.get_phase_dataset(phase)
-
-    def get_test_set(self):
-        """Obtains the validation dataset."""
-        phase = "test"
-        return self.get_phase_dataset(phase)
+    def create_meta_catalog(self):
+        """Configure the dataset."""
+        return DatasetMetaCatalog(
+            dataset_name="MATH",
+            problem_type="Mathematical Reasoning",
+            dataset_path=self.data_path,
+            split_path={
+                "train": os.path.join(self.data_path, "MATH/train"),
+                "test": os.path.join(self.data_path, "MATH/test"),
+                "val": os.path.join(self.data_path, "MATH/test"),
+            },
+        )

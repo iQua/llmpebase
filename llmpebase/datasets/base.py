@@ -14,7 +14,7 @@ from llmpebase.datasets.data_generic import (
     DatasetCatalog,
 )
 from llmpebase.config import Config
-from llmpebase.utils.extracter import extract_compression_style
+from llmpebase.utils.extractor import extract_compression_style
 
 
 class BaseDataset(torch.utils.data.Dataset):
