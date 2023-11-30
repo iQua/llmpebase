@@ -24,24 +24,6 @@ class GSM8KStandardPrompting(base.BasePrompting):
         groundtruth = "" if not is_answer_included else groundtruth
         return f"""Answer: {answ}. {self.answer_format_str} {groundtruth}"""
 
-    def organize_template_prompt(
-        self,
-        samples: List[dict],
-        task_name: str = None,
-    ):
-        """organizing the prompt including the few-shot ."""
-        intro_prompt = (
-            "The following examples are questions with answers about algebra problems."
-        )
-        task_content = []
-        for sample in samples:
-            task_content.append(self.organize_qa_prompt(sample))
-        fewshots = "\n\n".join(task_content)
-
-        prompt = f"""{intro_prompt}\n\n {fewshots}"""
-
-        return prompt
-
     @staticmethod
     def extract_groundtruth(target_answer: str):
         """Extract the target results from the obtained targets."""

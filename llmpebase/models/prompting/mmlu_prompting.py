@@ -59,7 +59,7 @@ class MMLUStandardPrompting(base.BasePrompting):
         n_shots = config["n_shots"]
 
         for _, test_sample in enumerate(eval_set):
-            task_name = test_sample["auxiliary"]["task_name"]
+            task_name = test_sample.auxiliary["sample_task"]
             sample_indexs = train_set.get_task_sample_indexs(task_name)
             fewshot_indexs = (
                 random.sample(sample_indexs, n_shots)

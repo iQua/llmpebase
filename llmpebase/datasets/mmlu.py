@@ -107,7 +107,7 @@ class MMLUDataset(base.BaseDataset):
                 "options": options,
                 "choice_letters": choice_letters,
                 "option_str": options_str,
-                "task_name": sample_task,
+                "sample_task": sample_task,
             },
         )
 

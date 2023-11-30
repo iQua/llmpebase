@@ -27,6 +27,7 @@ class GameOf24Dataset(base.BaseDataset):
         collected_items = [
             BaseQASampleInfo(
                 sample_id=data_frame["Rank"].iloc[i].item(),
+                sample_task="Algebra",
                 sample_filepath=self.phase_data_path,
             )
             for i in range(n_itmes)
@@ -40,6 +41,7 @@ class GameOf24Dataset(base.BaseDataset):
     def get_sample(self, idx):
         """Get one sample."""
         sample_path = self.data_catalog.qa_sample_files[idx]["sample_filepath"]
+        sample_task = self.data_catalog.qa_sample_files[idx]["sample_task"]
         data_frame = pd.read_csv(sample_path)
         return BaseQASample(
             question=data_frame["Puzzles"].iloc[idx],
@@ -51,6 +53,7 @@ class GameOf24Dataset(base.BaseDataset):
                 "AMT": data_frame["AMT (s)"].iloc[idx],
                 "1_sigma_Mean": data_frame["1-sigma Mean (s)"].iloc[idx],
                 "1_sigma_STD": data_frame["1-sigma STD (s)"].iloc[idx],
+                "sample_task": sample_task,
             },
         )
 

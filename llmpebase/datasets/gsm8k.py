@@ -31,6 +31,7 @@ class GSM8KDataset(base.BaseDataset):
         collected_items = [
             BaseQASampleInfo(
                 sample_id=i + 1,
+                sample_task="Algebra",
                 sample_filepath=self.phase_data_path,
             )
             for i in range(n_itmes)
@@ -44,6 +45,7 @@ class GSM8KDataset(base.BaseDataset):
     def get_sample(self, idx):
         """Get one sample."""
         sample_path = self.data_catalog.qa_sample_files[idx]["sample_filepath"]
+        sample_task = self.data_catalog.qa_sample_files[idx]["sample_task"]
         data_frame = pd.read_parquet(sample_path, engine="pyarrow")
 
         raw_answer = data_frame.iloc[idx, -1]
@@ -58,7 +60,7 @@ class GSM8KDataset(base.BaseDataset):
             answer=answer,
             conclusion=target_sent,
             groundtruth=groundtruth,
-            auxiliary={"raw_answer": raw_answer},
+            auxiliary={"raw_answer": raw_answer, "sample_task": sample_task},
         )
 
 

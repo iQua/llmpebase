@@ -83,8 +83,11 @@ class BasePrompting:
             samples = [
                 train_set[random.randint(0, len(eval_set))] for _ in range(n_shots)
             ]
+
             request_prompt = self.get_test_prompt(
-                task_name=None, template_samples=samples, test_sample=test_sample
+                task_name=test_sample.auxiliary["sample_task"],
+                template_samples=samples,
+                test_sample=test_sample,
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]
 
