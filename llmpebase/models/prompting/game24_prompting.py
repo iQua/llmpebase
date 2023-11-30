@@ -23,7 +23,7 @@ class GameOf24StandardPrompting(base.BasePrompting):
         """Organizing the question prompt."""
         ques = sample["question"]
 
-        prompt = f"""In the game of 24, you are given four numbers, and the goal is to use basic arithmetic operations (+, -, *, /) to combine these numbers and obtain a result of 24. You can only use each number once, and parentheses can be used to change the order of operations. \n  Task rule: {self.instruction}. \n  Analysis format of each step: {self.analysis_format}. \n  Notice: 1. {self.notice}, 2. Do not add any words apart from the Analysis format. \n\nThe given four numbers are: {ques}. """
+        prompt = f"""In the game of 24, you are given four numbers, and the goal is to use basic arithmetic operations (+, -, *, /) to combine these numbers and obtain a result of 24. You can only use each number once, and parentheses can be used to change the order of operations. \n  problem rule: {self.instruction}. \n  Analysis format of each step: {self.analysis_format}. \n  Notice: 1. {self.notice}, 2. Do not add any words apart from the Analysis format. \n\nThe given four numbers are: {ques}. """
         return prompt
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
@@ -35,13 +35,13 @@ class GameOf24StandardPrompting(base.BasePrompting):
     def organize_template_prompt(
         self,
         samples: List[dict],
-        task_name: str = None,
+        problem_name: str = None,
     ):
         """organizing the prompt including the few-shot ."""
         return ""
 
     def get_test_prompt(
-        self, task_name: str, test_sample: dict, template_samples: List[dict]
+        self, problem_name: str, test_sample: dict, template_samples: List[dict]
     ):
         """Organizing the prompt for test."""
         test_qa_prompt = self.organize_qa_prompt(test_sample, is_answer_included=False)
@@ -77,6 +77,6 @@ class GameOf24StandardPrompting(base.BasePrompting):
 
         for _, test_sample in enumerate(eval_set):
             request_prompt = self.get_test_prompt(
-                task_name=None, template_samples=None, test_sample=test_sample
+                problem_name=None, template_samples=None, test_sample=test_sample
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]

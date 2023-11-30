@@ -54,8 +54,8 @@ class BBHStandardPrompting(base.BasePrompting):
         n_shots = config["n_shots"]
 
         for _, test_sample in enumerate(eval_set):
-            task_name = test_sample.auxiliary["sample_task"]
-            sample_indexs = train_set.get_task_sample_indexs(task_name)
+            problem_name = test_sample.auxiliary["sample_problem"]
+            sample_indexs = train_set.get_problem_sample_indexs(problem_name)
             fewshot_indexs = (
                 random.sample(sample_indexs, n_shots)
                 if len(sample_indexs) > n_shots
@@ -63,7 +63,9 @@ class BBHStandardPrompting(base.BasePrompting):
             )
             samples = [train_set[idx] for idx in fewshot_indexs]
             request_prompt = self.get_test_prompt(
-                task_name=task_name, template_samples=samples, test_sample=test_sample
+                problem_name=problem_name,
+                template_samples=samples,
+                test_sample=test_sample,
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]
 
@@ -86,7 +88,7 @@ class BBHCoTPrompting(BBHStandardPrompting):
     def organize_template_prompt(
         self,
         samples: List[dict],
-        task_name: str = None,
+        problem_name: str = None,
     ):
         """organizing the prompt including the few-shot ."""
         intro_prompt = (
@@ -100,9 +102,11 @@ class BBHCoTPrompting(BBHStandardPrompting):
         """Evaluating the BBH dataset."""
 
         for _, test_sample in enumerate(eval_set):
-            task_name = test_sample.auxiliary["sample_task"]
+            problem_name = test_sample.auxiliary["sample_problem"]
             request_prompt = self.get_test_prompt(
-                task_name=task_name, test_sample=test_sample, template_samples=None
+                problem_name=problem_name,
+                test_sample=test_sample,
+                template_samples=None,
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]
 
@@ -117,24 +121,26 @@ class BBHZeroShotCoTPrompting(BBHStandardPrompting):
     def organize_template_prompt(
         self,
         samples: List[dict],
-        task_name: str = None,
+        problem_name: str = None,
     ):
         return ""
 
     def get_test_prompt(
-        self, task_name: str, test_sample: dict, template_samples: List[dict]
+        self, problem_name: str, test_sample: dict, template_samples: List[dict]
     ):
         """Organizing the prompt for test."""
         test_qa_prompt = self.organize_qa_prompt(test_sample, is_answer_included=False)
-        prompt = f"""This is the {task_name} problem. Please answer the given question.\n\n{test_qa_prompt}"""
+        prompt = f"""This is the {problem_name} problem. Please answer the given question.\n\n{test_qa_prompt}"""
         return prompt
 
     def evaluater(self, train_set, eval_set, config):
         """Evaluating the BBH dataset."""
 
         for _, test_sample in enumerate(eval_set):
-            task_name = test_sample.auxiliary["sample_task"]
+            problem_name = test_sample.auxiliary["sample_problem"]
             request_prompt = self.get_test_prompt(
-                task_name=task_name, test_sample=test_sample, template_samples=None
+                problem_name=problem_name,
+                test_sample=test_sample,
+                template_samples=None,
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]

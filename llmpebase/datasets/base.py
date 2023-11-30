@@ -64,21 +64,21 @@ class BaseDataset(torch.utils.data.Dataset):
         """Obtain the number of samples."""
         return self.data_catalog.data_statistics["num_samples"]
 
-    def get_task_sample_indexs(self, task_name):
-        """Get sample indexs of one task.
+    def get_problem_sample_indexs(self, problem_name):
+        """Get sample indexs of one problem.
 
-        It is expected that the samples of each task will be stored as
+        It is expected that the samples of each problem will be stored as
         a group in the data_catalog. Therefore, this function will first
-        get the index of the task among all tasks and then jump to the corresponding
-        sample index of this task
+        get the index of the problem among all problems and then jump to the corresponding
+        sample index of this problem
 
         """
         n_samples = self.data_catalog.data_statistics["num_samples"]
         problem_category = self.data_catalog.problem_category
-        category_idx = problem_category.index(task_name)
+        category_idx = problem_category.index(problem_name)
         skip_category = problem_category[:category_idx]
 
-        # Jump to the samples of the given task
+        # Jump to the samples of the given problem
         category_info = self.data_catalog.data_statistics["category_info"]
         sample_idx = sum(
             [
@@ -88,16 +88,16 @@ class BaseDataset(torch.utils.data.Dataset):
             ]
         )
 
-        # Collect samples's index of the given task
+        # Collect samples's index of the given problem
         sample_indexs = []
         for i in range(sample_idx, n_samples):
             sample_info = self.data_catalog.qa_sample_info[i]
-            sample_task = sample_info["sample_task"]
-            if sample_task == task_name:
+            sample_problem = sample_info["sample_problem"]
+            if sample_problem == problem_name:
                 sample_indexs.append(i)
             else:
-                # Once the task name is changed, break the loop
-                # as subsequent samples are not the given task
+                # Once the problem name is changed, break the loop
+                # as subsequent samples are not the given problem
                 break
         return sample_indexs
 

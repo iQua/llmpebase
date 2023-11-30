@@ -74,7 +74,7 @@ class GSM8KCoTPrompting(GSM8KStandardPrompting):
     def organize_template_prompt(
         self,
         samples: List[dict],
-        task_name: str = None,
+        problem_name: str = None,
     ):
         """organizing the prompt including the few-shot ."""
         intro_prompt = (
@@ -88,9 +88,9 @@ class GSM8KCoTPrompting(GSM8KStandardPrompting):
         """Evaluating the GSM8K dataset."""
 
         for _, test_sample in enumerate(eval_set):
-            task_name = test_sample.auxiliary["sample_task"]
+            problem_name = test_sample.auxiliary["sample_problem"]
             request_prompt = self.get_test_prompt(
-                task_name=None, test_sample=test_sample, template_samples=None
+                problem_name=None, test_sample=test_sample, template_samples=None
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]
 
@@ -105,12 +105,12 @@ class GSM8KZeroShotCoTPrompting(GSM8KStandardPrompting):
     def organize_template_prompt(
         self,
         samples: List[dict],
-        task_name: str = None,
+        problem_name: str = None,
     ):
         return ""
 
     def get_test_prompt(
-        self, task_name: str, test_sample: dict, template_samples: List[dict]
+        self, problem_name: str, test_sample: dict, template_samples: List[dict]
     ):
         """Organizing the prompt for test."""
         test_qa_prompt = self.organize_qa_prompt(test_sample, is_answer_included=False)
@@ -121,8 +121,10 @@ class GSM8KZeroShotCoTPrompting(GSM8KStandardPrompting):
         """Evaluating the GSM8K dataset."""
 
         for _, test_sample in enumerate(eval_set):
-            task_name = test_sample.auxiliary["sample_task"]
+            problem_name = test_sample.auxiliary["sample_problem"]
             request_prompt = self.get_test_prompt(
-                task_name=task_name, test_sample=test_sample, template_samples=None
+                problem_name=problem_name,
+                test_sample=test_sample,
+                template_samples=None,
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]

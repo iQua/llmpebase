@@ -27,7 +27,7 @@ class GameOf24Dataset(base.BaseDataset):
         collected_items = [
             BaseQASampleInfo(
                 sample_id=data_frame["Rank"].iloc[i].item(),
-                sample_task="Algebra",
+                sample_problem="Algebra",
                 sample_filepath=self.phase_data_path,
             )
             for i in range(n_itmes)
@@ -41,7 +41,7 @@ class GameOf24Dataset(base.BaseDataset):
     def get_sample(self, idx):
         """Get one sample."""
         sample_path = self.data_catalog.qa_sample_info[idx]["sample_filepath"]
-        sample_task = self.data_catalog.qa_sample_info[idx]["sample_task"]
+        sample_problem = self.data_catalog.qa_sample_info[idx]["sample_problem"]
         data_frame = pd.read_csv(sample_path)
         return BaseQASample(
             question=data_frame["Puzzles"].iloc[idx],
@@ -53,7 +53,7 @@ class GameOf24Dataset(base.BaseDataset):
                 "AMT": data_frame["AMT (s)"].iloc[idx],
                 "1_sigma_Mean": data_frame["1-sigma Mean (s)"].iloc[idx],
                 "1_sigma_STD": data_frame["1-sigma STD (s)"].iloc[idx],
-                "sample_task": sample_task,
+                "sample_problem": sample_problem,
             },
         )
 
@@ -70,7 +70,7 @@ class DataSource(base.DataSource):
         """Configure the dataset."""
         return DatasetMetaCatalog(
             dataset_name="GameOf24",
-            problem_type="Mathematical Reasoning",
+            task_type="Mathematical Reasoning",
             dataset_path=self.data_path,
             split_path={
                 "train": os.path.join(self.data_path, "24.csv"),

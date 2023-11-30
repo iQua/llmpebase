@@ -49,7 +49,7 @@ def count_category(category_path: str) -> tuple:
         collect_items.append(
             BaseQASampleInfo(
                 sample_id=file_id,
-                sample_task=category_name,
+                sample_problem=category_name,
                 sample_filepath=filepath,
             )
         )
@@ -103,7 +103,7 @@ class MATHDataset(base.BaseDataset):
     def get_sample(self, idx: int):
         """Get one sample from the file."""
         sample_info = self.data_catalog.qa_sample_info[idx]
-        sample_task = sample_info["sample_task"]
+        sample_problem = sample_info["sample_problem"]
 
         sample_filepath = sample_info["sample_filepath"]
 
@@ -129,7 +129,7 @@ class MATHDataset(base.BaseDataset):
             auxiliary={
                 "level": data["level"],
                 "category": data["type"],
-                "sample_task": sample_task,
+                "sample_problem": sample_problem,
             },
         )
 
@@ -146,7 +146,7 @@ class DataSource(base.DataSource):
         """Configure the dataset."""
         return DatasetMetaCatalog(
             dataset_name="MATH",
-            problem_type="Mathematical Reasoning",
+            task_type="Mathematical Reasoning",
             dataset_path=self.data_path,
             split_path={
                 "train": os.path.join(self.data_path, "MATH/train"),

@@ -59,8 +59,8 @@ class MMLUStandardPrompting(base.BasePrompting):
         n_shots = config["n_shots"]
 
         for _, test_sample in enumerate(eval_set):
-            task_name = test_sample.auxiliary["sample_task"]
-            sample_indexs = train_set.get_task_sample_indexs(task_name)
+            problem_name = test_sample.auxiliary["sample_problem"]
+            sample_indexs = train_set.get_problem_sample_indexs(problem_name)
             fewshot_indexs = (
                 random.sample(sample_indexs, n_shots)
                 if len(sample_indexs) > n_shots
@@ -68,7 +68,9 @@ class MMLUStandardPrompting(base.BasePrompting):
             )
             samples = [train_set[idx] for idx in fewshot_indexs]
             request_prompt = self.get_test_prompt(
-                task_name=task_name, template_samples=samples, test_sample=test_sample
+                problem_name=problem_name,
+                template_samples=samples,
+                test_sample=test_sample,
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]
 
@@ -88,10 +90,10 @@ class MMLUCoTPrompting(MMLUStandardPrompting):
         with open(cot_filepath, "r", encoding="utf-8") as txt_file:
             self.cot_prompt = json.load(txt_file)
 
-    def load_cot_prompt(self, task_name: str):
+    def load_cot_prompt(self, problem_name: str):
         """Load the cot prompt."""
-        task_name = task_name.replace(" ", "_")
-        return self.cot_prompt[task_name]
+        problem_name = problem_name.replace(" ", "_")
+        return self.cot_prompt[problem_name]
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organizing the answer prompt."""
@@ -102,23 +104,21 @@ class MMLUCoTPrompting(MMLUStandardPrompting):
     def organize_template_prompt(
         self,
         samples: List[dict],
-        task_name: str = None,
+        problem_name: str = None,
     ):
         """organizing the prompt including the few-shot ."""
-        intro_prompt = (
-            f"""The following examples are questions with answers about {task_name}."""
-        )
-        task_cot_prompt = self.load_cot_prompt(task_name)
-        prompt = f"""{intro_prompt}\n\n {task_cot_prompt}"""
+        intro_prompt = f"""The following examples are questions with answers about {problem_name}."""
+        problem_cot_prompt = self.load_cot_prompt(problem_name)
+        prompt = f"""{intro_prompt}\n\n {problem_cot_prompt}"""
         return prompt
 
     def evaluater(self, train_set, eval_set, config):
         """Evaluating the MMLU dataset."""
 
         for _, test_sample in enumerate(eval_set):
-            task_name = test_sample["auxiliary"]["task_name"]
+            problem_name = test_sample["auxiliary"]["problem_name"]
             request_prompt = self.get_test_prompt(
-                task_name=task_name,
+                problem_name=problem_name,
                 template_samples=None,
                 test_sample=test_sample,
             )
@@ -137,12 +137,12 @@ class MMLUZeroShotCoTPrompting(MMLUStandardPrompting):
     def organize_template_prompt(
         self,
         samples: List[dict],
-        task_name: str = None,
+        problem_name: str = None,
     ):
         return ""
 
     def get_test_prompt(
-        self, task_name: str, test_sample: dict, template_samples: List[dict]
+        self, problem_name: str, test_sample: dict, template_samples: List[dict]
     ):
         """Organizing the prompt for test."""
         test_qa_prompt = self.organize_qa_prompt(test_sample, is_answer_included=False)
@@ -153,9 +153,9 @@ class MMLUZeroShotCoTPrompting(MMLUStandardPrompting):
         """Evaluating the MMLU dataset."""
 
         for _, test_sample in enumerate(eval_set):
-            task_name = test_sample["auxiliary"]["task_name"]
+            problem_name = test_sample["auxiliary"]["problem_name"]
             request_prompt = self.get_test_prompt(
-                task_name=task_name,
+                problem_name=problem_name,
                 template_samples=None,
                 test_sample=test_sample,
             )

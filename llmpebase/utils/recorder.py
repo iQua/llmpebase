@@ -20,12 +20,12 @@ class DualExtensionRecoder:
         sample_pool: A `OrderedDict`, key of this dict is the sample id while
          the value is a list in which each item contains a variant sample,
          such as the sample but with various properties.
-         In Q&A task, the list contains different answers to one question
-         In VQA task, the list contains different captions to one image.
+         In Q&A problem, the list contains different answers to one question
+         In VQA problem, the list contains different captions to one image.
         record_pool: A `OrderedDict`, key of this dict is the sample id while
          the value is a list in which each item is a record, such as one
          obtained result of this sample.
-         In Q&A task, each record contains the responses and results of the corresponding
+         In Q&A problem, each record contains the responses and results of the corresponding
           sample. Each record corresponds one sample in that under same `sample_id` of
           sample_pool.
     """

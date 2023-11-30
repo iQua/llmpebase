@@ -19,8 +19,8 @@ from llmpebase.datasets.data_generic import (
 )
 
 
-def extract_task_name(filename: str, phase: str):
-    """Extract the task name from the filepath."""
+def extract_problem_name(filename: str, phase: str):
+    """Extract the problem name from the filepath."""
     filename = filename.split(".csv")[0]
     phase = "dev" if phase == "train" else phase
     return filename.replace(phase, "").replace("_", " ").rstrip()
@@ -45,12 +45,12 @@ class MMLUDataset(base.BaseDataset):
         # Visit all files under the folder to get data information
         for idx, file_path in enumerate(csv_files):
             file_name = os.path.basename(file_path)
-            task_name = extract_task_name(file_name, phase=self.phase)
+            problem_name = extract_problem_name(file_name, phase=self.phase)
 
             data_frame = pd.read_csv(file_path, header=None)
-            task_n_samples = data_frame.shape[0]
-            category_count[task_name]["num_samples"] = task_n_samples
-            n_samples += task_n_samples
+            problem_n_samples = data_frame.shape[0]
+            category_count[problem_name]["num_samples"] = problem_n_samples
+            n_samples += problem_n_samples
             # Create sample info
             #  sample_id: using iteration idx as the
             # prefix while the row index as the suffix
@@ -58,10 +58,10 @@ class MMLUDataset(base.BaseDataset):
                 [
                     BaseQASampleInfo(
                         sample_id=f"{idx}_{i}",
-                        sample_task=task_name,
+                        sample_problem=problem_name,
                         sample_filepath=file_path,
                     )
-                    for i in range(task_n_samples)
+                    for i in range(problem_n_samples)
                 ]
             )
 
@@ -77,7 +77,7 @@ class MMLUDataset(base.BaseDataset):
     def get_sample(self, idx):
         sample_info = self.data_catalog.qa_sample_info[idx]
         sample_id = sample_info["sample_id"]
-        sample_task = sample_info["sample_task"]
+        sample_problem = sample_info["sample_problem"]
         sample_filepath = sample_info["sample_filepath"]
 
         data_frame = pd.read_csv(sample_filepath, header=None)
@@ -102,7 +102,7 @@ class MMLUDataset(base.BaseDataset):
                 "options": options,
                 "choice_letters": choice_letters,
                 "option_str": options_str,
-                "sample_task": sample_task,
+                "sample_problem": sample_problem,
             },
         )
 
@@ -119,7 +119,7 @@ class DataSource(base.DataSource):
         """Configure the dataset."""
         return DatasetMetaCatalog(
             dataset_name="MMLU",
-            problem_type="Mathematical Reasoning",
+            task_type="Mathematical Reasoning",
             dataset_path=self.data_path,
             split_path={
                 "train": [

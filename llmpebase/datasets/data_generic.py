@@ -19,7 +19,7 @@ class DatasetMetaCatalog(FieldFrozenContainer):
 
     Args:
         dataset_name: Holding the name of the dataset.
-        problem_type: Holding the name of the problem of this dataset.
+        task_type: Holding the name of the problem of this dataset.
         dataset_path: Holding the root path of the dataset.
         splits: Holding the split information of the dataset,
             the key is the split name, and the value is the
@@ -27,7 +27,7 @@ class DatasetMetaCatalog(FieldFrozenContainer):
     """
 
     dataset_name: str
-    problem_type: Optional[str] = None
+    task_type: Optional[str] = None
     dataset_path: Optional[str] = None
     split_path: Optional[Dict[str, str]] = None
 
@@ -38,12 +38,12 @@ class BaseQASampleInfo(FieldFrozenContainer):
 
     Args:
         sample_id: The id of the sample.
-        sample_task: The name of the task.
+        sample_problem: The name of the problem.
         qa_filepath: The filepath that storess the question and the answer.
     """
 
     sample_id: Optional[str] = None
-    sample_task: Optional[str] = None
+    sample_problem: Optional[str] = None
     sample_filepath: Optional[str] = None
 
     auxiliary: Optional[Dict] = None

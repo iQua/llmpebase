@@ -10,7 +10,7 @@ from typing import List
 class BasePrompting:
     """The basic prompt.
 
-    Note, we set this Base prompt as the QA task with options.
+    Note, we set this Base prompt as the QA problem with options.
     """
 
     answer_format_str: str = "The final solution is"
@@ -44,28 +44,28 @@ class BasePrompting:
     def organize_template_prompt(
         self,
         samples: List[dict],
-        task_name: str = None,
+        problem_name: str = None,
     ):
         """organizing the prompt including the few-shot ."""
-        task_name = "" if task_name is None else task_name
+        problem_name = "" if problem_name is None else problem_name
 
         intro_prompt = (
-            f"The following examples are questions with answers about {task_name}."
+            f"The following examples are questions with answers about {problem_name}."
         )
-        task_content = []
+        problem_content = []
         for sample in samples:
-            task_content.append(self.organize_qa_prompt(sample))
-        fewshots = "\n\n".join(task_content)
+            problem_content.append(self.organize_qa_prompt(sample))
+        fewshots = "\n\n".join(problem_content)
 
         prompt = f"""{intro_prompt}\n\n {fewshots}"""
 
         return prompt
 
     def get_test_prompt(
-        self, task_name: str, test_sample: dict, template_samples: List[dict]
+        self, problem_name: str, test_sample: dict, template_samples: List[dict]
     ):
         """Organizing the prompt for test."""
-        fewshot_prompt = self.organize_template_prompt(template_samples, task_name)
+        fewshot_prompt = self.organize_template_prompt(template_samples, problem_name)
         test_qa_prompt = self.organize_qa_prompt(test_sample, is_answer_included=False)
         prompt = f"""{fewshot_prompt} \n\n\n With above examples, please answer: \n \n{test_qa_prompt}"""
         return prompt
@@ -85,7 +85,7 @@ class BasePrompting:
             ]
 
             request_prompt = self.get_test_prompt(
-                task_name=test_sample.auxiliary["sample_task"],
+                problem_name=test_sample.auxiliary["sample_problem"],
                 template_samples=samples,
                 test_sample=test_sample,
             )

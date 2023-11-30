@@ -18,9 +18,9 @@ from llmpebase.datasets.data_generic import (
 )
 
 
-def extract_task_name(filename: str):
+def extract_problem_name(filename: str):
     """
-    Extract the task name from the filepath by
+    Extract the problem name from the filepath by
     removing the extension,
     useless characters and
     capitalizing the first letter of each word.
@@ -45,13 +45,13 @@ class BBHDataset(base.BaseDataset):
                 # Load the examples as the list
                 examples = json.load(f)["examples"]
             num_examples = len(examples)
-            category_name = extract_task_name(os.path.basename(filepath))
+            category_name = extract_problem_name(os.path.basename(filepath))
             problem_category.append(category_name)
             collect_items.extend(
                 [
                     BaseQASampleInfo(
                         sample_id=f"{category_name}_{idx}",
-                        sample_task=category_name,
+                        sample_problem=category_name,
                         sample_filepath=filepath,
                     )
                     for idx in range(num_examples)
@@ -73,7 +73,7 @@ class BBHDataset(base.BaseDataset):
         """Get one sample from the file."""
         sample_info = self.data_catalog.qa_sample_info[idx]
         sample_id = sample_info["sample_id"]
-        sample_task = sample_info["sample_task"]
+        sample_problem = sample_info["sample_problem"]
 
         sample_filepath = sample_info["sample_filepath"]
 
@@ -87,7 +87,7 @@ class BBHDataset(base.BaseDataset):
             answer=sample_data["target"],
             conclusion=sample_data["target"],
             groundtruth=sample_data["target"],
-            auxiliary={"sample_task": sample_task, "sample_idx": sample_idx},
+            auxiliary={"sample_problem": sample_problem, "sample_idx": sample_idx},
         )
 
 
@@ -103,7 +103,7 @@ class DataSource(base.DataSource):
         """Configure the dataset."""
         return DatasetMetaCatalog(
             dataset_name="BBH",
-            problem_type="Symbolic & Text Reasoning",
+            task_type="Symbolic & Text Reasoning",
             dataset_path=self.data_path,
             split_path={
                 "train": os.path.join(self.data_path, "BIG-Bench-Hard-main", "bbh"),
