@@ -126,7 +126,7 @@ class MATHZeroShotCoTPrompting(MATHStandardPrompting):
     ):
         """Organizing the prompt for test."""
         test_qa_prompt = self.organize_qa_prompt(test_sample, is_answer_included=False)
-        prompt = f"""{test_qa_prompt}"""
+        prompt = f"""This is the {task_name} problem. Please answer the given question.\n\n{test_qa_prompt}"""
         return prompt
 
     def evaluater(self, train_set, eval_set, config):

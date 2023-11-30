@@ -28,7 +28,7 @@ model:
   model_type: gpt
 
   prompt_type: cot
-  cot_filepath: ./examples/ChainOfThought/gsm8k_prompt/prompt_hard.txt
+  cot_filepath: ./examples/ChainOfThought/Prompts/GSM8K/prompt_hard.txt
 
 
   authorization_env_path: ./.env
