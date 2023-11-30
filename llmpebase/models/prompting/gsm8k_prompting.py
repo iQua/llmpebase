@@ -88,6 +88,7 @@ class GSM8KCoTPrompting(GSM8KStandardPrompting):
         """Evaluating the GSM8K dataset."""
 
         for _, test_sample in enumerate(eval_set):
+            task_name = test_sample.auxiliary["sample_task"]
             request_prompt = self.get_test_prompt(
                 task_name=None, test_sample=test_sample, template_samples=None
             )
@@ -120,7 +121,8 @@ class GSM8KZeroShotCoTPrompting(GSM8KStandardPrompting):
         """Evaluating the GSM8K dataset."""
 
         for _, test_sample in enumerate(eval_set):
+            task_name = test_sample.auxiliary["sample_task"]
             request_prompt = self.get_test_prompt(
-                task_name=None, test_sample=test_sample, template_samples=None
+                task_name=task_name, test_sample=test_sample, template_samples=None
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]

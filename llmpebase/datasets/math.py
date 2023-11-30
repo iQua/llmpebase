@@ -103,6 +103,7 @@ class MATHDataset(base.BaseDataset):
     def get_sample(self, idx: int):
         """Get one sample from the file."""
         sample_info = self.data_catalog.qa_sample_files[idx]
+        sample_task = self.data_catalog.qa_sample_files[idx]["sample_task"]
 
         sample_filepath = sample_info["sample_filepath"]
 
@@ -128,6 +129,7 @@ class MATHDataset(base.BaseDataset):
             auxiliary={
                 "level": data["level"],
                 "category": data["type"],
+                "sample_task": sample_task,
             },
         )
 

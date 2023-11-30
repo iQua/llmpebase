@@ -64,6 +64,43 @@ class BaseDataset(torch.utils.data.Dataset):
         """Obtain the number of samples."""
         return self.data_catalog.data_statistics["num_samples"]
 
+    def get_task_sample_indexs(self, task_name):
+        """Get sample indexs of one task.
+
+        It is expected that the samples of each task will be stored as
+        a group in the data_catalog. Therefore, this function will first
+        get the index of the task among all tasks and then jump to the corresponding
+        sample index of this task
+
+        """
+        n_samples = self.data_catalog.data_statistics["num_samples"]
+        problem_category = self.data_catalog.problem_category
+        category_idx = problem_category.index(task_name)
+        skip_category = problem_category[:category_idx]
+
+        # Jump to the samples of the given task
+        category_info = self.data_catalog.data_statistics["category_info"]
+        sample_idx = sum(
+            [
+                category_info[category]["num_samples"]
+                for category in category_info
+                if category in skip_category
+            ]
+        )
+
+        # Collect samples's index of the given task
+        sample_indexs = []
+        for i in range(sample_idx, n_samples):
+            sample_info = self.data_catalog.qa_sample_files[i]
+            sample_task = sample_info["sample_task"]
+            if sample_task == task_name:
+                sample_indexs.append(i)
+            else:
+                # Once the task name is changed, break the loop
+                # as subsequent samples are not the given task
+                break
+        return sample_indexs
+
 
 class DataSource:
     """The Base datasource."""

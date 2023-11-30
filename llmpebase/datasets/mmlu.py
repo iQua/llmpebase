@@ -4,7 +4,7 @@ The detaild information of it is shown in
 https://huggingface.co/datasets/cais/mmlu
 """
 import os
-from collections import OrderedDict
+from collections import defaultdict
 import glob
 
 import pandas as pd
@@ -12,10 +12,10 @@ import pandas as pd
 from llmpebase.datasets import base
 from llmpebase.datasets.data_generic import (
     DatasetMetaCatalog,
-    MMLUDatasetCatalog,
+    DatasetCatalog,
     BaseQASample,
     BaseQASampleInfo,
-    MMLUDatasetStatistics,
+    DatasetStatistics,
 )
 
 
@@ -31,11 +31,6 @@ class MMLUDataset(base.BaseDataset):
     An interface for the MMLU dataset.
     """
 
-    def __init__(self, data_meta_catalog: DatasetMetaCatalog, phase: str):
-        super().__init__(data_meta_catalog, phase)
-
-        self.customize_data_catalog = MMLUDatasetCatalog
-
     def create_data_catalog(self):
         csv_files = []
         if isinstance(self.phase_data_path, (list, tuple)):
@@ -44,7 +39,7 @@ class MMLUDataset(base.BaseDataset):
         else:
             csv_files = glob.glob(self.phase_data_path + "/*.csv")
 
-        category_count = OrderedDict()
+        category_count = defaultdict(dict)
         collected_items = []
         n_samples = 0
         # Visit all files under the folder to get data information
@@ -54,7 +49,7 @@ class MMLUDataset(base.BaseDataset):
 
             data_frame = pd.read_csv(file_path, header=None)
             task_n_samples = data_frame.shape[0]
-            category_count[task_name] = task_n_samples
+            category_count[task_name]["num_samples"] = task_n_samples
             n_samples += task_n_samples
             # Create sample info
             #  sample_id: using iteration idx as the
@@ -70,10 +65,10 @@ class MMLUDataset(base.BaseDataset):
                 ]
             )
 
-        return MMLUDatasetCatalog(
+        return DatasetCatalog(
             data_phase=self.phase,
-            data_statistics=MMLUDatasetStatistics(
-                num_samples=n_samples, category_count=category_count
+            data_statistics=DatasetStatistics(
+                num_samples=n_samples, category_info=category_count
             ),
             qa_sample_files=collected_items,
             problem_category=list(category_count.keys()),
@@ -110,33 +105,6 @@ class MMLUDataset(base.BaseDataset):
                 "sample_task": sample_task,
             },
         )
-
-    def get_task_sample_indexs(
-        self,
-        task_name: str,
-    ):
-        """Get samples fro one specific task."""
-        n_samples = self.data_catalog.data_statistics["num_samples"]
-        problem_category = self.data_catalog.problem_category
-        category_idx = problem_category.index(task_name)
-
-        # Jump to the samples of the given task
-        category_count = self.data_catalog.data_statistics["category_count"].values()
-        category_count = list(category_count)
-        sample_idx = sum(category_count[:category_idx])
-
-        # Collect samples's index of the given task
-        sample_indexs = []
-        for i in range(sample_idx, n_samples):
-            sample_info = self.data_catalog.qa_sample_files[i]
-            sample_task = sample_info["sample_task"]
-            if sample_task == task_name:
-                sample_indexs.append(i)
-            else:
-                # Once the task name is changed, break the loop
-                # as subsequent samples are not the given task
-                break
-        return sample_indexs
 
 
 class DataSource(base.DataSource):

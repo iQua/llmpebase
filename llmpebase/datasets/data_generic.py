@@ -1,35 +1,11 @@
 """
 Basic components used in the dataset.
 """
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
 
 
 from vgbase.utils.generic_components import FieldFrozenContainer
-
-
-@dataclass
-class DatasetStatistics(FieldFrozenContainer):
-    """The statistics of the dataset."""
-
-    num_samples: int
-
-
-@dataclass
-class BaseQASampleInfo(FieldFrozenContainer):
-    """The basic common items contained in one question-answer sample.
-
-    Args:
-        sample_id: The id of the sample.
-        sample_task: The name of the task.
-        qa_filepath: The filepath that storess the question and the answer.
-    """
-
-    sample_id: Optional[str] = None
-    sample_task: Optional[str] = None
-    sample_filepath: Optional[str] = None
-
-    auxiliary: Optional[Dict] = None
 
 
 @dataclass
@@ -57,10 +33,36 @@ class DatasetMetaCatalog(FieldFrozenContainer):
 
 
 @dataclass
+class BaseQASampleInfo(FieldFrozenContainer):
+    """The basic common items contained in one question-answer sample.
+
+    Args:
+        sample_id: The id of the sample.
+        sample_task: The name of the task.
+        qa_filepath: The filepath that storess the question and the answer.
+    """
+
+    sample_id: Optional[str] = None
+    sample_task: Optional[str] = None
+    sample_filepath: Optional[str] = None
+
+    auxiliary: Optional[Dict] = None
+
+
+@dataclass
+class DatasetStatistics(FieldFrozenContainer):
+    """The statistics of the dataset."""
+
+    num_samples: int
+    category_info: Optional[Dict[str, Any]] = None
+
+
+@dataclass
 class DatasetCatalog(FieldFrozenContainer):
     """The samples catalog of one dataset."""
 
     data_phase: str
+    problem_category: List[str] = None
     data_statistics: Optional[DatasetStatistics] = None
     qa_sample_files: Optional[List[BaseQASampleInfo]] = None
 
@@ -89,20 +91,6 @@ class BaseQASample(FieldFrozenContainer):
 
 
 @dataclass
-class MMLUDatasetStatistics(DatasetStatistics):
-    """The statistics of the dataset."""
-
-    category_count: Optional[Dict[str, int]] = None
-
-
-@dataclass
-class MMLUDatasetCatalog(DatasetCatalog):
-    """The samples catalog of one dataset."""
-
-    problem_category: List[str] = None
-
-
-@dataclass
 class MATHDatasetStatistics(DatasetStatistics):
     """The statistics of the dataset.
 
@@ -115,7 +103,6 @@ class MATHDatasetStatistics(DatasetStatistics):
          i.e., level: n_samples
     """
 
-    category_info: Optional[Dict[str, Dict[str, int]]] = None
     difficulty_count: Optional[Dict[str, int]] = None
 
 
@@ -123,6 +110,5 @@ class MATHDatasetStatistics(DatasetStatistics):
 class MATHDatasetCatalog(DatasetCatalog):
     """The samples catalog of one dataset."""
 
-    problem_category: List[str] = None
     difficulty_level: List[str] = None
     category_difficulty: Optional[Dict[str, List[str]]] = None

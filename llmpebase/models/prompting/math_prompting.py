@@ -54,11 +54,16 @@ class MATHStandardPrompting(base.BasePrompting):
         n_shots = config["n_shots"]
 
         for _, test_sample in enumerate(eval_set):
-            samples = [
-                train_set[random.randint(0, len(eval_set))] for _ in range(n_shots)
-            ]
+            task_name = test_sample.auxiliary["sample_task"]
+            sample_indexs = train_set.get_task_sample_indexs(task_name)
+            fewshot_indexs = (
+                random.sample(sample_indexs, n_shots)
+                if len(sample_indexs) > n_shots
+                else sample_indexs
+            )
+            samples = [train_set[idx] for idx in fewshot_indexs]
             request_prompt = self.get_test_prompt(
-                task_name=None, template_samples=samples, test_sample=test_sample
+                task_name=task_name, template_samples=samples, test_sample=test_sample
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]
 
@@ -95,8 +100,9 @@ class MATHCoTPrompting(MATHStandardPrompting):
         """Evaluating the MATH dataset."""
 
         for _, test_sample in enumerate(eval_set):
+            task_name = test_sample.auxiliary["sample_task"]
             request_prompt = self.get_test_prompt(
-                task_name=None, test_sample=test_sample, template_samples=None
+                task_name=task_name, test_sample=test_sample, template_samples=None
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]
 
@@ -127,7 +133,8 @@ class MATHZeroShotCoTPrompting(MATHStandardPrompting):
         """Evaluating the MATH dataset."""
 
         for _, test_sample in enumerate(eval_set):
+            task_name = test_sample.auxiliary["sample_task"]
             request_prompt = self.get_test_prompt(
-                task_name=None, test_sample=test_sample, template_samples=None
+                task_name=task_name, test_sample=test_sample, template_samples=None
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]
