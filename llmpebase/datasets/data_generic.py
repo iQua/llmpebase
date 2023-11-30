@@ -64,7 +64,7 @@ class DatasetCatalog(FieldFrozenContainer):
     data_phase: str
     problem_category: List[str] = None
     data_statistics: Optional[DatasetStatistics] = None
-    qa_sample_files: Optional[List[BaseQASampleInfo]] = None
+    qa_sample_info: Optional[List[BaseQASampleInfo]] = None
 
 
 @dataclass

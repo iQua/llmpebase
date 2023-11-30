@@ -38,14 +38,14 @@ class GSM8KDataset(base.BaseDataset):
         ]
         return DatasetCatalog(
             data_phase=self.phase,
-            qa_sample_files=collected_items,
+            qa_sample_info=collected_items,
             data_statistics=DatasetStatistics(num_samples=n_itmes),
         )
 
     def get_sample(self, idx):
         """Get one sample."""
-        sample_path = self.data_catalog.qa_sample_files[idx]["sample_filepath"]
-        sample_task = self.data_catalog.qa_sample_files[idx]["sample_task"]
+        sample_path = self.data_catalog.qa_sample_info[idx]["sample_filepath"]
+        sample_task = self.data_catalog.qa_sample_info[idx]["sample_task"]
         data_frame = pd.read_parquet(sample_path, engine="pyarrow")
 
         raw_answer = data_frame.iloc[idx, -1]

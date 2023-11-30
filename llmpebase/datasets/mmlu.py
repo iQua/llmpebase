@@ -70,12 +70,12 @@ class MMLUDataset(base.BaseDataset):
             data_statistics=DatasetStatistics(
                 num_samples=n_samples, category_info=category_count
             ),
-            qa_sample_files=collected_items,
+            qa_sample_info=collected_items,
             problem_category=list(category_count.keys()),
         )
 
     def get_sample(self, idx):
-        sample_info = self.data_catalog.qa_sample_files[idx]
+        sample_info = self.data_catalog.qa_sample_info[idx]
         sample_id = sample_info["sample_id"]
         sample_task = sample_info["sample_task"]
         sample_filepath = sample_info["sample_filepath"]

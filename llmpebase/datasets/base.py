@@ -91,7 +91,7 @@ class BaseDataset(torch.utils.data.Dataset):
         # Collect samples's index of the given task
         sample_indexs = []
         for i in range(sample_idx, n_samples):
-            sample_info = self.data_catalog.qa_sample_files[i]
+            sample_info = self.data_catalog.qa_sample_info[i]
             sample_task = sample_info["sample_task"]
             if sample_task == task_name:
                 sample_indexs.append(i)
@@ -110,10 +110,12 @@ class DataSource:
         self.source_data_name = Config().data.datasource_name
         self.source_data_path = Config().data.datasource_path
         self.download_url = Config().data.datasource_download_url
+
+        # Generate the data path and create one when necessary
         self.data_path = os.path.join(self.source_data_path, self.source_data_name)
+        os.makedirs(self.data_path, exist_ok=True)
 
         self.meta_catalog_path = os.path.join(self.data_path, "meta_catalog.json")
-
         self.data_meta_catalog: DatasetMetaCatalog = None
 
         # Set the base dataset

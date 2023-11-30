@@ -97,13 +97,13 @@ class MATHDataset(base.BaseDataset):
                 category_info=category_info,
                 difficulty_count=difficulty_count,
             ),
-            qa_sample_files=collect_items,
+            qa_sample_info=collect_items,
         )
 
     def get_sample(self, idx: int):
         """Get one sample from the file."""
-        sample_info = self.data_catalog.qa_sample_files[idx]
-        sample_task = self.data_catalog.qa_sample_files[idx]["sample_task"]
+        sample_info = self.data_catalog.qa_sample_info[idx]
+        sample_task = sample_info["sample_task"]
 
         sample_filepath = sample_info["sample_filepath"]
 
