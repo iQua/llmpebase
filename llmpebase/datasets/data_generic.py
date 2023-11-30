@@ -104,10 +104,18 @@ class MMLUDatasetCatalog(DatasetCatalog):
 
 @dataclass
 class MATHDatasetStatistics(DatasetStatistics):
-    """The statistics of the dataset."""
+    """The statistics of the dataset.
 
-    category_count: Optional[Dict[str, int]] = None
-    category_difficulty_count: Optional[Dict[str, Dict[str, int]]] = None
+    Args:
+        category_info: A dict that holds the information of the category,
+         i.e., category_name:
+            - num_samples: The number of samples of the category.
+            - level id: n_samples
+        difficulty_count: A dict that holds the information of the difficulty,
+         i.e., level: n_samples
+    """
+
+    category_info: Optional[Dict[str, Dict[str, int]]] = None
     difficulty_count: Optional[Dict[str, int]] = None
 
 

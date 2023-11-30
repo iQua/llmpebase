@@ -4,7 +4,12 @@ An interface of models and prompts
 
 
 from llmpebase.models.LMs import gpts, llama_falcon, llama_pipeline, llamav2
-from llmpebase.models.prompting import gsm8k_prompting, mmlu_prompting, game24_prompting
+from llmpebase.models.prompting import (
+    gsm8k_prompting,
+    mmlu_prompting,
+    game24_prompting,
+    math_prompting,
+)
 
 models_factory = {
     "gpt": gpts.GPTAPIRequest,
@@ -29,6 +34,11 @@ prompts_factory = {
         "standard": game24_prompting.GameOf24StandardPrompting,
         "cot": game24_prompting.GameOf24StandardPrompting,
         "zeroshot_cot": game24_prompting.GameOf24StandardPrompting,
+    },
+    "math": {
+        "standard": math_prompting.MATHStandardPrompting,
+        "cot": math_prompting.MATHCoTPrompting,
+        "zeroshot_cot": math_prompting.MATHZeroShotCoTPrompting,
     },
 }
 

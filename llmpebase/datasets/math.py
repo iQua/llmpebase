@@ -5,28 +5,58 @@ https://people.eecs.berkeley.edu/~hendrycks/MATH.tar
 """
 import os
 import json
-from typing import Tuple
-
-import torch
+import glob
+from collections import defaultdict
 
 from llmpebase.datasets import base
 from llmpebase.datasets.data_generic import (
     DatasetMetaCatalog,
-    DatasetCatalog,
+    MATHDatasetCatalog,
     BaseQASample,
     BaseQASampleInfo,
-    DatasetStatistics,
+    MATHDatasetStatistics,
 )
 
 from llmpebase.utils import extractor
 
 
-def format_category_name(name):
-    """Convert a category name to be format."""
-    # Replace _ to whitespace
-    # Capitalize the first letter of each word
-    name = name.replace("_", " ").replace("and", "&").title()
-    return name
+class AddableDict(dict):
+    """A dict to merge two dicts by adding the values of the same key."""
+
+    def update(self, other):
+        for key, value in other.items():
+            if key in self:
+                self[key] += value
+            else:
+                self[key] = value
+
+
+def count_category(category_path: str) -> tuple:
+    """Count the data information in the category."""
+    category_levels = defaultdict(int)
+    collect_items = []
+    qa_files = glob.glob(f"{category_path}/*.json")
+    category_name = ""
+    for filepath in qa_files:
+        file_id = os.path.basename(filepath).split(".json")[0]
+
+        # Load the data file
+        with open(filepath, "r", encoding="utf-8") as json_file:
+            data = json.load(json_file)
+            category_name = data["type"]
+            level = data["level"]
+
+        collect_items.append(
+            BaseQASampleInfo(
+                sample_id=file_id,
+                sample_task=category_name,
+                sample_filepath=filepath,
+            )
+        )
+
+        category_levels[level] += 1
+
+    return category_name, category_levels, collect_items
 
 
 class MATHDataset(base.BaseDataset):
@@ -34,51 +64,52 @@ class MATHDataset(base.BaseDataset):
     An interface for the MATH dataset.
     """
 
+    def __init__(self, data_meta_catalog: DatasetMetaCatalog, phase: str):
+        super().__init__(data_meta_catalog, phase)
+
+        self.customize_data_catalog = MATHDatasetCatalog
+
     def create_data_catalog(self):
-        category_names = [
-            folder_name
-            for folder_name in os.listdir(self.phase_data_path)
-            if os.path.isdir(os.path.join(self.phase_data_path, folder_name))
+        # Collect all category folders of the MATH dataset
+        folders = [
+            folder
+            for folder in glob.glob(os.path.join(self.phase_data_path, "*"))
+            if os.path.isdir(folder)
         ]
+        # Visit each category folder to get data information
+        category_info = defaultdict(dict)
+        difficulty_count = AddableDict()
+        collect_items = []
+        for category_path in folders:
+            # Get the info of the category
+            category_name, category_levels, items = count_category(category_path)
+            # Update the category info to the category_info
+            category_info[category_name]["num_samples"] = len(items)
+            category_info[category_name].update(category_levels)
+            difficulty_count.update(category_levels)
+            collect_items.extend(items)
 
-        collected_items = []
-        n_samples = 0
-        for name in category_names:
-            category_path = os.path.join(self.phase_data_path, name)
-            qa_files = os.listdir(category_path)
-            qa_files = [file for file in qa_files if file.endswith(".json")]
-            format_name = format_category_name(name)
+        return MATHDatasetCatalog(
+            data_phase=self.phase,
+            problem_category=list(category_info.keys()),
+            data_statistics=MATHDatasetStatistics(
+                num_samples=len(collect_items),
+                category_info=category_info,
+                difficulty_count=difficulty_count,
+            ),
+            qa_sample_files=collect_items,
+        )
 
-            for filename in qa_files:
-                n_samples += 1
-
-                filepath = os.path.join(category_path, filename)
-
-                with open(filepath, "r", encoding="utf-8") as json_file:
-                    # Load the JSON data from the file
-                    data = json.load(json_file)
-
-                difficulty_level = data["level"]
-                if difficulty_level in data_statistic[format_name]:
-                    data_statistic[format_name][difficulty_level] += 1
-                else:
-                    data_statistic[format_name].update({difficulty_level: 1})
-
-                data_statistic["total_samples"] += 1
-                BaseQASampleInfo(
-                    sample_id=sample_idx + 1,
-                    sample_filepath=self.phase_data_path,
-                )
-
-    def get_one_sample(self, filepath: str):
+    def get_sample(self, idx: int):
         """Get one sample from the file."""
-        filepath = os.path.join(category_path, filename)
+        sample_info = self.data_catalog.qa_sample_files[idx]
 
-        with open(filepath, "r", encoding="utf-8") as json_file:
+        sample_filepath = sample_info["sample_filepath"]
+
+        with open(sample_filepath, "r", encoding="utf-8") as json_file:
             # Load the JSON data from the file
             data = json.load(json_file)
 
-        difficulty_level = data["level"]
         solution = data["solution"].rstrip()
 
         sents = extractor.extract_sentences(solution)
@@ -89,61 +120,16 @@ class MATHDataset(base.BaseDataset):
         result = groundtruths[-1]
         final_result = extractor.extract_equation_result(result)
 
-        return {
-            "question": data["problem"],
-            "answer": solution,
-            "conclusion": conclusion,
-            "result_equation": result,
-            "groundtruth": final_result,
-            "level": difficulty_level,
-            "type": data["type"],
-        }
-
-    def get_data_statistic(self):
-        """Collecting the question and the correspondin answer."""
-        # Filter the list to include only files ending with ".json"
-        data_statistic = {"total_samples": 0}
-        if os.path.exists(self.data_statistic_path):
-            filepath = self.data_statistic_path
-            with open(filepath, "r", encoding="utf-8") as json_file:
-                # Load the JSON data from the file
-                data_statistic = json.load(json_file)
-
-            return data_statistic
-
-        category_names = [
-            folder_name
-            for folder_name in os.listdir(self.data_path)
-            if os.path.isdir(os.path.join(self.data_path, folder_name))
-        ]
-
-        for name in category_names:
-            category_path = os.path.join(self.data_path, name)
-            qa_files = os.listdir(category_path)
-            qa_files = [file for file in qa_files if file.endswith(".json")]
-            format_name = self.format_category_name(name)
-            data_statistic[format_name] = {"num_samples": 0}
-            for filename in qa_files:
-                data_statistic[format_name]["num_samples"] += 1
-                filepath = os.path.join(category_path, filename)
-
-                with open(filepath, "r", encoding="utf-8") as json_file:
-                    # Load the JSON data from the file
-                    data = json.load(json_file)
-
-                difficulty_level = data["level"]
-                if difficulty_level in data_statistic[format_name]:
-                    data_statistic[format_name][difficulty_level] += 1
-                else:
-                    data_statistic[format_name].update({difficulty_level: 1})
-
-                data_statistic["total_samples"] += 1
-
-        with open(self.data_statistic_path, "r", encoding="utf-8") as json_file:
-            # Save the JSON data from the file
-            json.dump(json_file, data_statistic)
-
-        return data_statistic
+        return BaseQASample(
+            question=data["problem"],
+            answer=solution,
+            conclusion=conclusion,
+            groundtruth=final_result,
+            auxiliary={
+                "level": data["level"],
+                "category": data["type"],
+            },
+        )
 
 
 class DataSource(base.DataSource):
