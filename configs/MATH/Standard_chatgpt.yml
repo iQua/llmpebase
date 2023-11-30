@@ -3,13 +3,15 @@
 
 # dataset settings for the original dataset and the corresponding multimodal data processor
 data:
-  datasource_name: MMLU
+  datasource_name: MATH
   datasource_path: data # path of the source data
 
-  data_name: MMLU
+  data_name: MATH
   data_path: data
 
-  datasource_download_url: http://people.eecs.berkeley.edu/~hendrycks/data.tar 
+  # One may need to download the GSM8k dataset
+  datasource_download_url: null
+
   
 environment:
 
@@ -18,8 +20,6 @@ environment:
   
   # Fix the see for reproducible
   seed: 15
-
-  
   
 model:
 
@@ -30,14 +30,14 @@ model:
   n_shots: 5
 
   authorization_env_path: ./.env
-  
+
   generation_settings:
     temperature: 0.7
     max_tokens: 1000
     # n here is n_completions_per_prompt
     n: 1
     stop: null 
-
+    
   pretrained_models_path: experiments/pretrained_models
 
 trainer:
@@ -52,9 +52,11 @@ logging:
   visualization_path: experiments/visualizations
 
 evaluation:
+ 
 
   # set the hyper parameters for performance
   performance:
+   
 
 
 
