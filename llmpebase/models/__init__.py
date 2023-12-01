@@ -9,6 +9,7 @@ from llmpebase.models.prompting import (
     mmlu_prompting,
     game24_prompting,
     math_prompting,
+    bbh_prompting,
 )
 
 models_factory = {
@@ -39,6 +40,11 @@ prompts_factory = {
         "standard": math_prompting.MATHStandardPrompting,
         "cot": math_prompting.MATHCoTPrompting,
         "zeroshot_cot": math_prompting.MATHZeroShotCoTPrompting,
+    },
+    "bbh": {
+        "standard": bbh_prompting.BBHStandardPrompting,
+        "cot": bbh_prompting.BBHCoTPrompting,
+        "zeroshot_cot": bbh_prompting.BBHZeroShotCoTPrompting,
     },
 }
 

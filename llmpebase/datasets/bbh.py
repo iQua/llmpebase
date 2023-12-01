@@ -25,7 +25,10 @@ def extract_problem_name(filename: str):
     useless characters and
     capitalizing the first letter of each word.
     """
-    filename = filename.split(".json")[0]
+    file_extension = "json"
+    if "." in filename:
+        file_extension = filename.split(".")[-1]
+    filename = filename.split(f".{file_extension}")[0]
     return filename.replace("_", " ").rstrip().title()
 
 
@@ -79,7 +82,7 @@ class BBHDataset(base.BaseDataset):
 
         with open(sample_filepath, "r", encoding="utf-8") as json_file:
             examples = json.load(json_file)["examples"]
-        sample_idx = sample_id.split("_")[-1]
+        sample_idx = int(sample_id.split("_")[-1])
 
         sample_data = examples[sample_idx]
         return BaseQASample(

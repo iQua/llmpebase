@@ -1,11 +1,14 @@
 """
 The implementation of different prompts for BBH.
 """
+import os
 import re
+import glob
 import random
 from typing import List
 
 from llmpebase.models.prompting import base
+from llmpebase.datasets.bbh import extract_problem_name
 
 
 class BBHStandardPrompting(base.BasePrompting):
@@ -53,9 +56,13 @@ class BBHStandardPrompting(base.BasePrompting):
 
         n_shots = config["n_shots"]
 
-        for _, test_sample in enumerate(eval_set):
+        for test_sample in eval_set:
             problem_name = test_sample.auxiliary["sample_problem"]
+            sample_idx = test_sample.auxiliary["sample_idx"]
             sample_indexs = train_set.get_problem_sample_indexs(problem_name)
+            # Remove the test sample index to avoid including this test sample
+            # in the prompt
+            sample_indexs.remove(sample_idx)
             fewshot_indexs = (
                 random.sample(sample_indexs, n_shots)
                 if len(sample_indexs) > n_shots
@@ -82,8 +89,12 @@ class BBHCoTPrompting(BBHStandardPrompting):
         cot_filepath = (
             cot_filepath if cot_filepath is not None else model_config["cot_filepath"]
         )
-        with open(cot_filepath, "r", encoding="utf-8") as txt_file:
-            self.cot_prompt = txt_file.read()
+        cot_files = glob.glob(cot_filepath)
+        self.cot_prompts = {
+            extract_problem_name(os.path.basename(path)): path for path in cot_files
+        }
+
+        print(self.cot_prompts)
 
     def organize_template_prompt(
         self,
@@ -94,8 +105,10 @@ class BBHCoTPrompting(BBHStandardPrompting):
         intro_prompt = (
             "The following examples are questions with answers about algebra problems."
         )
-
-        prompt = f"""{intro_prompt}\n\n {self.cot_prompt}"""
+        prompt_path = self.cot_prompts[problem_name]
+        with open(prompt_path, "r", encoding="utf-8") as f:
+            cot_prompt = f.read()
+        prompt = f"""{intro_prompt}\n\n {cot_prompt}"""
         return prompt
 
     def evaluater(self, train_set, eval_set, config):
