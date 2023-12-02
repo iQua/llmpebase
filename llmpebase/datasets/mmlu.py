@@ -23,7 +23,7 @@ def extract_problem_name(filename: str, phase: str):
     """Extract the problem name from the filepath."""
     filename = filename.split(".csv")[0]
     phase = "dev" if phase == "train" else phase
-    return filename.replace(phase, "").replace("_", " ").rstrip()
+    return filename.replace(phase, "").replace("_", " ").title()
 
 
 class MMLUDataset(base.BaseDataset):
@@ -40,8 +40,8 @@ class MMLUDataset(base.BaseDataset):
             csv_files = glob.glob(self.phase_data_path + "/*.csv")
 
         category_count = defaultdict(dict)
+        category_samples = defaultdict(list)
         collected_items = []
-        n_samples = 0
         # Visit all files under the folder to get data information
         for idx, file_path in enumerate(csv_files):
             file_name = os.path.basename(file_path)
@@ -50,7 +50,6 @@ class MMLUDataset(base.BaseDataset):
             data_frame = pd.read_csv(file_path, header=None)
             problem_n_samples = data_frame.shape[0]
             category_count[problem_name]["num_samples"] = problem_n_samples
-            n_samples += problem_n_samples
             # Create sample info
             #  sample_id: using iteration idx as the
             # prefix while the row index as the suffix
@@ -64,18 +63,24 @@ class MMLUDataset(base.BaseDataset):
                     for i in range(problem_n_samples)
                 ]
             )
+            current_idx = len(collected_items)
+            # Add sample indexs to the category_samples
+            category_samples[problem_name].extend(
+                range(current_idx - problem_n_samples, current_idx)
+            )
 
         return DatasetCatalog(
             data_phase=self.phase,
-            data_statistics=DatasetStatistics(
-                num_samples=n_samples, category_info=category_count
-            ),
-            qa_sample_info=collected_items,
+            data_samples=collected_items,
+            category_samples=category_samples,
             problem_category=list(category_count.keys()),
+            data_statistics=DatasetStatistics(
+                num_samples=len(collected_items), category_info=category_count
+            ),
         )
 
     def get_sample(self, idx):
-        sample_info = self.data_catalog.qa_sample_info[idx]
+        sample_info = self.data_catalog.data_samples[idx]
         sample_id = sample_info["sample_id"]
         sample_problem = sample_info["sample_problem"]
         sample_filepath = sample_info["sample_filepath"]

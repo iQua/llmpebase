@@ -65,7 +65,7 @@ class BBHDataset(base.BaseDataset):
 
         return DatasetCatalog(
             data_phase=self.phase,
-            qa_sample_info=collect_items,
+            data_samples=collect_items,
             problem_category=problem_category,
             data_statistics=DatasetStatistics(
                 num_samples=len(collect_items), category_info=category_info
@@ -74,7 +74,7 @@ class BBHDataset(base.BaseDataset):
 
     def get_sample(self, idx: int):
         """Get one sample from the file."""
-        sample_info = self.data_catalog.qa_sample_info[idx]
+        sample_info = self.data_catalog.data_samples[idx]
         sample_id = sample_info["sample_id"]
         sample_problem = sample_info["sample_problem"]
 

@@ -1,7 +1,7 @@
 """
 Basic components used in the dataset.
 """
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from dataclasses import dataclass
 
 
@@ -59,12 +59,26 @@ class DatasetStatistics(FieldFrozenContainer):
 
 @dataclass
 class DatasetCatalog(FieldFrozenContainer):
-    """The samples catalog of one dataset."""
+    """The samples catalog of one dataset.
+
+    Args:
+        data_phase: A str showing the phase of the dataset.
+        problem_category: A list containing the information of
+         the problem category.
+        data_samples: A list containing the information of
+         samples.
+        category_samples: A dict containing the sample positions
+         of each category.
+        data_statistics: A DatasetStatistics holding the information
+         the statistics of the dataset.
+
+    """
 
     data_phase: str
-    problem_category: List[str] = None
+    problem_category: List[Union[str, dict]] = None
+    data_samples: Optional[List[BaseQASampleInfo]] = None
+    category_samples: Optional[Dict[str, List[int]]] = None
     data_statistics: Optional[DatasetStatistics] = None
-    qa_sample_info: Optional[List[BaseQASampleInfo]] = None
 
 
 @dataclass

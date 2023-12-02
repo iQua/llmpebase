@@ -34,14 +34,14 @@ class GameOf24Dataset(base.BaseDataset):
         ]
         return DatasetCatalog(
             data_phase=self.phase,
-            qa_sample_info=collected_items,
+            data_samples=collected_items,
             data_statistics=DatasetStatistics(num_samples=n_itmes),
         )
 
     def get_sample(self, idx):
         """Get one sample."""
-        sample_path = self.data_catalog.qa_sample_info[idx]["sample_filepath"]
-        sample_problem = self.data_catalog.qa_sample_info[idx]["sample_problem"]
+        sample_path = self.data_catalog.data_samples[idx]["sample_filepath"]
+        sample_problem = self.data_catalog.data_samples[idx]["sample_problem"]
         data_frame = pd.read_csv(sample_path)
         return BaseQASample(
             question=data_frame["Puzzles"].iloc[idx],

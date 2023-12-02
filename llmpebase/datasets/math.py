@@ -78,6 +78,7 @@ class MATHDataset(base.BaseDataset):
         ]
         # Visit each category folder to get data information
         category_info = defaultdict(dict)
+        category_samples = defaultdict(list)
         difficulty_count = AddableDict()
         collect_items = []
         for category_path in folders:
@@ -88,21 +89,27 @@ class MATHDataset(base.BaseDataset):
             category_info[category_name].update(category_levels)
             difficulty_count.update(category_levels)
             collect_items.extend(items)
+            current_idx = len(collect_items)
+            # Add sample indexs to the category_samples
+            category_samples[category_name].extend(
+                range(current_idx - len(items), current_idx)
+            )
 
         return MATHDatasetCatalog(
             data_phase=self.phase,
+            data_samples=collect_items,
+            category_samples=category_samples,
             problem_category=list(category_info.keys()),
             data_statistics=MATHDatasetStatistics(
                 num_samples=len(collect_items),
                 category_info=category_info,
                 difficulty_count=difficulty_count,
             ),
-            qa_sample_info=collect_items,
         )
 
     def get_sample(self, idx: int):
         """Get one sample from the file."""
-        sample_info = self.data_catalog.qa_sample_info[idx]
+        sample_info = self.data_catalog.data_samples[idx]
         sample_problem = sample_info["sample_problem"]
 
         sample_filepath = sample_info["sample_filepath"]

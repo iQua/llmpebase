@@ -65,41 +65,9 @@ class BaseDataset(torch.utils.data.Dataset):
         return self.data_catalog.data_statistics["num_samples"]
 
     def get_problem_sample_indexs(self, problem_name):
-        """Get sample indexs of one problem.
+        """Get sample indexs of one problem."""
 
-        It is expected that the samples of each problem will be stored as
-        a group in the data_catalog. Therefore, this function will first
-        get the index of the problem among all problems and then jump to the corresponding
-        sample index of this problem
-
-        """
-        n_samples = self.data_catalog.data_statistics["num_samples"]
-        problem_category = self.data_catalog.problem_category
-        category_idx = problem_category.index(problem_name)
-        skip_category = problem_category[:category_idx]
-
-        # Jump to the samples of the given problem
-        category_info = self.data_catalog.data_statistics["category_info"]
-        sample_idx = sum(
-            [
-                category_info[category]["num_samples"]
-                for category in category_info
-                if category in skip_category
-            ]
-        )
-
-        # Collect samples's index of the given problem
-        sample_indexs = []
-        for i in range(sample_idx, n_samples):
-            sample_info = self.data_catalog.qa_sample_info[i]
-            sample_problem = sample_info["sample_problem"]
-            if sample_problem == problem_name:
-                sample_indexs.append(i)
-            else:
-                # Once the problem name is changed, break the loop
-                # as subsequent samples are not the given problem
-                break
-        return sample_indexs
+        return self.data_catalog.category_samples[problem_name]
 
 
 class DataSource:
