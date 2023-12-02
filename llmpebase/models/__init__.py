@@ -4,13 +4,7 @@ An interface of models and prompts
 
 
 from llmpebase.models.LMs import gpts, llama_falcon, llama_pipeline, llamav2
-from llmpebase.models.prompting import (
-    gsm8k_prompting,
-    mmlu_prompting,
-    game24_prompting,
-    math_prompting,
-    bbh_prompting,
-)
+from llmpebase.models.prompting import bbh, game24, gsm8k, math, mmlu, theoremqa
 
 models_factory = {
     "gpt": gpts.GPTAPIRequest,
@@ -22,29 +16,34 @@ models_factory = {
 
 prompts_factory = {
     "mmlu": {
-        "standard": mmlu_prompting.MMLUStandardPrompting,
-        "cot": mmlu_prompting.MMLUCoTPrompting,
-        "zeroshot_cot": mmlu_prompting.MMLUZeroShotCoTPrompting,
+        "standard": mmlu.MMLUStandardPrompting,
+        "cot": mmlu.MMLUCoTPrompting,
+        "zeroshot_cot": mmlu.MMLUZeroShotCoTPrompting,
     },
     "gsm8k": {
-        "standard": gsm8k_prompting.GSM8KStandardPrompting,
-        "cot": gsm8k_prompting.GSM8KCoTPrompting,
-        "zeroshot_cot": gsm8k_prompting.GSM8KZeroShotCoTPrompting,
+        "standard": gsm8k.GSM8KStandardPrompting,
+        "cot": gsm8k.GSM8KCoTPrompting,
+        "zeroshot_cot": gsm8k.GSM8KZeroShotCoTPrompting,
     },
     "gameof24": {
-        "standard": game24_prompting.GameOf24StandardPrompting,
-        "cot": game24_prompting.GameOf24StandardPrompting,
-        "zeroshot_cot": game24_prompting.GameOf24StandardPrompting,
+        "standard": game24.GameOf24StandardPrompting,
+        "cot": game24.GameOf24StandardPrompting,
+        "zeroshot_cot": game24.GameOf24StandardPrompting,
     },
     "math": {
-        "standard": math_prompting.MATHStandardPrompting,
-        "cot": math_prompting.MATHCoTPrompting,
-        "zeroshot_cot": math_prompting.MATHZeroShotCoTPrompting,
+        "standard": math.MATHStandardPrompting,
+        "cot": math.MATHCoTPrompting,
+        "zeroshot_cot": math.MATHZeroShotCoTPrompting,
     },
     "bbh": {
-        "standard": bbh_prompting.BBHStandardPrompting,
-        "cot": bbh_prompting.BBHCoTPrompting,
-        "zeroshot_cot": bbh_prompting.BBHZeroShotCoTPrompting,
+        "standard": bbh.BBHStandardPrompting,
+        "cot": bbh.BBHCoTPrompting,
+        "zeroshot_cot": bbh.BBHZeroShotCoTPrompting,
+    },
+    "theoremqa": {
+        "standard": theoremqa.TheoremQAStandardPrompting,
+        "cot": theoremqa.TheoremQACoTPrompting,
+        "zeroshot_cot": theoremqa.TheoremQAZeroShotCoTPrompting,
     },
 }
 

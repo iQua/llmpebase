@@ -7,6 +7,7 @@ from llmpebase.datasets.mmlu import DataSource as mmlu_datasource
 from llmpebase.datasets.game24 import DataSource as game24_datasource
 from llmpebase.datasets.math import DataSource as math_datasource
 from llmpebase.datasets.bbh import DataSource as bbh_datasource
+from llmpebase.datasets.theoremqa import DataSource as theoremqa_datasource
 
 datasources = {
     "GSM8K": gsm8k_datasource,
@@ -14,6 +15,7 @@ datasources = {
     "GameOf24": game24_datasource,
     "MATH": math_datasource,
     "BBH": bbh_datasource,
+    "TheoremQA": theoremqa_datasource,
 }
 
 
