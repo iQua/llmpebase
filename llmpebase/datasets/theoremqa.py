@@ -104,7 +104,7 @@ class TheoremQADataset(base.BaseDataset):
         explain_path = sample_info["auxiliary"]["explain_path"]
         if explain_path is not None:
             with open(explain_path, "r", encoding="utf-8") as f:
-                explanation = f.read(f)
+                explanation = f.read()
             conclusion = extractor.extract_sentences(explanation)[-1]
 
         return BaseQASample(

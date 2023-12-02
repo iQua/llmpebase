@@ -116,7 +116,7 @@ class MMLUCoTPrompting(MMLUStandardPrompting):
         """Evaluating the MMLU dataset."""
 
         for _, test_sample in enumerate(eval_set):
-            problem_name = test_sample["auxiliary"]["problem_name"]
+            problem_name = test_sample["auxiliary"]["sample_problem"]
             request_prompt = self.get_test_prompt(
                 problem_name=problem_name,
                 template_samples=None,
@@ -153,7 +153,7 @@ class MMLUZeroShotCoTPrompting(MMLUStandardPrompting):
         """Evaluating the MMLU dataset."""
 
         for _, test_sample in enumerate(eval_set):
-            problem_name = test_sample["auxiliary"]["problem_name"]
+            problem_name = test_sample["auxiliary"]["sample_problem"]
             request_prompt = self.get_test_prompt(
                 problem_name=problem_name,
                 template_samples=None,
