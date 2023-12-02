@@ -2,6 +2,9 @@
 The datasource inferance for the TheoremQA (TQA) dataset.
 The detaild information of it is shown in 
 https://github.com/wenhuchen/TheoremQA
+
+Currently, we do not support the multimodal samples, i.e.,
+one image is incorporated with the question.
 """
 import os
 import json
@@ -15,13 +18,7 @@ from llmpebase.datasets.data_generic import (
     BaseQASampleInfo,
     DatasetStatistics,
 )
-from llmpebase.utils import extractor
-
-
-def format_theorem(name: str):
-    """Convert a theorem to the format one."""
-
-    return name.replace("_", " ").title()
+from llmpebase.utils import extractor, formatter
 
 
 class TheoremQADataset(base.BaseDataset):
@@ -38,8 +35,8 @@ class TheoremQADataset(base.BaseDataset):
         category_info = defaultdict(dict)
         category_samples = defaultdict(dict)
         for idx, example in enumerate(data):
-            field = example["field"]
-            subfield = example["subfield"]
+            field = formatter.format_term(example["field"])
+            subfield = formatter.format_term(example["subfield"])
 
             # Get the explanation path
             root_path = os.path.dirname(self.phase_data_path)
@@ -62,7 +59,7 @@ class TheoremQADataset(base.BaseDataset):
                     sample_filepath=self.phase_data_path,
                     auxiliary={
                         # The theorem used in the answer
-                        "theorem": format_theorem(example["theorem"]),
+                        "theorem": formatter.format_term(example["theorem"]),
                         # The detailed reasoning steps
                         "explain_path": explain_path,
                         # Visual path

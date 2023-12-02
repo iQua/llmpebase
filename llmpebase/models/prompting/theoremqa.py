@@ -154,7 +154,7 @@ class TheoremQAZeroShotCoTPrompting(TheoremQAStandardPrompting):
 
         for _, test_sample in enumerate(eval_set):
             problem_name = test_sample["auxiliary"]["sample_problem"]
-            subfield = test_sample["auxiliary"]["subfield"]
+            subfield = test_sample["auxiliary"]["problem_subfield"]
             request_prompt = self.get_test_prompt(
                 problem_name=f"{subfield} of {problem_name}",
                 template_samples=None,

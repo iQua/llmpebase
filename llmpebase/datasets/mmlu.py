@@ -17,13 +17,14 @@ from llmpebase.datasets.data_generic import (
     BaseQASampleInfo,
     DatasetStatistics,
 )
+from llmpebase.utils.formatter import format_term
 
 
 def extract_problem_name(filename: str, phase: str):
     """Extract the problem name from the filepath."""
     filename = filename.split(".csv")[0]
     phase = "dev" if phase == "train" else phase
-    return filename.replace(phase, "").replace("_", " ").title()
+    return format_term(filename.replace(phase, ""))
 
 
 class MMLUDataset(base.BaseDataset):
