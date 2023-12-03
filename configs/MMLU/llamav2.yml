@@ -3,8 +3,6 @@
 
 
 data:
-  datasource_name: MMLU
-  datasource_path: data # path of the source data
 
   data_name: MMLU
   data_path: data

@@ -168,24 +168,16 @@ class Config:
             # we hope the data can be placed under the project dir directly
             #   instead of be placing under project_path/project_name
             data_path = Config().data.data_path.replace("~", HOMEPATH)
-            if not os.path.exists(data_path):
-                Config.data = Config.data._replace(
-                    data_path=Path(os.path.join(project_path, "data"))
-                )
 
-            if hasattr(Config().data, "datasource_path") and (
-                Config().data.datasource_path is not None
-            ):
+            if data_path is not None:
                 # if the set dir is not correct, we redirect to
-                #   the default dir {data_path}/datasource_path
-                datasource_path = Config().data.datasource_path.replace("~", HOMEPATH)
-                if not os.path.exists(datasource_path):
-                    expected_datasource_path = os.path.join(
-                        project_path, datasource_path
-                    )
+                #   the default dir {data_path}/data_path
+                data_path = Config().data.data_path.replace("~", HOMEPATH)
+                if not os.path.exists(data_path):
+                    expected_data_path = os.path.join(project_path, data_path)
 
                     Config.data = Config.data._replace(
-                        datasource_path=Path(expected_datasource_path).as_posix()
+                        data_path=Path(expected_data_path).as_posix()
                     )
 
             # now = datetime.datetime.now()

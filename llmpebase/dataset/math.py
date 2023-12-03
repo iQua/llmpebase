@@ -17,8 +17,6 @@ from llmpebase.dataset.data_generic import (
     MATHDatasetStatistics,
 )
 
-from llmpebase.utils import extractor
-
 
 class AddableDict(dict):
     """A dict to merge two dicts by adding the values of the same key."""

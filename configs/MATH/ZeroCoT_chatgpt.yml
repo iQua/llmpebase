@@ -3,8 +3,6 @@
 
 # dataset settings for the original dataset and the corresponding multimodal data processor
 data:
-  datasource_name: MATH
-  datasource_path: data # path of the source data
 
   data_name: MATH
   data_path: data

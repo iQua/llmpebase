@@ -94,8 +94,6 @@ class BBHCoTPrompting(BBHStandardPrompting):
             extract_problem_name(os.path.basename(path)): path for path in cot_files
         }
 
-        print(self.cot_prompts)
-
     def organize_template_prompt(
         self,
         samples: List[dict],
