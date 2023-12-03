@@ -8,8 +8,8 @@ import json
 import glob
 from collections import defaultdict
 
-from llmpebase.datasets import base
-from llmpebase.datasets.data_generic import (
+from llmpebase.dataset import base
+from llmpebase.dataset.data_generic import (
     DatasetMetaCatalog,
     MATHDatasetCatalog,
     BaseQASample,

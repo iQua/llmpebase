@@ -5,7 +5,7 @@ import re
 import random
 from typing import List
 
-from llmpebase.models.prompting import base
+from llmpebase.model.prompting import base
 
 
 class MATHStandardPrompting(base.BasePrompting):

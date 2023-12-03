@@ -8,15 +8,14 @@ import json
 import glob
 from collections import defaultdict
 
-from llmpebase.datasets import base
-from llmpebase.datasets.data_generic import (
+from llmpebase.dataset import base
+from llmpebase.dataset.data_generic import (
     DatasetMetaCatalog,
     DatasetCatalog,
     BaseQASample,
     BaseQASampleInfo,
     DatasetStatistics,
 )
-from llmpebase.utils.formatter import format_term
 
 
 def extract_problem_name(filename: str):
@@ -30,7 +29,7 @@ def extract_problem_name(filename: str):
     if "." in filename:
         file_extension = filename.split(".")[-1]
     filename = filename.split(f".{file_extension}")[0]
-    return format_term(filename)
+    return base.BaseDataset.format_term(filename)
 
 
 class BBHDataset(base.BaseDataset):

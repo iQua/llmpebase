@@ -5,7 +5,7 @@ zero-shot CoT.
 import re
 from typing import List
 
-from llmpebase.models.prompting import base
+from llmpebase.model.prompting import base
 
 
 class GameOf24StandardPrompting(base.BasePrompting):

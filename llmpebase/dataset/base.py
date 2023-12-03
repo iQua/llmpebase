@@ -3,18 +3,28 @@ A base datasource class.
 """
 
 import os
+import re
 import json
 import logging
 
 import torch
 from torchvision.datasets.utils import download_url, extract_archive
 
-from llmpebase.datasets.data_generic import (
+from llmpebase.dataset.data_generic import (
     DatasetMetaCatalog,
     DatasetCatalog,
 )
 from llmpebase.config import Config
-from llmpebase.utils.extractor import extract_compression_style
+
+
+def extract_compression_style(url):
+    """Extract the style of compression from the url."""
+    pattern = r"\.(zip|tar|tar\.gz)$"
+    match = re.search(pattern, url)
+    if match is not None:
+        return match.group(1)
+
+    return "zip"
 
 
 class BaseDataset(torch.utils.data.Dataset):
@@ -68,6 +78,13 @@ class BaseDataset(torch.utils.data.Dataset):
         """Get sample indexs of one problem."""
 
         return self.data_catalog.category_samples[problem_name]
+
+    @staticmethod
+    def format_term(terminology: str):
+        """Format the terminology to be the standard one.
+        This function ensure that all the terminology are in the same format.
+        """
+        return terminology.replace("_", " ").replace("and", "&").rstrip().title()
 
 
 class DataSource:

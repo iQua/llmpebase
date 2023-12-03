@@ -5,7 +5,7 @@ import random
 import re
 from typing import List
 
-from llmpebase.models.prompting.tree_thoughts import (
+from llmpebase.model.prompting.tree_thoughts import (
     ThoughtNode,
     # RTTLevelWise,
     # RTTLevelWiseBest,

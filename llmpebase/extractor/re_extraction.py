@@ -1,5 +1,5 @@
 """
-A list of well-tested extracters used to extract sub-strings from the string.
+A extractor relying on `re` of the python package to perform the extraction.
 """
 
 import re
@@ -80,13 +80,3 @@ def extract_equation_result(
     matches = re.findall(pattern, right_eq)
 
     return matches
-
-
-def extract_compression_style(url):
-    """Extract the style of compression from the url."""
-    pattern = r"\.(zip|tar|tar\.gz)$"
-    match = re.search(pattern, url)
-    if match is not None:
-        return match.group(1)
-
-    return "zip"

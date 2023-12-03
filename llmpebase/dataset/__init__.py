@@ -2,12 +2,12 @@
 An interface of datasets
 """
 
-from llmpebase.datasets.gsm8k import DataSource as gsm8k_datasource
-from llmpebase.datasets.mmlu import DataSource as mmlu_datasource
-from llmpebase.datasets.game24 import DataSource as game24_datasource
-from llmpebase.datasets.math import DataSource as math_datasource
-from llmpebase.datasets.bbh import DataSource as bbh_datasource
-from llmpebase.datasets.theoremqa import DataSource as theoremqa_datasource
+from llmpebase.dataset.gsm8k import DataSource as gsm8k_datasource
+from llmpebase.dataset.mmlu import DataSource as mmlu_datasource
+from llmpebase.dataset.game24 import DataSource as game24_datasource
+from llmpebase.dataset.math import DataSource as math_datasource
+from llmpebase.dataset.bbh import DataSource as bbh_datasource
+from llmpebase.dataset.theoremqa import DataSource as theoremqa_datasource
 
 datasources = {
     "GSM8K": gsm8k_datasource,

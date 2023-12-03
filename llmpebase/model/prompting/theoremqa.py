@@ -6,20 +6,19 @@ import random
 from typing import List
 import json
 
-from llmpebase.models.prompting import base
+from llmpebase.model.prompting import base
 
 
-class MMLUStandardPrompting(base.BasePrompting):
-    """The standard prompt of MMLU."""
+class TheoremQAStandardPrompting(base.BasePrompting):
+    """The standard prompt of TheoremQA."""
 
-    answer_format_str: str = "The final choice is"
+    answer_format_str: str = "The answer is"
 
     def organize_question_prompt(self, sample: dict):
         """Organizing the question prompt."""
 
         ques = sample["question"]
-        opts = sample.auxiliary["option_str"]
-        prompt = f"""Question: {ques} \nWhich of the following choices is correct? \n{opts}"""
+        prompt = f"""Question: {ques}"""
         return prompt
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
@@ -45,8 +44,8 @@ class MMLUStandardPrompting(base.BasePrompting):
         """Measuring whether answers are consistent with each other."""
 
         # Use re.findall to find all occurrences of the pattern in the text
-        src_result = MMLUStandardPrompting.extract_groundtruth(src_answer)
-        dst_result = MMLUStandardPrompting.extract_groundtruth(dst_answer)
+        src_result = TheoremQAStandardPrompting.extract_groundtruth(src_answer)
+        dst_result = TheoremQAStandardPrompting.extract_groundtruth(dst_answer)
 
         if src_result is not None and dst_result is not None:
             return src_result == dst_result
@@ -54,13 +53,14 @@ class MMLUStandardPrompting(base.BasePrompting):
         return None
 
     def evaluater(self, train_set, eval_set, config):
-        """Evaluating the MMLU dataset."""
+        """Evaluating the TheoremQA dataset."""
 
         n_shots = config["n_shots"]
 
-        for _, test_sample in enumerate(eval_set):
-            problem_name = test_sample.auxiliary["sample_problem"]
+        for sample_idx, test_sample in enumerate(eval_set):
+            problem_name = test_sample.auxiliary["problem_subfield"]
             sample_indexs = train_set.get_problem_sample_indexs(problem_name)
+            sample_indexs.remove(sample_idx)
             fewshot_indexs = (
                 random.sample(sample_indexs, n_shots)
                 if len(sample_indexs) > n_shots
@@ -75,8 +75,8 @@ class MMLUStandardPrompting(base.BasePrompting):
             yield request_prompt, test_sample, test_sample["groundtruth"]
 
 
-class MMLUCoTPrompting(MMLUStandardPrompting):
-    """The CoT prompt of MMLU."""
+class TheoremQACoTPrompting(TheoremQAStandardPrompting):
+    """The CoT prompt of TheoremQA."""
 
     # This should be the same as the answer format in the cot_filepath
     # Current CoT ones use "The answer is".
@@ -113,7 +113,7 @@ class MMLUCoTPrompting(MMLUStandardPrompting):
         return prompt
 
     def evaluater(self, train_set, eval_set, config):
-        """Evaluating the MMLU dataset."""
+        """Evaluating the TheoremQA dataset."""
 
         for _, test_sample in enumerate(eval_set):
             problem_name = test_sample["auxiliary"]["sample_problem"]
@@ -125,8 +125,8 @@ class MMLUCoTPrompting(MMLUStandardPrompting):
             yield request_prompt, test_sample, test_sample["groundtruth"]
 
 
-class MMLUZeroShotCoTPrompting(MMLUStandardPrompting):
-    """The zeroshot CoT prompt of MMLU."""
+class TheoremQAZeroShotCoTPrompting(TheoremQAStandardPrompting):
+    """The zeroshot CoT prompt of TheoremQA."""
 
     answer_format_str: str = "The final choice is"
 
@@ -150,12 +150,13 @@ class MMLUZeroShotCoTPrompting(MMLUStandardPrompting):
         return prompt
 
     def evaluater(self, train_set, eval_set, config):
-        """Evaluating the MMLU dataset."""
+        """Evaluating the TheoremQA dataset."""
 
         for _, test_sample in enumerate(eval_set):
             problem_name = test_sample["auxiliary"]["sample_problem"]
+            subfield = test_sample["auxiliary"]["problem_subfield"]
             request_prompt = self.get_test_prompt(
-                problem_name=problem_name,
+                problem_name=f"{subfield} of {problem_name}",
                 template_samples=None,
                 test_sample=test_sample,
             )

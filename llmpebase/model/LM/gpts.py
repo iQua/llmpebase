@@ -21,7 +21,7 @@ from typing import List
 import openai
 from dotenv import load_dotenv
 
-from llmpebase.models.LMs import base
+from llmpebase.model.LM import base
 
 
 class GPTAPIRequest(base.BaseLMRequest):

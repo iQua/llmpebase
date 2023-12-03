@@ -1,4 +1,4 @@
-""" 
+"""
 The datasource inferance for the TheoremQA (TQA) dataset.
 The detaild information of it is shown in 
 https://github.com/wenhuchen/TheoremQA
@@ -10,15 +10,14 @@ import os
 import json
 from collections import defaultdict
 
-from llmpebase.datasets import base
-from llmpebase.datasets.data_generic import (
+from llmpebase.dataset import base
+from llmpebase.dataset.data_generic import (
     DatasetMetaCatalog,
     DatasetCatalog,
     BaseQASample,
     BaseQASampleInfo,
     DatasetStatistics,
 )
-from llmpebase.utils import extractor, formatter
 
 
 class TheoremQADataset(base.BaseDataset):
@@ -35,8 +34,8 @@ class TheoremQADataset(base.BaseDataset):
         category_info = defaultdict(dict)
         category_samples = defaultdict(dict)
         for idx, example in enumerate(data):
-            field = formatter.format_term(example["field"])
-            subfield = formatter.format_term(example["subfield"])
+            field = base.BaseDataset.format_term(example["field"])
+            subfield = base.BaseDataset.format_term(example["subfield"])
 
             # Get the explanation path
             root_path = os.path.dirname(self.phase_data_path)
@@ -59,7 +58,7 @@ class TheoremQADataset(base.BaseDataset):
                     sample_filepath=self.phase_data_path,
                     auxiliary={
                         # The theorem used in the answer
-                        "theorem": formatter.format_term(example["theorem"]),
+                        "theorem": base.BaseDataset.format_term(example["theorem"]),
                         # The detailed reasoning steps
                         "explain_path": explain_path,
                         # Visual path

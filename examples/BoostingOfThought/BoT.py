@@ -14,8 +14,8 @@ import BoT_core
 
 
 from llmpebase.config import Config
-from llmpebase.models import define_model, define_prompt
-from llmpebase.datasets import define_dataset
+from llmpebase.model import define_model, define_prompt
+from llmpebase.dataset import define_dataset
 from llmpebase.utils import recorder
 
 

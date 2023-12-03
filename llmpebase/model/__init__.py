@@ -3,8 +3,8 @@ An interface of models and prompts
 """
 
 
-from llmpebase.models.LMs import gpts, llama_falcon, llama_pipeline, llamav2
-from llmpebase.models.prompting import bbh, game24, gsm8k, math, mmlu, theoremqa
+from llmpebase.model.LM import gpts, llama_falcon, llama_pipeline, llamav2
+from llmpebase.model.prompting import bbh, game24, gsm8k, math, mmlu, theoremqa
 
 models_factory = {
     "gpt": gpts.GPTAPIRequest,

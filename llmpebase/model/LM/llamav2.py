@@ -5,7 +5,7 @@ Implementation of llama v2, which requires a new way to generate the text.
 
 from llama import Llama, Dialog
 
-from llmpebase.models.LMs import llama_falcon
+from llmpebase.model.LM import llama_falcon
 
 
 class LLaMAV2Request(llama_falcon.LLaMARequest):

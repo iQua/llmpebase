@@ -7,7 +7,7 @@ are merged into a new one. There are two strategies:
 
 from typing import List, Dict
 
-from llmpebase.models.prompting.tree_thoughts import ThoughtNode
+from llmpebase.model.prompting.tree_thoughts import ThoughtNode
 
 
 class ReasoningChainAggregator:

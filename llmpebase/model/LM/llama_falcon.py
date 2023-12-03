@@ -10,7 +10,7 @@ from transformers import GenerationConfig
 
 from vgbase.utils.folder_utils import directory_contains_subfolder
 
-from llmpebase.models.LMs import base
+from llmpebase.model.LM import base
 
 
 class LLaMARequest(base.BaseLMRequest):

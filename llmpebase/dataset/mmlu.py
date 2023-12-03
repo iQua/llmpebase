@@ -9,22 +9,21 @@ import glob
 
 import pandas as pd
 
-from llmpebase.datasets import base
-from llmpebase.datasets.data_generic import (
+from llmpebase.dataset import base
+from llmpebase.dataset.data_generic import (
     DatasetMetaCatalog,
     DatasetCatalog,
     BaseQASample,
     BaseQASampleInfo,
     DatasetStatistics,
 )
-from llmpebase.utils.formatter import format_term
 
 
 def extract_problem_name(filename: str, phase: str):
     """Extract the problem name from the filepath."""
     filename = filename.split(".csv")[0]
     phase = "dev" if phase == "train" else phase
-    return format_term(filename.replace(phase, ""))
+    return base.BaseDataset.format_term(filename.replace(phase, ""))
 
 
 class MMLUDataset(base.BaseDataset):

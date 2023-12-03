@@ -9,7 +9,7 @@ from transformers import pipeline, LlamaTokenizer
 from vgbase.utils.folder_utils import directory_contains_subfolder
 
 
-from llmpebase.models.LMs import llama_falcon
+from llmpebase.model.LM import llama_falcon
 
 
 class LLaMAPipelineRequest(llama_falcon.LLaMARequest):

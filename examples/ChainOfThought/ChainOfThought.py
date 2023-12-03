@@ -6,8 +6,8 @@ Implementation of Chain Of Thought [1].
 
 from llmpebase.config import Config
 
-from llmpebase.models import define_model, define_prompt
-from llmpebase.datasets import define_dataset
+from llmpebase.model import define_model, define_prompt
+from llmpebase.dataset import define_dataset
 from llmpebase.utils import recorder
 
 
@@ -43,8 +43,6 @@ def perform_eval(model, train_set, test_set, input_prompter, logging_config, con
     for prompt, eval_sample, eval_groundtruth in input_prompter.evaluater(
         train_set, test_set, config
     ):
-        print(prompt)
-        print(ok)
         contents = do_model_request(model, request_prompt=prompt)
         extracted_target_answers = input_prompter.extract_target_answers(contents)
         extracted_groundtruths = [

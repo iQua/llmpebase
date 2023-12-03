@@ -5,8 +5,8 @@ import os
 
 import pandas as pd
 
-from llmpebase.datasets import base
-from llmpebase.datasets.data_generic import (
+from llmpebase.dataset import base
+from llmpebase.dataset.data_generic import (
     DatasetMetaCatalog,
     DatasetCatalog,
     BaseQASample,

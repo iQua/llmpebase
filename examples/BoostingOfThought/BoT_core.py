@@ -10,7 +10,7 @@ import BoT_reasoner
 import BoT_aggregator
 
 
-from llmpebase.models.prompting import tree_thoughts
+from llmpebase.model.prompting import tree_thoughts
 
 
 class BoostOfThoughts:
