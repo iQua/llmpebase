@@ -11,7 +11,7 @@ from llmpebase.model.prompting import base
 class GameOf24StandardPrompting(base.BasePrompting):
     """The standard prompt of GameOf24."""
 
-    answer_format_str: str = "The solution equation is:"
+    solution_flag: str = "The solution equation is:"
 
     instruction: str = " Within each step, two numbers are selected from the current number set to perform +,-,*,/ to obtain a new number. Then, these two selected numbers are deleted from the current set. After deleting, if there is no remaining number, you reach the result. Otherwise, you combine the remaining numbers and the obtained new number into a new set for the subsequent reasoning step. Therefore, the current number set of this step is the new set of the previous step."
 
@@ -40,7 +40,7 @@ class GameOf24StandardPrompting(base.BasePrompting):
         """organizing the prompt including the few-shot ."""
         return ""
 
-    def get_test_prompt(
+    def create_test_prompt(
         self, problem_name: str, test_sample: dict, template_samples: List[dict]
     ):
         """Organizing the prompt for test."""
@@ -72,11 +72,11 @@ class GameOf24StandardPrompting(base.BasePrompting):
 
         return None
 
-    def evaluater(self, train_set, eval_set, config):
+    def create_prompt_sample(self, train_set, eval_set, config):
         """Evaluating the GameOf24 dataset."""
 
         for _, test_sample in enumerate(eval_set):
-            request_prompt = self.get_test_prompt(
+            request_prompt = self.create_test_prompt(
                 problem_name=None, template_samples=None, test_sample=test_sample
             )
             yield request_prompt, test_sample, test_sample["groundtruth"]

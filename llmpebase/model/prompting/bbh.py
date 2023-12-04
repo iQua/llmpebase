@@ -51,7 +51,7 @@ class BBHStandardPrompting(base.BasePrompting):
 
         return None
 
-    def evaluater(self, train_set, eval_set, config):
+    def create_prompt_sample(self, train_set, eval_set, config):
         """Evaluating the BBH dataset."""
 
         n_shots = config["n_shots"]
@@ -69,7 +69,7 @@ class BBHStandardPrompting(base.BasePrompting):
                 else sample_indexs
             )
             samples = [train_set[idx] for idx in fewshot_indexs]
-            request_prompt = self.get_test_prompt(
+            request_prompt = self.create_test_prompt(
                 problem_name=problem_name,
                 template_samples=samples,
                 test_sample=test_sample,
@@ -82,7 +82,7 @@ class BBHCoTPrompting(BBHStandardPrompting):
 
     # This should be the same as the answer format in the cot_filepath
     # Current CoT ones use "The answer is".
-    answer_format_str: str = "The answer is "
+    solution_flag: str = "The answer is "
 
     def __init__(self, model_config: dict, cot_filepath: str = None) -> None:
         super().__init__()
@@ -109,12 +109,12 @@ class BBHCoTPrompting(BBHStandardPrompting):
         prompt = f"""{intro_prompt}\n\n {cot_prompt}"""
         return prompt
 
-    def evaluater(self, train_set, eval_set, config):
+    def create_prompt_sample(self, train_set, eval_set, config):
         """Evaluating the BBH dataset."""
 
         for _, test_sample in enumerate(eval_set):
             problem_name = test_sample.auxiliary["sample_problem"]
-            request_prompt = self.get_test_prompt(
+            request_prompt = self.create_test_prompt(
                 problem_name=problem_name,
                 test_sample=test_sample,
                 template_samples=None,
@@ -136,7 +136,7 @@ class BBHZeroShotCoTPrompting(BBHStandardPrompting):
     ):
         return ""
 
-    def get_test_prompt(
+    def create_test_prompt(
         self, problem_name: str, test_sample: dict, template_samples: List[dict]
     ):
         """Organizing the prompt for test."""
@@ -144,12 +144,12 @@ class BBHZeroShotCoTPrompting(BBHStandardPrompting):
         prompt = f"""This is the {problem_name} problem. Please answer the given question.\n\n{test_qa_prompt}"""
         return prompt
 
-    def evaluater(self, train_set, eval_set, config):
+    def create_prompt_sample(self, train_set, eval_set, config):
         """Evaluating the BBH dataset."""
 
         for _, test_sample in enumerate(eval_set):
             problem_name = test_sample.auxiliary["sample_problem"]
-            request_prompt = self.get_test_prompt(
+            request_prompt = self.create_test_prompt(
                 problem_name=problem_name,
                 test_sample=test_sample,
                 template_samples=None,

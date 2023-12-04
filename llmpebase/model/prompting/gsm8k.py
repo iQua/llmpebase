@@ -1,7 +1,6 @@
 """
 The implementation of different prompts.
 """
-import re
 from typing import List
 
 from llmpebase.model.prompting import base
@@ -22,32 +21,7 @@ class GSM8KStandardPrompting(base.BasePrompting):
         groundtruth = sample["groundtruth"]
         answ = "" if not is_answer_included else answ
         groundtruth = "" if not is_answer_included else groundtruth
-        return f"""Answer: {answ}. {self.answer_format_str} {groundtruth}"""
-
-    @staticmethod
-    def extract_groundtruth(target_answer: str):
-        """Extract the target results from the obtained targets."""
-        # Compare the answers
-        pattern = r"\$?(\d+)(?:\$)?"
-
-        target_answer = str(target_answer)
-        result = re.findall(pattern, target_answer)
-
-        if result:
-            return float(result[0])
-        else:
-            return None
-
-    @staticmethod
-    def measure_answers(src_answer: str, dst_answer: str):
-        """Measuring whether answers are consistent with each other."""
-        src_result = GSM8KStandardPrompting.extract_groundtruth(src_answer)
-        dst_result = GSM8KStandardPrompting.extract_groundtruth(dst_answer)
-
-        if src_result is not None and dst_result is not None:
-            return src_result == dst_result
-
-        return None
+        return f"""Answer: {answ}. {self.solution_flag} {groundtruth}"""
 
 
 class GSM8KCoTPrompting(GSM8KStandardPrompting):
@@ -55,7 +29,7 @@ class GSM8KCoTPrompting(GSM8KStandardPrompting):
 
     # This should be the same as the answer format in the cot_filepath
     # Current CoT ones use "The answer is".
-    answer_format_str: str = "The answer is "
+    solution_flag: str = "The answer is "
 
     def __init__(self, model_config: dict, cot_filepath: str = None) -> None:
         super().__init__()
@@ -84,15 +58,18 @@ class GSM8KCoTPrompting(GSM8KStandardPrompting):
         prompt = f"""{intro_prompt}\n\n {self.cot_prompt}"""
         return prompt
 
-    def evaluater(self, train_set, eval_set, config):
+    def create_prompt_sample(self, sample, dataset, config):
         """Evaluating the GSM8K dataset."""
 
-        for _, test_sample in enumerate(eval_set):
-            problem_name = test_sample.auxiliary["sample_problem"]
-            request_prompt = self.get_test_prompt(
-                problem_name=None, test_sample=test_sample, template_samples=None
-            )
-            yield request_prompt, test_sample, test_sample["groundtruth"]
+        problem_name = sample.auxiliary["sample_problem"]
+        return (
+            self.create_test_prompt(
+                problem_name=problem_name,
+                test_sample=sample,
+                template_samples=None,
+            ),
+            sample["groundtruth"],
+        )
 
 
 class GSM8KZeroShotCoTPrompting(GSM8KStandardPrompting):
@@ -109,7 +86,7 @@ class GSM8KZeroShotCoTPrompting(GSM8KStandardPrompting):
     ):
         return ""
 
-    def get_test_prompt(
+    def create_test_prompt(
         self, problem_name: str, test_sample: dict, template_samples: List[dict]
     ):
         """Organizing the prompt for test."""
@@ -117,14 +94,15 @@ class GSM8KZeroShotCoTPrompting(GSM8KStandardPrompting):
         prompt = f"""{test_qa_prompt}"""
         return prompt
 
-    def evaluater(self, train_set, eval_set, config):
+    def create_prompt_sample(self, sample, dataset, config):
         """Evaluating the GSM8K dataset."""
 
-        for _, test_sample in enumerate(eval_set):
-            problem_name = test_sample.auxiliary["sample_problem"]
-            request_prompt = self.get_test_prompt(
+        problem_name = sample.auxiliary["sample_problem"]
+        return (
+            self.create_test_prompt(
                 problem_name=problem_name,
-                test_sample=test_sample,
+                test_sample=sample,
                 template_samples=None,
-            )
-            yield request_prompt, test_sample, test_sample["groundtruth"]
+            ),
+            sample["groundtruth"],
+        )

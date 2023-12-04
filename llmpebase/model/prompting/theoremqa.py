@@ -12,7 +12,7 @@ from llmpebase.model.prompting import base
 class TheoremQAStandardPrompting(base.BasePrompting):
     """The standard prompt of TheoremQA."""
 
-    answer_format_str: str = "The answer is"
+    solution_flag: str = "The answer is"
 
     def organize_question_prompt(self, sample: dict):
         """Organizing the question prompt."""
@@ -25,7 +25,7 @@ class TheoremQAStandardPrompting(base.BasePrompting):
         """Organizing the answer prompt."""
         answ = sample["answer"]
         answ = "" if not is_answer_included else answ
-        return f"""Answer: {self.answer_format_str} {answ}. """
+        return f"""Answer: {self.solution_flag} {answ}. """
 
     @staticmethod
     def extract_groundtruth(target_answer: str):
@@ -52,7 +52,7 @@ class TheoremQAStandardPrompting(base.BasePrompting):
 
         return None
 
-    def evaluater(self, train_set, eval_set, config):
+    def create_prompt_sample(self, train_set, eval_set, config):
         """Evaluating the TheoremQA dataset."""
 
         n_shots = config["n_shots"]
@@ -67,7 +67,7 @@ class TheoremQAStandardPrompting(base.BasePrompting):
                 else sample_indexs
             )
             samples = [train_set[idx] for idx in fewshot_indexs]
-            request_prompt = self.get_test_prompt(
+            request_prompt = self.create_test_prompt(
                 problem_name=problem_name,
                 template_samples=samples,
                 test_sample=test_sample,
@@ -80,7 +80,7 @@ class TheoremQACoTPrompting(TheoremQAStandardPrompting):
 
     # This should be the same as the answer format in the cot_filepath
     # Current CoT ones use "The answer is".
-    answer_format_str: str = "The answer is "
+    solution_flag: str = "The answer is "
 
     def __init__(self, model_config: dict, cot_filepath: str = None) -> None:
         super().__init__()
@@ -112,12 +112,12 @@ class TheoremQACoTPrompting(TheoremQAStandardPrompting):
         prompt = f"""{intro_prompt}\n\n {problem_cot_prompt}"""
         return prompt
 
-    def evaluater(self, train_set, eval_set, config):
+    def create_prompt_sample(self, train_set, eval_set, config):
         """Evaluating the TheoremQA dataset."""
 
         for _, test_sample in enumerate(eval_set):
             problem_name = test_sample["auxiliary"]["sample_problem"]
-            request_prompt = self.get_test_prompt(
+            request_prompt = self.create_test_prompt(
                 problem_name=problem_name,
                 template_samples=None,
                 test_sample=test_sample,
@@ -128,7 +128,7 @@ class TheoremQACoTPrompting(TheoremQAStandardPrompting):
 class TheoremQAZeroShotCoTPrompting(TheoremQAStandardPrompting):
     """The zeroshot CoT prompt of TheoremQA."""
 
-    answer_format_str: str = "The final choice is"
+    solution_flag: str = "The final choice is"
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organize the answer prompt."""
@@ -141,7 +141,7 @@ class TheoremQAZeroShotCoTPrompting(TheoremQAStandardPrompting):
     ):
         return ""
 
-    def get_test_prompt(
+    def create_test_prompt(
         self, problem_name: str, test_sample: dict, template_samples: List[dict]
     ):
         """Organizing the prompt for test."""
@@ -149,13 +149,13 @@ class TheoremQAZeroShotCoTPrompting(TheoremQAStandardPrompting):
         prompt = f"""{test_qa_prompt}"""
         return prompt
 
-    def evaluater(self, train_set, eval_set, config):
+    def create_prompt_sample(self, train_set, eval_set, config):
         """Evaluating the TheoremQA dataset."""
 
         for _, test_sample in enumerate(eval_set):
             problem_name = test_sample["auxiliary"]["sample_problem"]
             subfield = test_sample["auxiliary"]["problem_subfield"]
-            request_prompt = self.get_test_prompt(
+            request_prompt = self.create_test_prompt(
                 problem_name=f"{subfield} of {problem_name}",
                 template_samples=None,
                 test_sample=test_sample,
