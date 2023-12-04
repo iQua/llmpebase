@@ -14,6 +14,7 @@ from llmpebase.dataset.data_generic import (
     DatasetMetaCatalog,
     DatasetCatalog,
 )
+from llmpebase.extractor import get as get_extractor
 from llmpebase.config import Config
 
 
@@ -30,9 +31,12 @@ def extract_compression_style(url):
 class BaseDataset(torch.utils.data.Dataset):
     """The Base dataset."""
 
-    def __init__(self, data_meta_catalog: DatasetMetaCatalog, phase: str):
+    def __init__(
+        self, data_meta_catalog: DatasetMetaCatalog, phase: str, gt_extractor=None
+    ):
         super().__init__()
 
+        self.data_name = data_meta_catalog["dataset_name"]
         self.phase = phase
         self.phase_data_path = data_meta_catalog.split_path[phase]
         catalog_filename = f"{phase}_data_catalog.json"
@@ -43,6 +47,9 @@ class BaseDataset(torch.utils.data.Dataset):
         self.customize_data_catalog = DatasetCatalog
         self.data_catalog: DatasetCatalog = None
 
+        # Set the groundtruth extractor
+        self.gt_extractor = gt_extractor
+
     def create_data_catalog(self):
         """Create the data catalog for the dataset."""
         raise NotImplementedError(
@@ -51,7 +58,8 @@ class BaseDataset(torch.utils.data.Dataset):
 
     def configuration(self):
         """Configure the catalog of the dataset"""
-
+        data_config = Config().data
+        data_config = Config.items_to_dict(data_config._asdict())
         if os.path.exists(self.data_catalog_path):
             with open(self.data_catalog_path, "r", encoding="utf-8") as f:
                 self.data_catalog = self.customize_data_catalog(**json.load(f))
@@ -61,6 +69,14 @@ class BaseDataset(torch.utils.data.Dataset):
             with open(self.data_catalog_path, "w", encoding="utf-8") as f:
                 json.dump(self.data_catalog, f)
             logging.info("Created data catalog in %s.", self.data_catalog_path)
+
+        # Set the extractor for the groundtruth extraction
+        if self.gt_extractor is None:
+            self.gt_extractor = get_extractor(
+                data_name=self.data_name,
+                style=data_config["extractor"]["style"],
+                purpose=data_config["extractor"]["purpose"],
+            )()
 
     def get_sample(self, idx):
         """Get one sample."""
@@ -92,12 +108,13 @@ class DataSource:
 
     def __init__(self):
         # Extract the data information from the config file
-        self.source_data_name = Config().data.datasource_name
-        self.source_data_path = Config().data.datasource_path
-        self.download_url = Config().data.datasource_download_url
+
+        self.data_name = Config().data.data_name
+        self.data_path = Config().data.data_path
+        self.download_url = Config().data.download_url
 
         # Generate the data path and create one when necessary
-        self.data_path = os.path.join(self.source_data_path, self.source_data_name)
+        self.data_path = os.path.join(self.data_path, self.data_name)
         os.makedirs(self.data_path, exist_ok=True)
 
         self.meta_catalog_path = os.path.join(self.data_path, "meta_catalog.json")
@@ -137,7 +154,7 @@ class DataSource:
         )
         if self.download_url is not None and not os.path.exists(phase_data_path):
             compression = extract_compression_style(self.download_url)
-            filename = self.source_data_name + "." + compression
+            filename = self.data_name + "." + compression
             download_file_path = os.path.join(self.data_path, filename)
 
             if not os.path.exists(download_file_path):
