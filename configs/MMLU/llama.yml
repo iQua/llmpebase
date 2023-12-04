@@ -7,7 +7,7 @@ data:
   data_name: MMLU
   data_path: data
 
-  datasource_download_url: http://people.eecs.berkeley.edu/~hendrycks/data.tar # mainly for website
+  download_url: http://people.eecs.berkeley.edu/~hendrycks/data.tar # mainly for website
 
 environment:
 

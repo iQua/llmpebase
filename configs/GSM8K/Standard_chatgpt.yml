@@ -8,8 +8,11 @@ data:
   data_path: data
 
   # One may need to download the GSM8k dataset
-  datasource_download_url: null
+  download_url: null
 
+  extractor:
+    purpose: gt
+    style: re
   
 environment:
 
@@ -27,7 +30,7 @@ model:
   prompt_type: standard
   n_shots: 5
 
-  authorization_env_path: ./.env
+  authorization_path: ./.env
 
   generation_settings:
     temperature: 0.7
@@ -37,6 +40,7 @@ model:
     stop: null 
 
   pretrained_models_path: experiments/pretrained_models
+
 
 trainer:
 
@@ -51,6 +55,10 @@ logging:
 
 evaluation:
  
+
+  extractor:
+    purpose: response
+    style: re
 
   # set the hyper parameters for performance
   performance:

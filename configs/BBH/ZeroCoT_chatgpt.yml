@@ -8,7 +8,7 @@ data:
   data_path: data
 
   # One may need to download the BBH dataset
-  datasource_download_url: https://github.com/suzgunmirac/BIG-Bench-Hard/archive/refs/heads/main.zip
+  download_url: https://github.com/suzgunmirac/BIG-Bench-Hard/archive/refs/heads/main.zip
   
 environment:
 
