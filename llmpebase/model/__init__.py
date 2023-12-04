@@ -6,7 +6,7 @@ An interface of models and prompts
 from llmpebase.model.LM import gpts, llama_falcon, llama_pipeline, llamav2
 from llmpebase.model.prompting import bbh, game24, gsm8k, math, mmlu, theoremqa
 
-models_factory = {
+llms_factory = {
     "gpt": gpts.GPTAPIRequest,
     "llama": llama_falcon.LLaMARequest,
     "llama_pipeline": llama_pipeline.LLaMAPipelineRequest,
@@ -52,7 +52,7 @@ def define_model(model_config: dict):
     """Define the datasets based on the config file."""
     model_type = model_config["model_type"].lower()
 
-    return models_factory[model_type](model_config)
+    return llms_factory[model_type](model_config)
 
 
 def define_prompt(data_config: dict, model_config: dict):

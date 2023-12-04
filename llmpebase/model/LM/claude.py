@@ -79,7 +79,7 @@ class ClaudeRequest(object):
         """Creating the prompt available to claude model."""
         return anthropic.HUMAN_PROMPT + prompt + anthropic.AI_PROMPT
 
-    def perform_request(
+    def forward(
         self,
         prompt: str,
         model_name: str = "claude-instant-v1.0",
@@ -113,4 +113,4 @@ if __name__ == "__main__":
     write a summary of the transcript in an about 10 sentences.
 
     """
-    claude_response = claude_api.perform_request(prompt=summary_prompt)
+    claude_response = claude_api.forward(prompt=summary_prompt)

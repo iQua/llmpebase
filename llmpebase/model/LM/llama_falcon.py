@@ -103,7 +103,7 @@ class LLaMARequest(base.BaseLMRequest):
 
         return input_tokens
 
-    def perform_request(
+    def forward(
         self,
         input_request: str = None,
         user_prompt: str = None,
@@ -143,7 +143,7 @@ class LLaMARequest(base.BaseLMRequest):
         if "instruct_prompt" in kwargs and kwargs["instruct_prompt"] is not None:
             instruct_prompt = kwargs["sys_prompt"]
 
-        prompt = f"""{instruct_prompt} Please utilize a sub-sentence '{self.target_answer_format}' to point out the final solution for users to read. \n\n {user_prompt}"""
+        prompt = f"""{instruct_prompt} Please utilize a sub-sentence '{self.solution_flag}' to point out the final solution for users to read. \n\n {user_prompt}"""
 
         return prompt
 

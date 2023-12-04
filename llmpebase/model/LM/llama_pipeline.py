@@ -41,7 +41,7 @@ class LLaMAPipelineRequest(llama_falcon.LLaMARequest):
         )
         return model, tokenizer
 
-    def perform_request(
+    def forward(
         self,
         input_request: str = None,
         user_prompt: str = None,
