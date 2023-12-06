@@ -1,7 +1,7 @@
 """
 An interface of models and prompts
 """
-
+import logging
 
 from llmpebase.model.LM import gpts, llama_falcon, llama_pipeline, llamav2
 from llmpebase.model.prompting import bbh, game24, gsm8k, math, mmlu, theoremqa
@@ -51,13 +51,17 @@ prompts_factory = {
 def define_model(model_config: dict):
     """Define the datasets based on the config file."""
     model_type = model_config["model_type"].lower()
+    llm_model = llms_factory[model_type](model_config)
+    llm_model.configuration()
 
-    return llms_factory[model_type](model_config)
+    logging.info("Defined LLM model %s.", model_type)
+    return llm_model
 
 
 def define_prompt(data_config: dict, model_config: dict):
     """Define the datasets based on the config file."""
     data_name = data_config["data_name"].lower()
     prompt_type = model_config["prompt_type"].lower()
+    logging.info("Defined %s Prompting for %s .", prompt_type, data_name)
 
     return prompts_factory[data_name][prompt_type](model_config)

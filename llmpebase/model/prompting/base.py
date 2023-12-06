@@ -1,5 +1,5 @@
 """
-Basic implementation of Prompting class.
+Basic implementation of prompting class.
 """
 
 import random
@@ -7,12 +7,17 @@ from typing import List
 
 
 class BasePrompting:
-    """The basic prompt.
-
-    Note, we set this Base prompt as the QA problem with options.
+    """
+    The basic prompting behaving as the structure to be followed by
+    other customized prompts.
     """
 
     solution_flag: str = "The final solution is"
+
+    template_prompt_head: str = "Following examples are question-answer pairs about {}"
+    template_prompt_tail: str = "With above examples, please answer the given question"
+
+    notice: str = "Place the final solution after the sentence {} for readability"
 
     def __init__(self, model_config: dict = None):
         """ """
@@ -47,16 +52,14 @@ class BasePrompting:
     ):
         """organizing the prompt including the few-shot ."""
         problem_name = "" if problem_name is None else problem_name
+        fewshot = ""
+        if samples is not None:
+            fewshot = "\n\n".join(
+                [self.organize_qa_prompt(sample) for sample in samples]
+            )
 
-        intro_prompt = (
-            f"The following examples are questions with answers about {problem_name}."
-        )
-        problem_content = []
-        for sample in samples:
-            problem_content.append(self.organize_qa_prompt(sample))
-        fewshots = "\n\n".join(problem_content)
-
-        prompt = f"""{intro_prompt}\n\n {fewshots}"""
+        head = self.template_prompt_head.format(problem_name)
+        prompt = f"""{head}.\n\n{fewshot}\n\n{self.template_prompt_tail}."""
 
         return prompt
 
@@ -66,7 +69,10 @@ class BasePrompting:
         """Organizing the prompt for test."""
         fewshot_prompt = self.organize_template_prompt(template_samples, problem_name)
         test_qa_prompt = self.organize_qa_prompt(test_sample, is_answer_included=False)
-        prompt = f"""{fewshot_prompt} \n\n\n With above examples, please answer: \n \n{test_qa_prompt}"""
+
+        # Assign the solution flag to the notice
+        notice = self.notice.format(self.solution_flag)
+        prompt = f"""{fewshot_prompt} \n\n Notice: {notice}\n\n{test_qa_prompt}"""
         return prompt
 
     def create_prompt_sample(self, sample, dataset, config):

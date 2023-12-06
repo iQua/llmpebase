@@ -65,23 +65,25 @@ class GPTAPIRequest(base.BaseLMRequest):
 
     def completion_with_backoff(self, **kwargs):
         """Completing the forward within the OPENAI."""
+        # Increase the number of requests
+        self.num_requests += 1
         return openai.ChatCompletion.create(**kwargs)
 
     def create_format_input(self, user_prompt: str, **kwargs):
         """Create messages for GPT-4 to be used for forwarding."""
-        sys_prompt = "Follow the given prompt to generate correct response."
+        system_prompt = "Follow the given prompt to generate correct response."
 
         if "sys_prompt" in kwargs and kwargs["sys_prompt"] is not None:
-            sys_prompt = kwargs["sys_prompt"]
+            system_prompt = kwargs["sys_prompt"]
 
-        sys_message = {
+        system_message = {
             "role": "system",
-            "content": sys_prompt,
+            "content": system_prompt,
         }
-        requeset_message = {"role": "user", "content": user_prompt}
+        message = {"role": "user", "content": user_prompt}
         request_messages = [
-            sys_message,
-            requeset_message,
+            system_message,
+            message,
         ]
 
         return request_messages
@@ -120,6 +122,9 @@ class GPTAPIRequest(base.BaseLMRequest):
             )
             model_responses.append(reponse)
 
+        # Compute the resources
+        self.compute_costs(input_messages, model_responses)
+
         return model_responses
 
     def read_response_contents(self, responses: list):
@@ -128,13 +133,24 @@ class GPTAPIRequest(base.BaseLMRequest):
             contents.extend(choice["message"]["content"] for choice in res["choices"])
         return contents
 
-    def count_tokens(self, responses: list):
+    def compute_costs(self, input_messages: dict, responses: list):
+        # Statistics the number of prompt tokens
+
+        self.num_words["system"].append(len(input_messages[0]["content"].split()))
+        self.num_words["user"].append(len(input_messages[1]["content"].split()))
         completion_tokens = 0
+        completion_words = 0
         prompt_tokens = 0
         for res in responses:
-            completion_tokens += res["usage"]["completion_tokens"]
             prompt_tokens += res["usage"]["prompt_tokens"]
-        return completion_tokens, prompt_tokens
+            completion_tokens += res["usage"]["completion_tokens"]
+            completion_words += sum(
+                [len(choice["message"]["content"].split()) for choice in res["choices"]]
+            )
+        # Record the statistics
+        self.num_prompt_tokens.append(prompt_tokens)
+        self.num_completion_tokens.append(completion_tokens)
+        self.num_completion_words.append(completion_words)
 
     def is_limit_request(self):
         """ChapGPT has the upper bound of the request rate."""

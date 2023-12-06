@@ -2,7 +2,7 @@
 An interface to evaluate the performance by measuring the similarity between results and 
 groundtruths.
 """
-
+import logging
 
 from llmpebase.evaluator.re_evaluation import GSM8KEvaluator, GSM8KLLMEvaluator
 
@@ -21,6 +21,7 @@ def get(data_name, style="basic", **kwargs):
     evaluators = basic_evaluators if style == "basic" else llm_evaluators
 
     if data_name in evaluators:
+        logging.info("Get %s evaluator for %s", style, data_name)
         return evaluators[data_name]
 
     else:

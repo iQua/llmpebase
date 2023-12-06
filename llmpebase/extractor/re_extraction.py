@@ -132,11 +132,9 @@ class GSM8KRespReExtractor(base.BaseReExtractor):
         # Split the long string into separate sentences
         sentences = extract_sentences(answer)
 
-        # Extract the corresponding answer, conclusion, and the sentence containing
-        # the groundtruth
-        conclusion = sentences[-2]
-        gt_sent = sentences[-1]
+        # Extract the corresponding conclusion which is the final sentence
+        conclusion = sentences[-1]
 
-        result = extract_figures(gt_sent, target_format="#")[-1]
+        result = extract_figures(conclusion, target_format="$")[-1]
 
-        return answer, conclusion, result
+        return result

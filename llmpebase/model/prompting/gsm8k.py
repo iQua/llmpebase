@@ -17,11 +17,14 @@ class GSM8KStandardPrompting(base.BasePrompting):
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organizing the answer prompt."""
-        answ = sample["answer"]
+        answer = sample["answer"]
         groundtruth = sample["groundtruth"]
-        answ = "" if not is_answer_included else answ
-        groundtruth = "" if not is_answer_included else groundtruth
-        return f"""Answer: {answ}. {self.solution_flag} {groundtruth}"""
+        if is_answer_included:
+            answer = "" if not is_answer_included else answer
+            groundtruth = "" if not is_answer_included else groundtruth
+
+            return f"""Answer: {answer}. {self.solution_flag} {groundtruth}"""
+        return """Answer: """
 
 
 class GSM8KCoTPrompting(GSM8KStandardPrompting):
@@ -41,8 +44,10 @@ class GSM8KCoTPrompting(GSM8KStandardPrompting):
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organizing the answer prompt."""
-        answ = sample["answer"]
-        answ = "" if not is_answer_included else answ
+        answer = sample["answer"]
+        if is_answer_included:
+            return f"""Answer: Let's think step by step. {answer}"""
+
         return """Answer: Let's think step by step. """
 
     def organize_template_prompt(
@@ -51,11 +56,8 @@ class GSM8KCoTPrompting(GSM8KStandardPrompting):
         problem_name: str = None,
     ):
         """organizing the prompt including the few-shot ."""
-        intro_prompt = (
-            "The following examples are questions with answers about algebra problems."
-        )
-
-        prompt = f"""{intro_prompt}\n\n {self.cot_prompt}"""
+        head = self.template_prompt_head.format(problem_name)
+        prompt = f"""{head}.\n\n {self.cot_prompt}\n\n{self.template_prompt_tail}."""
         return prompt
 
     def create_prompt_sample(self, sample, dataset, config):
@@ -77,13 +79,14 @@ class GSM8KZeroShotCoTPrompting(GSM8KStandardPrompting):
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organize the answer prompt."""
-        return """Answer: Let's think step by step. \n"""
+        return """Answer: Let's think step by step.\n"""
 
     def organize_template_prompt(
         self,
         samples: List[dict],
         problem_name: str = None,
     ):
+        """No template prompt for zeroshot."""
         return ""
 
     def create_test_prompt(
@@ -91,8 +94,7 @@ class GSM8KZeroShotCoTPrompting(GSM8KStandardPrompting):
     ):
         """Organizing the prompt for test."""
         test_qa_prompt = self.organize_qa_prompt(test_sample, is_answer_included=False)
-        prompt = f"""{test_qa_prompt}"""
-        return prompt
+        return test_qa_prompt
 
     def create_prompt_sample(self, sample, dataset, config):
         """Evaluating the GSM8K dataset."""

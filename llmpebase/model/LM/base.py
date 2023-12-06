@@ -1,7 +1,8 @@
 """
 The implementation of base model for LMs.
 """
-import re
+import os
+import json
 from typing import Union, List
 
 import torch
@@ -21,11 +22,15 @@ class BaseLMRequest(torch.nn.Module):
         self.generation_config = {}
 
         # Basic components to record the resource used
+        # Number of requests
         self.num_requests = 0
+        # Number of words in the system and user's prompts
+        self.num_words = {"system": [], "user": []}
+        # Number of tokens in the system and user's prompts
         self.num_prompt_tokens = []
-        self.num_response_tokens = []
-
-        self.configuration()
+        # Number of tokens in the system and user's prompts
+        self.num_completion_words = []
+        self.num_completion_tokens = []
 
     def configuration(self):
         """Configuration of the model."""
@@ -79,7 +84,7 @@ class BaseLMRequest(torch.nn.Module):
         """Read main contents from the obtained responses."""
         raise NotImplementedError("'extract_answers' has not been implemented yet.")
 
-    def count_tokens(self, responses: list):
+    def compute_costs(self, input_messages: dict, responses: list):
         """Count answers from the obtained responses."""
         raise NotImplementedError("'extract_tokens' has not been implemented yet.")
 
@@ -88,7 +93,25 @@ class BaseLMRequest(torch.nn.Module):
 
         return False
 
-    @generation_config.setter
-    def generation_config(self, new_config):
-        """Update the generation config with the given kwargs."""
-        self.generation_config.update(new_config)
+    def get_latest_cost(self):
+        """Get the latest cost statistics."""
+        return {
+            "num_requests": 1,
+            "num_words": {key: self.num_words[key][-1] for key in self.num_words},
+            "num_prompt_tokens": self.num_prompt_tokens[-1],
+            "num_completion_words": self.num_completion_words[-1],
+            "num_completion_tokens": self.num_completion_tokens[-1],
+        }
+
+    def get_cost_statistics(self, latest=False):
+        """Save the statistics of the requests into the json file."""
+        if latest:
+            return self.get_latest_cost()
+
+        return {
+            "num_requests": self.num_requests,
+            "num_words": self.num_words,
+            "num_prompt_tokens": self.num_prompt_tokens,
+            "num_completion_words": self.num_completion_words,
+            "num_completion_tokens": self.num_completion_tokens,
+        }

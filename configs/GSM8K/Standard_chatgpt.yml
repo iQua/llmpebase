@@ -11,7 +11,7 @@ data:
   download_url: null
 
   extractor:
-    purpose: gt
+    purpose: groundtruth
     style: re
   
 environment:
@@ -54,10 +54,12 @@ logging:
   visualization_path: experiments/visualizations
 
 evaluation:
- 
+  
+  # basic, llm
+  style: basic
 
   extractor:
-    purpose: response
+    purpose: result
     style: re
 
   # set the hyper parameters for performance

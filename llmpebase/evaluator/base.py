@@ -25,6 +25,7 @@ class BaseEvaluator:
 
     def forward(self, results: List[str], groundtruths: List[str]):
         """Evaluate the result by the groundtruth."""
+
         for res, gt in zip(results, groundtruths):
             res = self.measure(res, gt)
             self.matches.append(res)
