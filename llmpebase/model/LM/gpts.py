@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 from llmpebase.model.LM import base
 
 
-class GPTAPIRequest(base.BaseLMRequest):
+class GPTAPIRequest(base.BaseLlmRequest):
     """A class to forward the ChatGPT model with API of OPENAI."""
 
     def __init__(self, model_config: dict) -> None:

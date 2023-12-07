@@ -1,14 +1,13 @@
 """
 The implementation of base model for LMs.
 """
-import os
-import json
+
 from typing import Union, List
 
 import torch
 
 
-class BaseLMRequest(torch.nn.Module):
+class BaseLlmRequest(torch.nn.Module):
     """The basic request model for large language model."""
 
     def __init__(self, model_config: dict):

@@ -10,9 +10,9 @@ from typing import Union, List
 
 import torch
 
-from llmpebase.model.LM.base import BaseLMRequest
+from llmpebase.model.LM.base import BaseLlmRequest
 from llmpebase.dataset.base import BaseDataset
-from llmpebase.extractor.base import BaseReExtractor, BaseLLMExtractor
+from llmpebase.extractor.base import BaseReExtractor, BaseLlmExtractor
 from llmpebase.model.prompting.base import BasePrompting
 from llmpebase.evaluator.base import BaseEvaluator, BaseLLMEvaluator
 from llmpebase.model import define_prompt
@@ -40,10 +40,10 @@ class Pipeline:
 
     def __init__(
         self,
-        reasoner: Union[BaseLMRequest, torch.nn.Module],
+        reasoner: Union[BaseLlmRequest, torch.nn.Module],
         dataset: BaseDataset = None,
         prompter: BasePrompting = None,
-        extractor: Union[BaseReExtractor, BaseLLMExtractor] = None,
+        extractor: Union[BaseReExtractor, BaseLlmExtractor] = None,
         evaluator: Union[BaseEvaluator, BaseLLMEvaluator] = None,
     ):
         # The LLM model used to perform the request.
@@ -139,7 +139,12 @@ class Pipeline:
 
             contents = self.perform_reasoning(request_prompt=prompt_sample)
 
-            results = [self.extractor.forward(content) for content in contents]
+            results = [
+                self.extractor.forward(
+                    content, solution_flag=self.prompter.solution_flag
+                )
+                for content in contents
+            ]
             groundtruths = [groundtruth] * len(results)
             comparsion = self.evaluator.forward(results, groundtruths)
             output = {

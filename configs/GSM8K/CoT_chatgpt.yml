@@ -1,14 +1,14 @@
-# include basic settings for the models and the learning process
-
-
-# dataset settings for the original dataset and the corresponding multimodal data processor
 data:
-
+ 
   data_name: GSM8K
   data_path: data
 
   # One may need to download the GSM8k dataset
   download_url: null
+
+  extractor:
+    purpose: groundtruth
+    style: re
   
 environment:
 
@@ -17,8 +17,6 @@ environment:
   
   # Fix the see for reproducible
   seed: 15
-
-  
   
 model:
 
@@ -27,10 +25,9 @@ model:
 
   prompt_type: cot
   cot_filepath: ./examples/ChainOfThought/Prompts/GSM8K/prompt_hard.txt
-
-
-  authorization_env_path: ./.env
   
+  authorization_path: ./.env
+
   generation_settings:
     temperature: 0.7
     max_tokens: 1000
@@ -40,7 +37,9 @@ model:
 
   pretrained_models_path: experiments/pretrained_models
 
+
 trainer:
+
 
 logging:
   # path where to save, empty for no saving
@@ -51,9 +50,13 @@ logging:
   visualization_path: experiments/visualizations
 
 evaluation:
+  
+  # basic, llm
+  style: basic
 
-  # set the hyper parameters for performance
-  performance:
+  extractor:
+    purpose: result
+    style: re
 
 
 

@@ -1,7 +1,3 @@
-# include basic settings for the models and the learning process
-
-
-# dataset settings for the original dataset and the corresponding multimodal data processor
 data:
  
   data_name: GSM8K
@@ -62,8 +58,6 @@ evaluation:
     purpose: result
     style: re
 
-  # set the hyper parameters for performance
-  performance:
    
 
 

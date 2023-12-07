@@ -13,7 +13,7 @@ from vgbase.utils.folder_utils import directory_contains_subfolder
 from llmpebase.model.LM import base
 
 
-class LLaMARequest(base.BaseLMRequest):
+class LLaMARequest(base.BaseLlmRequest):
     """A class to forward the LLaMA model."""
 
     def __init__(self, model_config: dict) -> None:
