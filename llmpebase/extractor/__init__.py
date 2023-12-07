@@ -9,17 +9,21 @@ from llmpebase.extractor.re_extraction import (
     GSM8KRespReExtractor,
     MMLUGtReExtractor,
     MMLURespReExtractor,
+    MATHGtReExtractor,
+    MATHRespReExtractor,
 )
 
 
 gt_extractors = {
     "GSM8K": {"re": GSM8KGtReExtractor, "llm": "not implemented"},
     "MMLU": {"re": MMLUGtReExtractor, "llm": "not implemented"},
+    "MATH": {"re": MATHGtReExtractor, "llm": "not implemented"},
 }
 
 resp_extractors = {
     "GSM8K": {"re": GSM8KRespReExtractor, "llm": "not implemented"},
     "MMLU": {"re": MMLURespReExtractor, "llm": "not implemented"},
+    "MATH": {"re": MATHRespReExtractor, "llm": "not implemented"},
 }
 
 
