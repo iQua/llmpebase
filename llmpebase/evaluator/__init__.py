@@ -9,12 +9,22 @@ from llmpebase.evaluator.re_evaluation import (
     GSM8KLlmEvaluator,
     MMLUEvaluator,
     MMLULlmEvaluator,
+    MATHEvaluator,
+    MATHLlmEvaluator,
 )
 
 
-basic_evaluators = {"GSM8K": GSM8KEvaluator, "MMLU": MMLUEvaluator}
+basic_evaluators = {
+    "GSM8K": GSM8KEvaluator,
+    "MMLU": MMLUEvaluator,
+    "MATH": MATHEvaluator,
+}
 
-llm_evaluators = {"GSM8K": GSM8KLlmEvaluator, "MMLU": MMLULlmEvaluator}
+llm_evaluators = {
+    "GSM8K": GSM8KLlmEvaluator,
+    "MMLU": MMLULlmEvaluator,
+    "MATH": MATHLlmEvaluator,
+}
 
 
 def get(data_name, style="basic", **kwargs):

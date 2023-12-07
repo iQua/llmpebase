@@ -1,6 +1,6 @@
 """ 
-The datasource inferance for the MATH dataset.
-The detaild information of it is shown in 
+The datasource inference for the MATH dataset.
+The detailed information of it is shown in 
 https://people.eecs.berkeley.edu/~hendrycks/MATH.tar
 """
 import os
@@ -88,7 +88,7 @@ class MATHDataset(base.BaseDataset):
             difficulty_count.update(category_levels)
             collect_items.extend(items)
             current_idx = len(collect_items)
-            # Add sample indexs to the category_samples
+            # Add sample indexes to the category_samples
             category_samples[category_name].extend(
                 range(current_idx - len(items), current_idx)
             )
@@ -116,21 +116,15 @@ class MATHDataset(base.BaseDataset):
             # Load the JSON data from the file
             data = json.load(json_file)
 
-        solution = data["solution"].rstrip()
+        answer = data["solution"].rstrip()
 
-        sents = extractor.extract_sentences(solution)
-        sents = [sent for sent in sents if "=" in sent or "\\boxed" in sent]
-        conclusion = sents[-1]
-
-        groundtruths = extractor.extract_target_equations(conclusion)
-        result = groundtruths[-1]
-        final_result = extractor.extract_equation_result(result)
+        answer, conclusion, groundtruth = self.gt_extractor.forward(answer)
 
         return BaseQASample(
             question=data["problem"],
-            answer=solution,
+            answer=answer,
             conclusion=conclusion,
-            groundtruth=final_result,
+            groundtruth=groundtruth,
             auxiliary={
                 "level": data["level"],
                 "category": data["type"],

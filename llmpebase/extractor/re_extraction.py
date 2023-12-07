@@ -11,9 +11,8 @@ import pandas as pd
 
 def extract_sentences(text_str: str):
     """Extract the final sentence from the string."""
-
-    # r"[^.!?\n]+[.!?](?=\s|$)"
-    pattern = r"[.\n]+\s*"
+    # Set the split pattern of the regular expression
+    pattern = r"(?<!\d)\.\s+|\n"
 
     # Find all sentences in the paragraph
     sentences = re.split(pattern, text_str.rstrip())
@@ -22,6 +21,56 @@ def extract_sentences(text_str: str):
 
     # Extract the final sentence
     return sentences
+
+
+def extract_flagged_conclusion(
+    text_str: str, flags: List[str] = None, weights: List[int] = None
+):
+    """
+    Extract the conclusion containing the flags.
+
+    This function will count the number of flags * weights in each sentence and return the
+    one 1) containing the most important flags and 2) the final one when there are multiple
+    """
+    sentences = extract_sentences(text_str)
+    # Count each sentence matches how many flags
+    sentence_matched = []
+    for sent in sentences:
+        sentence_matched.append(
+            sum([int(flag in sent) * weights[idx] for idx, flag in enumerate(flags)])
+        )
+
+    # Get the sentence with the most flags
+    n_matched = len(sentence_matched)
+    max_matched = max(sentence_matched)
+
+    # Reverse the list in order to get the index of the final max values
+    sentence_matched.reverse()
+    # Here -1 as the index starts from 0
+    index = n_matched - 1 - sentence_matched.index(max_matched)
+
+    return sentences[index]
+
+
+def extract_solution(text_str: str, solution_flag: str = "The solution is"):
+    """
+    Extract the solution presented after the 'solution_flag'.
+
+    This function extracts the solution presented after the 'solution_flag' in the
+    text_str. The solution_flag is case-insensitive.
+    """
+    # Set the finding pattern of the regular expression
+    solution_flag = re.escape(solution_flag)
+    pattern = rf"{solution_flag}\s*(.*)"
+
+    # Search for the solution
+    match = re.search(pattern, text_str, re.IGNORECASE | re.DOTALL)
+
+    # Once nothing is extract, just return the original text_str
+    if not match:
+        return None
+
+    return match.group(1)
 
 
 def extract_figures(
@@ -55,22 +104,6 @@ def extract_figures(
     return numbers
 
 
-def extract_solution(text_str: str, solution_flag: str = "The solution is"):
-    """Extract the solution presented after the 'solution_flag'."""
-    # Set the finding pattern of the regular expression
-    solution_flag = re.escape(solution_flag)
-    pattern = rf"{solution_flag}\s*(.*)"
-
-    # Search for the solution
-    match = re.search(pattern, text_str, re.IGNORECASE | re.DOTALL)
-
-    # Once nothing is extract, just return the original text_str
-    if not match:
-        return None
-
-    return match.group(1)
-
-
 def extract_characters(text_str: str):
     """Extract the solution presented after the 'solution_flag'."""
     pattern = r"\b[A-Za-z]\b"
@@ -101,7 +134,7 @@ def extract_equations(text_str: str, target_format="$"):
     if not numbers:
         numbers = [text_str]
 
-    return None
+    return numbers
 
 
 def extract_format_equations(
@@ -142,9 +175,9 @@ class GSM8KGtReExtractor(base.BaseReExtractor):
 
         # Extract the figures with `#` as the format, such as
         # ####7
-        result = extract_figures(gt_sentence, target_format="#")[-1]
-        result = result if result is not None else gt_sentence
-        return answer, conclusion, result
+        groundtruth = extract_figures(gt_sentence, target_format="#")[-1]
+        groundtruth = groundtruth if groundtruth is not None else gt_sentence
+        return answer, conclusion, groundtruth
 
 
 class GSM8KRespReExtractor(base.BaseReExtractor):
@@ -162,7 +195,7 @@ class GSM8KRespReExtractor(base.BaseReExtractor):
             conclusion = sentences[-1]
 
         result = extract_figures(conclusion, target_format="$")[-1]
-        result = result if result is not None else conclusion
+        result = result.rstrip(".") if result is not None else conclusion
         return result
 
 
@@ -197,5 +230,44 @@ class MMLURespReExtractor(base.BaseReExtractor):
 
         results = extract_characters(conclusion)
         # Only maintain the A/B/C/D option as the MMLU is a single-choice dataset
-        result = results[-1] if results is not None else conclusion
+        result = results[-1].rstrip(".") if results is not None else conclusion
+        return result
+
+
+class MATHGtReExtractor(base.BaseReExtractor):
+    """A base extractor to extract the groundtruth from the response."""
+
+    def forward(self, answer: str, **kwargs):
+        """Extract the groundtruth from samples of the GSM8K dataset."""
+
+        conclusion = extract_flagged_conclusion(
+            answer, flags=["=", "\\boxed"], weights=[1, 3]
+        )
+
+        groundtruths = extract_format_equations(conclusion, target_format="\\boxed")
+
+        groundtruth = groundtruths[-1]
+
+        return answer, conclusion, groundtruth
+
+
+class MATHRespReExtractor(base.BaseReExtractor):
+    """A base extractor to extract the result from the response."""
+
+    def forward(self, answer, **kwargs) -> List[str]:
+        """Extract the result from the response for the GSM8K dataset."""
+
+        # To obtain the target solution
+        conclusion = extract_solution(answer, solution_flag=kwargs["solution_flag"])
+
+        # When no target solution is obtained, we assume that the final sentence
+        # will be the solution following the common behaviors.
+        if conclusion is None:
+            sentences = extract_sentences(answer)
+            # Extract the corresponding conclusion which is the final sentence
+            conclusion = sentences[-1]
+
+        results = extract_equations(conclusion, target_format="$")
+        # Only maintain the A/B/C/D option as the MMLU is a single-choice dataset
+        result = results[-1].rstrip(".") if results is not None else conclusion
         return result
