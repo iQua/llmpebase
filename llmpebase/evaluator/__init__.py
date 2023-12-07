@@ -4,13 +4,17 @@ groundtruths.
 """
 import logging
 
-from llmpebase.evaluator.re_evaluation import GSM8KEvaluator, GSM8KLLMEvaluator
+from llmpebase.evaluator.re_evaluation import (
+    GSM8KEvaluator,
+    GSM8KLlmEvaluator,
+    MMLUEvaluator,
+    MMLULlmEvaluator,
+)
 
 
-basic_evaluators = {"GSM8K": GSM8KEvaluator}
+basic_evaluators = {"GSM8K": GSM8KEvaluator, "MMLU": MMLUEvaluator}
 
-
-llm_evaluators = {"GSM8K": GSM8KLLMEvaluator}
+llm_evaluators = {"GSM8K": GSM8KLlmEvaluator, "MMLU": MMLULlmEvaluator}
 
 
 def get(data_name, style="basic", **kwargs):

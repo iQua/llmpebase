@@ -4,12 +4,23 @@ extract the target result from the response.
 """
 import logging
 
-from llmpebase.extractor.re_extraction import GSM8KGtReExtractor, GSM8KRespReExtractor
+from llmpebase.extractor.re_extraction import (
+    GSM8KGtReExtractor,
+    GSM8KRespReExtractor,
+    MMLUGtReExtractor,
+    MMLURespReExtractor,
+)
 
 
-gt_extractors = {"GSM8K": {"re": GSM8KGtReExtractor, "llm": "not implemented"}}
+gt_extractors = {
+    "GSM8K": {"re": GSM8KGtReExtractor, "llm": "not implemented"},
+    "MMLU": {"re": MMLUGtReExtractor, "llm": "not implemented"},
+}
 
-resp_extractors = {"GSM8K": {"re": GSM8KRespReExtractor, "llm": "not implemented"}}
+resp_extractors = {
+    "GSM8K": {"re": GSM8KRespReExtractor, "llm": "not implemented"},
+    "MMLU": {"re": MMLURespReExtractor, "llm": "not implemented"},
+}
 
 
 def get(data_name, purpose: str = None, style: str = None, **kwargs):

@@ -2,8 +2,9 @@
 
 
 from typing import List, Union
+from collections import defaultdict
 
-from llmpebase.model.LM.base import BaseLMRequest
+from llmpebase.model.LM.base import BaseLlmRequest
 
 
 class BaseEvaluator:
@@ -11,11 +12,8 @@ class BaseEvaluator:
     the result and the groundtruth."""
 
     def __init__(self):
-        # Track the matching between results and groundtruths
-        self.matches = []
-
         # Set num correct answers
-        self.num_correct = 0
+        self.metric_tracker = defaultdict(int)
 
     def measure(
         self, result: Union[int, float], groundtruth: Union[int, float]
@@ -25,18 +23,19 @@ class BaseEvaluator:
 
     def forward(self, results: List[str], groundtruths: List[str]):
         """Evaluate the result by the groundtruth."""
-
+        matches = []
         for res, gt in zip(results, groundtruths):
             res = self.measure(res, gt)
-            self.matches.append(res)
-            self.num_correct += int(res)
+            matches.append(res)
+            self.metric_tracker["num_correct"] += int(res)
+        return matches
 
 
 class BaseLLMEvaluator(BaseEvaluator):
     """A base evaluator, built upon the LLM, to measure the similarity between the result
     and the groundtruth."""
 
-    def __init__(self, llm_model: BaseLMRequest):
+    def __init__(self, llm_model: BaseLlmRequest):
         super().__init__()
         # Define the request model used as the extractor
         self.llm_model = llm_model

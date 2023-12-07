@@ -1,10 +1,12 @@
 """
-A extractor relying on `re` of the python package to perform the extraction.
+A extractor relying on `regular expression (re)` of the python package to perform the extraction.
 """
 
 import re
+from typing import List
 
 from llmpebase.extractor import base
+import pandas as pd
 
 
 def extract_sentences(text_str: str):
@@ -22,27 +24,12 @@ def extract_sentences(text_str: str):
     return sentences
 
 
-def extract_target_answers(response_contents: list, solution_flag="In summary"):
-    """Extracting the target answer from the contents of responses."""
-    prefix = re.escape(f"{solution_flag}") + r".*"
-    # 1. extract the string after the answer format
-    pattern = rf"{prefix}\s*(.+)"
-
-    obtained_targets = []
-    for content in response_contents:
-        match = re.search(pattern, content, re.IGNORECASE | re.DOTALL)
-
-        obtained_targets.append(match.group(0) if match else content)
-
-    return obtained_targets
-
-
 def extract_figures(
     text_str: str,
     target_format="$",
 ):
     """Extract the target results from the text_str."""
-    # This pattent is used to extract the target result from the given
+    # This pattern is used to extract the target result from the given
     # `target_format`
     # For example, when target_format is $
     # This pattern can extract
@@ -57,12 +44,46 @@ def extract_figures(
     # Find all matches in the text
     matches = re.findall(pattern, text_str)
 
+    if not matches:
+        return None
+
     # Extract the matched numbers
     numbers = [match for match in matches if match]
 
     # Remove useless commas
     numbers = [number.replace(",", "") for number in numbers]
     return numbers
+
+
+def extract_solution(text_str: str, solution_flag: str = "The solution is"):
+    """Extract the solution presented after the 'solution_flag'."""
+    # Set the finding pattern of the regular expression
+    solution_flag = re.escape(solution_flag)
+    pattern = rf"{solution_flag}\s*(.*)"
+
+    # Search for the solution
+    match = re.search(pattern, text_str, re.IGNORECASE | re.DOTALL)
+
+    # Once nothing is extract, just return the original text_str
+    if not match:
+        return None
+
+    return match.group(1)
+
+
+def extract_characters(text_str: str):
+    """Extract the solution presented after the 'solution_flag'."""
+    pattern = r"\b[A-Za-z]\b"
+
+    # Find all matches in the input string
+    matches = re.findall(pattern, text_str)
+
+    if not matches:
+        return None
+
+    characters = [match for match in matches if match]
+
+    return characters
 
 
 def extract_equations(text_str: str, target_format="$"):
@@ -80,7 +101,7 @@ def extract_equations(text_str: str, target_format="$"):
     if not numbers:
         numbers = [text_str]
 
-    return numbers
+    return None
 
 
 def extract_format_equations(
@@ -96,13 +117,16 @@ def extract_format_equations(
     pattern = rf"{re.escape(target_format)}{{((?:[^{{}}]+|{{[^{{}}]+}})+)}}"
     matches = re.findall(pattern, right_eq)
 
+    if not matches:
+        return None
+
     return matches
 
 
 class GSM8KGtReExtractor(base.BaseReExtractor):
     """A base extractor to extract the groundtruth from the response."""
 
-    def forward(self, answer):
+    def forward(self, answer, **kwargs):
         """Extract the groundtruth from samples of the GSM8K dataset.
 
         The answer in GSM8K sample will be:
@@ -114,27 +138,64 @@ class GSM8KGtReExtractor(base.BaseReExtractor):
         # the groundtruth
         answer = "\n".join(sentences[:-1])
         conclusion = sentences[-2]
-        gt_sent = sentences[-1]
+        gt_sentence = sentences[-1]
 
         # Extract the figures with `#` as the format, such as
         # ####7
-        result = extract_figures(gt_sent, target_format="#")[-1]
-
+        result = extract_figures(gt_sentence, target_format="#")[-1]
+        result = result if result is not None else gt_sentence
         return answer, conclusion, result
 
 
 class GSM8KRespReExtractor(base.BaseReExtractor):
     """A base extractor to extract the result from the response."""
 
-    def forward(self, answer):
+    def forward(self, answer, **kwargs):
         """Extract the result from the response for the GSM8K dataset."""
-
-        # Split the long string into separate sentences
-        sentences = extract_sentences(answer)
-
-        # Extract the corresponding conclusion which is the final sentence
-        conclusion = sentences[-1]
+        # To obtain the target solution
+        conclusion = extract_solution(answer, solution_flag=kwargs["solution_flag"])
+        # When no target solution is obtained, we assume that the final sentence
+        # will be the solution following the common behaviors.
+        if conclusion is None:
+            sentences = extract_sentences(answer)
+            # Extract the corresponding conclusion which is the final sentence
+            conclusion = sentences[-1]
 
         result = extract_figures(conclusion, target_format="$")[-1]
+        result = result if result is not None else conclusion
+        return result
 
+
+class MMLUGtReExtractor(base.BaseReExtractor):
+    """A base extractor to extract the groundtruth from the response."""
+
+    def forward(self, answer: pd.DataFrame, **kwargs):
+        """Extract the groundtruth from samples of the GSM8K dataset."""
+        row_idx = kwargs["row_idx"]
+
+        # Get the groundtruth in the corresponding row
+        answer = answer.iloc[row_idx, -1]
+        answer = f"{answer}"
+        return answer, answer, answer
+
+
+class MMLURespReExtractor(base.BaseReExtractor):
+    """A base extractor to extract the result from the response."""
+
+    def forward(self, answer, **kwargs) -> List[str]:
+        """Extract the result from the response for the GSM8K dataset."""
+
+        # To obtain the target solution
+        conclusion = extract_solution(answer, solution_flag=kwargs["solution_flag"])
+
+        # When no target solution is obtained, we assume that the final sentence
+        # will be the solution following the common behaviors.
+        if conclusion is None:
+            sentences = extract_sentences(answer)
+            # Extract the corresponding conclusion which is the final sentence
+            conclusion = sentences[-1]
+
+        results = extract_characters(conclusion)
+        # Only maintain the A/B/C/D option as the MMLU is a single-choice dataset
+        result = results[-1] if results is not None else conclusion
         return result

@@ -5,7 +5,7 @@ An extractor relying LLMs to extract the target result from a long response.
 from llmpebase.extractor import base
 
 
-class LLMRespExtractor(base.BaseLLMExtractor):
+class LlmRespExtractor(base.BaseLlmExtractor):
     """A extractor relying on LLM to extract the target results from a long response."""
 
     system_prompt = "You are a powerful AI extractor in math responsible for identifying and extracting the core solution for a question from a long text answer. Please extract the final solution presenting as either an integer, float, an equation, or a mathematical expression. Please only maintain the original content without making any modifications. One important rule is that the final solution generally exists in the last sentence of the answer."
