@@ -6,6 +6,10 @@ import random
 from typing import List, Union
 
 
+from llmpebase.dataset.data_generic import BaseQASample
+from llmpebase.dataset.base import BaseDataset
+
+
 class BasePrompting:
     """
     The basic prompting behaving as the structure to be followed by
@@ -98,7 +102,9 @@ class BasePrompting:
         prompt = f"""{fewshot_prompt}Notice: {notice}\n\n{test_qa_prompt}"""
         return prompt
 
-    def create_prompt_sample(self, sample, dataset, config):
+    def create_prompt_sample(
+        self, sample: BaseQASample, dataset: BaseDataset, config: dict
+    ):
         """Create one prompt sample."""
 
         n_shots = config["n_shots"]

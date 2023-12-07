@@ -59,16 +59,16 @@ class BBHStandardPrompting(base.BasePrompting):
         for test_sample in eval_set:
             problem_name = test_sample.auxiliary["sample_problem"]
             sample_idx = test_sample.auxiliary["sample_idx"]
-            sample_indexs = train_set.get_problem_sample_indexs(problem_name)
+            sample_indexes = train_set.get_problem_sample_indexes(problem_name)
             # Remove the test sample index to avoid including this test sample
             # in the prompt
-            sample_indexs.remove(sample_idx)
-            fewshot_indexs = (
-                random.sample(sample_indexs, n_shots)
-                if len(sample_indexs) > n_shots
-                else sample_indexs
+            sample_indexes.remove(sample_idx)
+            fewshot_indexes = (
+                random.sample(sample_indexes, n_shots)
+                if len(sample_indexes) > n_shots
+                else sample_indexes
             )
-            samples = [train_set[idx] for idx in fewshot_indexs]
+            samples = [train_set[idx] for idx in fewshot_indexes]
             request_prompt = self.create_test_prompt(
                 problem_name=problem_name,
                 template_samples=samples,

@@ -115,7 +115,7 @@ class TheoremQADataset(base.BaseDataset):
             },
         )
 
-    def get_problem_sample_indexs(self, problem_name):
+    def get_problem_sample_indexes(self, problem_name):
         """Get sample indexs of one problem."""
         # Get the problem, i.e., the subfield, belong
         # to which field

@@ -53,6 +53,7 @@ class GSM8KDataset(base.BaseDataset):
         data_frame = pd.read_parquet(sample_path, engine="pyarrow")
 
         raw_answer = data_frame.iloc[idx, -1]
+        # Extract the answer, conclusion, and groundtruth from the raw answer
         answer, conclusion, groundtruth = self.gt_extractor.forward(raw_answer)
 
         return BaseQASample(

@@ -24,13 +24,13 @@ class MMLUStandardPrompting(base.BasePrompting):
         n_shots = config["n_shots"]
 
         problem_name = sample.auxiliary["sample_problem"]
-        sample_indexs = dataset.get_problem_sample_indexs(problem_name)
-        fewshot_indexs = (
-            random.sample(sample_indexs, n_shots)
-            if len(sample_indexs) > n_shots
-            else sample_indexs
+        sample_indexes = dataset.get_problem_sample_indexes(problem_name)
+        fewshot_indexes = (
+            random.sample(sample_indexes, n_shots)
+            if len(sample_indexes) > n_shots
+            else sample_indexes
         )
-        samples = [dataset[idx] for idx in fewshot_indexs]
+        samples = [dataset[idx] for idx in fewshot_indexes]
         return (
             self.create_test_prompt(
                 problem_name=problem_name,

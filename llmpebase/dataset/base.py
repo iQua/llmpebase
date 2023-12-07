@@ -90,7 +90,7 @@ class BaseDataset(torch.utils.data.Dataset):
         """Obtain the number of samples."""
         return self.data_catalog.data_statistics["num_samples"]
 
-    def get_problem_sample_indexs(self, problem_name):
+    def get_problem_sample_indexes(self, problem_name):
         """Get sample indexs of one problem."""
 
         return self.data_catalog.category_samples[problem_name]
