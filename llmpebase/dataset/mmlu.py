@@ -89,20 +89,21 @@ class MMLUDataset(base.BaseDataset):
         row_idx = int(sample_id.split("_")[-1])
         # Extract data from the loaded csv
         question = data_frame.iloc[row_idx, 0]
-        options = data_frame.iloc[row_idx, 1:-1]
+        options = data_frame.iloc[row_idx, 1:-1].tolist()
         choice_letters = [chr(ord("A") + num) for num in range(len(options))]
         options_str = [
             f"({letter}) {choice}" for choice, letter in zip(options, choice_letters)
         ]
         options_str = "\n".join(options_str)
-        answer = data_frame.iloc[row_idx, -1]
-        answer = f"{answer}"
+        answer, conclusion, groundtruth = self.gt_extractor.forward(
+            data_frame, row_idx=row_idx
+        )
 
         return BaseQASample(
             question=question,
             answer=answer,
-            conclusion=answer,
-            groundtruth=answer,
+            conclusion=conclusion,
+            groundtruth=groundtruth,
             auxiliary={
                 "options": options,
                 "choice_letters": choice_letters,

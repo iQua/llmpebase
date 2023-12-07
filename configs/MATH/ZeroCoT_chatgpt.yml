@@ -51,8 +51,6 @@ logging:
 
 evaluation:
 
-  n_shots: 5
-
   # set the hyper parameters for performance
   performance:
 
