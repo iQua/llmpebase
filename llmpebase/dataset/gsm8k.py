@@ -1,6 +1,6 @@
 """ 
-The datasource inferance for the GSM8K dataset.
-The detaild information of it is shown in 
+The datasource inference for the GSM8K dataset.
+The detailed information of it is shown in 
 https://huggingface.co/datasets/gsm8k
 """
 import os

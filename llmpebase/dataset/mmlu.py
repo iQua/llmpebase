@@ -1,6 +1,6 @@
 """ 
-The datasource inferance for the MMLU dataset.
-The detaild information of it is shown in 
+The datasource inference for the MMLU dataset.
+The detailed information of it is shown in 
 https://huggingface.co/datasets/cais/mmlu
 """
 import os
@@ -64,7 +64,7 @@ class MMLUDataset(base.BaseDataset):
                 ]
             )
             current_idx = len(collected_items)
-            # Add sample indexs to the category_samples
+            # Add sample indexes to the category_samples
             category_samples[problem_name].extend(
                 range(current_idx - problem_n_samples, current_idx)
             )

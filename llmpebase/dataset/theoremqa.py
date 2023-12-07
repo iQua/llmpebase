@@ -1,6 +1,6 @@
 """
-The datasource inferance for the TheoremQA (TQA) dataset.
-The detaild information of it is shown in 
+The datasource inference for the TheoremQA (TQA) dataset.
+The detailed information of it is shown in 
 https://github.com/wenhuchen/TheoremQA
 
 Currently, we do not support the multimodal samples, i.e.,
@@ -116,7 +116,7 @@ class TheoremQADataset(base.BaseDataset):
         )
 
     def get_problem_sample_indexes(self, problem_name):
-        """Get sample indexs of one problem."""
+        """Get sample indexes of one problem."""
         # Get the problem, i.e., the subfield, belong
         # to which field
         field = [

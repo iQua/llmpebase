@@ -60,3 +60,18 @@ class MATHLlmEvaluator(base.BaseLLMEvaluator):
     def measure(self, result, groundtruth):
         # TO BE IMPLEMENTED
         pass
+
+
+class BBHEvaluator(base.BaseEvaluator):
+    """A base evaluator for the MMLU dataset."""
+
+    def measure(self, result, groundtruth):
+        return result == groundtruth
+
+
+class BBHLlmEvaluator(base.BaseLLMEvaluator):
+    """A evaluator implemented by LLMs for the GSM8K dataset."""
+
+    def measure(self, result, groundtruth):
+        # TO BE IMPLEMENTED
+        pass

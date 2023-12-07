@@ -19,7 +19,7 @@ class MMLUStandardPrompting(base.BasePrompting):
         return f"""{prompt}{options}"""
 
     def create_prompt_sample(self, sample, dataset, config):
-        """Evaluating the MMLU dataset."""
+        """Create the prompt sample from the sample of MMLU dataset."""
 
         n_shots = config["n_shots"]
 

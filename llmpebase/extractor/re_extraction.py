@@ -268,6 +268,38 @@ class MATHRespReExtractor(base.BaseReExtractor):
             conclusion = sentences[-1]
 
         results = extract_equations(conclusion, target_format="$")
-        # Only maintain the A/B/C/D option as the MMLU is a single-choice dataset
+        # Only maintain the final equation as the result
+        result = results[-1].rstrip(".") if results is not None else conclusion
+        return result
+
+
+class BBHGtReExtractor(base.BaseReExtractor):
+    """A base extractor to extract the groundtruth from the response."""
+
+    def forward(self, answer: dict, **kwargs):
+        """Extract the groundtruth from samples of the GSM8K dataset."""
+
+        return answer["target"], answer["target"], answer["target"]
+
+
+class BBHRespReExtractor(base.BaseReExtractor):
+    """A base extractor to extract the result from the response."""
+
+    def forward(self, answer: str, **kwargs) -> List[str]:
+        """Extract the result from the response for the GSM8K dataset."""
+
+        # To obtain the target solution
+        conclusion = extract_solution(answer, solution_flag=kwargs["solution_flag"])
+
+        # When no target solution is obtained, we assume that the final sentence
+        # will be the solution following the common behaviors.
+        if conclusion is None:
+            sentences = extract_sentences(answer)
+            # Extract the corresponding conclusion which is the final sentence
+            conclusion = sentences[-1]
+
+        results = extract_figures(conclusion, target_format="$")
+
+        # Only maintain the final figure as the result
         result = results[-1].rstrip(".") if results is not None else conclusion
         return result

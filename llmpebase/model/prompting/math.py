@@ -12,7 +12,7 @@ class MATHStandardPrompting(base.BasePrompting):
     """The standard prompting for MATH."""
 
     def create_prompt_sample(self, sample, dataset, config):
-        """Evaluating the MATH dataset."""
+        """Create the prompt sample from the sample of MATH dataset."""
 
         n_shots = config["n_shots"]
 

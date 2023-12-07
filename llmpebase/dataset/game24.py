@@ -1,5 +1,5 @@
 """ 
-The datasource inferance for the Game of 24 dataset.
+The datasource inference for the Game of 24 dataset.
 """
 import os
 
@@ -22,7 +22,7 @@ class GameOf24Dataset(base.BaseDataset):
 
     def create_data_catalog(self):
         data_frame = pd.read_csv(self.phase_data_path)
-        n_itmes = data_frame.shape[0]
+        n_items = data_frame.shape[0]
 
         collected_items = [
             BaseQASampleInfo(
@@ -30,12 +30,12 @@ class GameOf24Dataset(base.BaseDataset):
                 sample_problem="Algebra",
                 sample_filepath=self.phase_data_path,
             )
-            for i in range(n_itmes)
+            for i in range(n_items)
         ]
         return DatasetCatalog(
             data_phase=self.phase,
             data_samples=collected_items,
-            data_statistics=DatasetStatistics(num_samples=n_itmes),
+            data_statistics=DatasetStatistics(num_samples=n_items),
         )
 
     def get_sample(self, idx):

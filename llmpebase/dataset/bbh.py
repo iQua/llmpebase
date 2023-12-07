@@ -1,6 +1,6 @@
 """ 
-The datasource inferance for the BIG-Bench Hard (BBH) dataset.
-The detaild information of it is shown in 
+The datasource inference for the BIG-Bench Hard (BBH) dataset.
+The detailed information of it is shown in 
 https://github.com/suzgunmirac/BIG-Bench-Hard
 """
 import os
@@ -42,6 +42,7 @@ class BBHDataset(base.BaseDataset):
 
         problem_category = []
         collect_items = []
+        category_samples = defaultdict(list)
         category_info = defaultdict(dict)
         for filepath in json_files:
             with open(filepath, "r", encoding="utf-8") as f:
@@ -62,10 +63,16 @@ class BBHDataset(base.BaseDataset):
             )
 
             category_info[category_name]["num_samples"] = num_examples
+            current_idx = len(collect_items)
+            # Add sample indexes to the category_samples
+            category_samples[category_name].extend(
+                range(current_idx - num_examples, current_idx)
+            )
 
         return DatasetCatalog(
             data_phase=self.phase,
             data_samples=collect_items,
+            category_samples=category_samples,
             problem_category=problem_category,
             data_statistics=DatasetStatistics(
                 num_samples=len(collect_items), category_info=category_info
@@ -77,19 +84,21 @@ class BBHDataset(base.BaseDataset):
         sample_info = self.data_catalog.data_samples[idx]
         sample_id = sample_info["sample_id"]
         sample_problem = sample_info["sample_problem"]
-
         sample_filepath = sample_info["sample_filepath"]
 
         with open(sample_filepath, "r", encoding="utf-8") as json_file:
             examples = json.load(json_file)["examples"]
         sample_idx = int(sample_id.split("_")[-1])
-
         sample_data = examples[sample_idx]
+
+        # Extract the answer, conclusion, and groundtruth from the raw answer
+        answer, conclusion, groundtruth = self.gt_extractor.forward(sample_data)
+
         return BaseQASample(
             question=sample_data["input"],
-            answer=sample_data["target"],
-            conclusion=sample_data["target"],
-            groundtruth=sample_data["target"],
+            answer=answer,
+            conclusion=conclusion,
+            groundtruth=groundtruth,
             auxiliary={"sample_problem": sample_problem, "sample_idx": sample_idx},
         )
 

@@ -11,6 +11,8 @@ from llmpebase.evaluator.re_evaluation import (
     MMLULlmEvaluator,
     MATHEvaluator,
     MATHLlmEvaluator,
+    BBHEvaluator,
+    BBHLlmEvaluator,
 )
 
 
@@ -18,12 +20,14 @@ basic_evaluators = {
     "GSM8K": GSM8KEvaluator,
     "MMLU": MMLUEvaluator,
     "MATH": MATHEvaluator,
+    "BBH": BBHEvaluator,
 }
 
 llm_evaluators = {
     "GSM8K": GSM8KLlmEvaluator,
     "MMLU": MMLULlmEvaluator,
     "MATH": MATHLlmEvaluator,
+    "BBH": BBHLlmEvaluator,
 }
 
 
