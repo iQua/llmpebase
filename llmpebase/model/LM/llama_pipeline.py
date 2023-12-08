@@ -6,9 +6,6 @@ pipeline.
 import torch
 from transformers import pipeline, LlamaTokenizer
 
-from vgbase.utils.folder_utils import directory_contains_subfolder
-
-
 from llmpebase.model.LM import llama_falcon
 
 
@@ -20,13 +17,11 @@ class LLaMAPipelineRequest(llama_falcon.LLaMARequest):
 
         model_name = model_config["model_name"]
         checkpoint_dir = model_name
-        if "pretrained_models_dir" in model_config and directory_contains_subfolder(
-            model_config["pretrained_models_dir"], model_name
-        ):
+        if "pretrained_models_dir" in model_config:
             checkpoint_dir = model_config["pretrained_models_dir"]
 
         model_type = model_config["model_type"]
-        assert model_type in ["llamav2"]
+        assert model_type in ["llama2"]
 
         tokenizer = LlamaTokenizer.from_pretrained(
             checkpoint_dir,

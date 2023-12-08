@@ -20,17 +20,17 @@ class BasePrompting:
     # Thus, no punctuation is needed to be added during organizing prompts.
     solution_flag: str = "The final solution is"
 
-    question_prompt_head: str = "Question:"
-    question_prompt_tail: str = ""
-
-    answer_prompt_head: str = "Answer:"
-
     template_prompt_head: str = (
         "Following examples are question-answer pairs about {}.\n\n"
     )
     template_prompt_tail: str = (
         "With above examples, please answer the given question.\n\n"
     )
+
+    question_prompt_head: str = "Question:"
+    question_prompt_tail: str = ""
+
+    answer_prompt_head: str = "Answer:"
 
     notice: str = "Place the final solution after the sentence '{}' at the end of the answer for readability."
 

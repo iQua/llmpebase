@@ -8,7 +8,7 @@ from llama import Llama, Dialog
 from llmpebase.model.LM import llama_falcon
 
 
-class LLaMAV2Request(llama_falcon.LLaMARequest):
+class llama2Request(llama_falcon.LLaMARequest):
     """A class to make request on the LLaMA-V2 model."""
 
     def get_generation_config(self):

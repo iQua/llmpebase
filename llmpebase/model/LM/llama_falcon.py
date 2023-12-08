@@ -8,8 +8,6 @@ import torch
 from transformers import LlamaForCausalLM, LlamaTokenizer, AutoModelForCausalLM
 from transformers import GenerationConfig
 
-from vgbase.utils.folder_utils import directory_contains_subfolder
-
 from llmpebase.model.LM import base
 
 
@@ -60,9 +58,7 @@ class LLaMARequest(base.BaseLlmRequest):
         """loading the llama models."""
         model_name = model_config["model_name"]
         checkpoint_dir = model_name
-        if "pretrained_models_dir" in model_config and directory_contains_subfolder(
-            model_config["pretrained_models_dir"], model_name
-        ):
+        if "pretrained_models_dir" in model_config:
             checkpoint_dir = model_config["pretrained_models_dir"]
 
         model_type = model_config["model_type"]

@@ -5,8 +5,9 @@ A extractor relying on `regular expression (re)` of the python package to perfor
 import re
 from typing import List
 
-from llmpebase.extractor import base
 import pandas as pd
+
+from llmpebase.extractor import base
 
 
 def extract_sentences(text_str: str):

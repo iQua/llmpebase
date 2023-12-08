@@ -4,7 +4,7 @@ Base extractors to be inherited by the specific extractor.
 
 from typing import Tuple, Any
 
-from llmpebase.model.LM.base import BaseLlmRequest
+# from llmpebase.model.LM.base import BaseLlmRequest
 
 
 class BaseReExtractor:
@@ -24,7 +24,7 @@ class BaseReExtractor:
 class BaseLlmExtractor:
     """The base extractor built upon the LLM to extract the target result from the response."""
 
-    def __init__(self, llm_model: BaseLlmRequest):
+    def __init__(self, llm_model):
         # Define the request model used as the extractor
         self.llm_model = llm_model
 

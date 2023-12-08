@@ -18,7 +18,7 @@ import os
 import logging
 from typing import List
 
-import openai
+from openai import OpenAI
 from dotenv import load_dotenv
 
 from llmpebase.model.LM import base
@@ -36,10 +36,9 @@ class GPTAPIRequest(base.BaseLlmRequest):
         # there must have a .env file containing keywords
         # OPENAI_ORGAN_KEY and OPENAI_API_KEY
         load_dotenv(auth_env_path)
-        self.get_authorization(
-            organization=os.getenv("OPENAI_ORGAN_KEY"),
-            api_key=os.getenv("OPENAI_API_KEY"),
-        )
+
+        # Define the client
+        self.client = None
 
     def configuration(self):
         """Configure the GPT model."""
@@ -55,19 +54,15 @@ class GPTAPIRequest(base.BaseLlmRequest):
 
         self.generation_config.update(generation_settings)
 
-    def get_authorization(self, organization: str, api_key: str):
-        """Getting the authorization from openai."""
-        openai.organization = organization
-        openai.api_key = api_key
-        logging.info("Connected to OPENAI ChapGPT APIs.")
-        logging.info("With organization %s.", organization)
-        logging.info("With API key %s.", api_key)
+        # Define the client
+        self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        logging.info("Connected to a OPENAI client.")
 
     def completion_with_backoff(self, **kwargs):
         """Completing the forward within the OPENAI."""
         # Increase the number of requests
         self.num_requests += 1
-        return openai.ChatCompletion.create(**kwargs)
+        return self.client.chat.completions.create(**kwargs)
 
     def create_format_input(self, user_prompt: str, **kwargs):
         """Create messages for GPT-4 to be used for forwarding."""
@@ -115,12 +110,12 @@ class GPTAPIRequest(base.BaseLlmRequest):
             n_responses = min(per_request_responses, 20)
             per_request_responses -= n_responses
             self.generation_config["n"] = n_responses
-            reponse = self.completion_with_backoff(
+            output = self.completion_with_backoff(
                 model=self.model_name,
                 messages=input_messages,
                 **self.generation_config,
             )
-            model_responses.append(reponse)
+            model_responses.append(output)
 
         # Compute the resources
         self.compute_costs(input_messages, model_responses)
@@ -130,7 +125,7 @@ class GPTAPIRequest(base.BaseLlmRequest):
     def read_response_contents(self, responses: list):
         contents = []
         for res in responses:
-            contents.extend(choice["message"]["content"] for choice in res["choices"])
+            contents.extend(choice.message.content for choice in res.choices)
         return contents
 
     def compute_costs(self, input_messages: dict, responses: list):
@@ -141,11 +136,12 @@ class GPTAPIRequest(base.BaseLlmRequest):
         completion_tokens = 0
         completion_words = 0
         prompt_tokens = 0
+
         for res in responses:
-            prompt_tokens += res["usage"]["prompt_tokens"]
-            completion_tokens += res["usage"]["completion_tokens"]
+            prompt_tokens += res.usage.prompt_tokens
+            completion_tokens += res.usage.completion_tokens
             completion_words += sum(
-                [len(choice["message"]["content"].split()) for choice in res["choices"]]
+                [len(choice.message.content.split()) for choice in res.choices]
             )
         # Record the statistics
         self.num_prompt_tokens.append(prompt_tokens)
