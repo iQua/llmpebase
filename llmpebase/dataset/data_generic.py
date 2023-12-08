@@ -4,8 +4,9 @@ Basic components used in the dataset.
 from typing import List, Optional, Dict, Any, Union
 from dataclasses import dataclass
 
+from transformers.utils import ModelOutput as FieldFrozenContainer
 
-from vgbase.utils.generic_components import FieldFrozenContainer
+# from vgbase.utils.generic_components import FieldFrozenContainer
 
 
 @dataclass
