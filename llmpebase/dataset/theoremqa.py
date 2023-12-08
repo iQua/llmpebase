@@ -4,7 +4,7 @@ The detailed information of it is shown in
 https://github.com/wenhuchen/TheoremQA
 
 Currently, we do not support the multimodal samples, i.e.,
-one image is incorporated with the question.
+no image is incorporated with the question.
 """
 import os
 import json
@@ -98,10 +98,10 @@ class TheoremQADataset(base.BaseDataset):
         explanation = sample["Answer"]
         conclusion = sample["Answer"]
         explain_path = sample_info["auxiliary"]["explain_path"]
-        if explain_path is not None:
+        if explain_path is not None and "txt" in explain_path:
             with open(explain_path, "r", encoding="utf-8") as f:
                 explanation = f.read()
-            conclusion = extractor.extract_sentences(explanation)[-1]
+            _, conclusion, _ = self.gt_extractor.forward(explanation)
 
         return BaseQASample(
             question=sample["Question"],
@@ -112,6 +112,7 @@ class TheoremQADataset(base.BaseDataset):
                 "answer_type": sample["Answer_type"],
                 "sample_problem": sample_info["sample_problem"],
                 "problem_subfield": sample_info["auxiliary"]["problem_subfield"],
+                "sample_idx": idx,
             },
         )
 

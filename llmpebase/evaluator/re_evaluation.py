@@ -5,73 +5,27 @@ A base evaluator using `re` of Python of achieve the evaluation.
 from llmpebase.evaluator import base
 
 
-def format_number(number: str):
-    """Convert string to be the desired mathematical format."""
-    # Remove trailing dot (if any)
-    # To address the condition like "16.00."
-    if number.endswith("."):
-        number = number.rstrip(".")
-    if "." in number:
-        return float(number)
+def convert_str2float(input_str: str) -> float:
+    """Convert the string to float."""
+    if isinstance(input_str, str):
+        # Remove the '.' in the final
+        input_str = input_str.rstrip(".")
+        try:
+            input_str = float(input_str)
+        except ValueError:
+            # if this is pure string, convert it
+            # to the format case.
+            input_str = input_str.lower()
 
-    return int(number)
+    elif isinstance(input_str, (list, tuple)):
+        input_str = [convert_str2float(elem) for elem in input_str]
 
-
-class GSM8KEvaluator(base.BaseEvaluator):
-    """A base evaluator for the GSM8K dataset."""
-
-    def measure(self, result, groundtruth):
-        return format_number(result) == format_number(groundtruth)
-
-
-class GSM8KLlmEvaluator(base.BaseLLMEvaluator):
-    """A evaluator implemented by LLMs for the GSM8K dataset."""
-
-    def measure(self, result, groundtruth):
-        # TO BE IMPLEMENTED
-        pass
+    return input_str
 
 
-class MMLUEvaluator(base.BaseEvaluator):
-    """A base evaluator for the MMLU dataset."""
+class GeneralEvaluator(base.BaseEvaluator):
+    """A base evaluator to perform tne measurement in a general way meaning that
+    it will cover as many conditions as possible."""
 
-    def measure(self, result, groundtruth):
-        return result == groundtruth
-
-
-class MMLULlmEvaluator(base.BaseLLMEvaluator):
-    """A evaluator implemented by LLMs for the GSM8K dataset."""
-
-    def measure(self, result, groundtruth):
-        # TO BE IMPLEMENTED
-        pass
-
-
-class MATHEvaluator(base.BaseEvaluator):
-    """A base evaluator for the MMLU dataset."""
-
-    def measure(self, result, groundtruth):
-        return result == groundtruth
-
-
-class MATHLlmEvaluator(base.BaseLLMEvaluator):
-    """A evaluator implemented by LLMs for the GSM8K dataset."""
-
-    def measure(self, result, groundtruth):
-        # TO BE IMPLEMENTED
-        pass
-
-
-class BBHEvaluator(base.BaseEvaluator):
-    """A base evaluator for the MMLU dataset."""
-
-    def measure(self, result, groundtruth):
-        return result == groundtruth
-
-
-class BBHLlmEvaluator(base.BaseLLMEvaluator):
-    """A evaluator implemented by LLMs for the GSM8K dataset."""
-
-    def measure(self, result, groundtruth):
-        # TO BE IMPLEMENTED
-        pass
+    def measure(self, result: str, groundtruth: str):
+        return convert_str2float(result) == convert_str2float(groundtruth)

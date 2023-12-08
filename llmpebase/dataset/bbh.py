@@ -99,7 +99,7 @@ class BBHDataset(base.BaseDataset):
             answer=answer,
             conclusion=conclusion,
             groundtruth=groundtruth,
-            auxiliary={"sample_problem": sample_problem, "sample_idx": sample_idx},
+            auxiliary={"sample_problem": sample_problem, "sample_idx": idx},
         )
 
 

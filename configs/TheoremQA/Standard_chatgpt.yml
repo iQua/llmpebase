@@ -1,7 +1,3 @@
-# include basic settings for the models and the learning process
-
-
-# dataset settings for the original dataset and the corresponding multimodal data processor
 data:
 
   data_name: TheoremQA
@@ -10,6 +6,9 @@ data:
   # One may need to download the GSM8k dataset
   download_url: https://github.com/wenhuchen/TheoremQA/archive/refs/heads/main.zip
 
+  extractor:
+    purpose: groundtruth
+    style: re
   
 environment:
 
@@ -27,7 +26,7 @@ model:
   prompt_type: standard
   n_shots: 5
 
-  authorization_env_path: ./.env
+  authorization_path: ./.env
 
   generation_settings:
     temperature: 0.7
@@ -51,9 +50,13 @@ logging:
 
 evaluation:
  
+  # basic, llm
+  style: basic
 
-  # set the hyper parameters for performance
-  performance:
+  extractor:
+    purpose: result
+    style: re
+
    
 
 

@@ -5,29 +5,24 @@ groundtruths.
 import logging
 
 from llmpebase.evaluator.re_evaluation import (
-    GSM8KEvaluator,
-    GSM8KLlmEvaluator,
-    MMLUEvaluator,
-    MMLULlmEvaluator,
-    MATHEvaluator,
-    MATHLlmEvaluator,
-    BBHEvaluator,
-    BBHLlmEvaluator,
+    GeneralEvaluator,
 )
 
 
 basic_evaluators = {
-    "GSM8K": GSM8KEvaluator,
-    "MMLU": MMLUEvaluator,
-    "MATH": MATHEvaluator,
-    "BBH": BBHEvaluator,
+    "GSM8K": GeneralEvaluator,
+    "MMLU": GeneralEvaluator,
+    "MATH": GeneralEvaluator,
+    "BBH": GeneralEvaluator,
+    "TheoremQA": GeneralEvaluator,
 }
 
 llm_evaluators = {
-    "GSM8K": GSM8KLlmEvaluator,
-    "MMLU": MMLULlmEvaluator,
-    "MATH": MATHLlmEvaluator,
-    "BBH": BBHLlmEvaluator,
+    "GSM8K": "Not implemented",
+    "MMLU": "Not implemented",
+    "MATH": "Not implemented",
+    "BBH": "Not implemented",
+    "TheoremQA": "Not implemented",
 }
 
 

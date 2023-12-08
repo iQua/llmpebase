@@ -13,6 +13,8 @@ from llmpebase.extractor.re_extraction import (
     MATHRespReExtractor,
     BBHGtReExtractor,
     BBHRespReExtractor,
+    TheoremGtReExtractor,
+    TheoremRespReExtractor,
 )
 
 
@@ -21,6 +23,7 @@ gt_extractors = {
     "MMLU": {"re": MMLUGtReExtractor, "llm": "not implemented"},
     "MATH": {"re": MATHGtReExtractor, "llm": "not implemented"},
     "BBH": {"re": BBHGtReExtractor, "llm": "not implemented"},
+    "TheoremQA": {"re": TheoremGtReExtractor, "llm": "not implemented"},
 }
 
 resp_extractors = {
@@ -28,6 +31,7 @@ resp_extractors = {
     "MMLU": {"re": MMLURespReExtractor, "llm": "not implemented"},
     "MATH": {"re": MATHRespReExtractor, "llm": "not implemented"},
     "BBH": {"re": BBHRespReExtractor, "llm": "not implemented"},
+    "TheoremQA": {"re": TheoremRespReExtractor, "llm": "not implemented"},
 }
 
 
