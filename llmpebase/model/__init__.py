@@ -3,14 +3,14 @@ An interface of models and prompts
 """
 import logging
 
-from llmpebase.model.LM import gpts, llama_falcon, llama_pipeline, llamav2
+from llmpebase.model.LM import gpts, llama_falcon, llama_pipeline  # , llama2
 from llmpebase.model.prompting import bbh, game24, gsm8k, math, mmlu, theoremqa
 
 llms_factory = {
     "gpt": gpts.GPTAPIRequest,
     "llama": llama_falcon.LLaMARequest,
     "llama_pipeline": llama_pipeline.LLaMAPipelineRequest,
-    "llamav2": llamav2.LLaMAV2Request,
+    # "llama2": llama2.llama2Request,
 }
 
 
@@ -26,9 +26,9 @@ prompts_factory = {
         "zeroshot_cot": gsm8k.GSM8KZeroShotCoTPrompting,
     },
     "gameof24": {
-        "standard": game24.GameOf24StandardPrompting,
-        "cot": game24.GameOf24StandardPrompting,
-        "zeroshot_cot": game24.GameOf24StandardPrompting,
+        "standard": "Not provided",
+        "cot": "Not provided",
+        "zeroshot_cot": game24.GameOf24ZeroShotPrompting,
     },
     "math": {
         "standard": math.MATHStandardPrompting,
