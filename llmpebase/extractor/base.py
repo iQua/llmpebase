@@ -24,10 +24,37 @@ class BaseReExtractor:
 class BaseLlmExtractor:
     """The base extractor built upon the LLM to extract the target result from the response."""
 
+    system_prompt = "You are a powerful AI extractor in math responsible for identifying and extracting the core solution for a question from a long text answer. Please extract the final solution presenting as either an integer, float, an equation, or a mathematical expression. Please only maintain the original content without making any modifications. One important rule is that the final solution generally exists in the last sentence of the answer."
+
+    head: str = "This is the problem of {}."
+
+    extraction_head: str = "Extracted solution: "
+
+    notice: str = "Directly return the extracted solution without any modifications."
+
     def __init__(self, llm_model):
         # Define the request model used as the extractor
         self.llm_model = llm_model
 
-    def forward(self, answer, per_request_responses: int = 1, **kwargs):
-        """Extract the target result from the response."""
-        raise NotImplementedError("An implementation of the extractor is required.")
+    def organize_prompt(self, answer: str, **kwargs):
+        """Organize the prompt for the LLM."""
+        problem_name = kwargs["problem_name"] if "problem_name" in kwargs else "math"
+        question = None if "question" not in kwargs else kwargs["question"]
+        head = self.head.format(problem_name)
+        prompt = f"""{head}Extract the final solution from the answer of the question.\n Notice:{self.notice}\nThe question and answer pair is as follows:\n\nQuestion: {question}\nAnswer: {answer}\n\n.{self.extraction_head}"""
+
+        return prompt
+
+    def forward(self, answer: str, per_request_responses: int = 1, **kwargs):
+        """Performing the request."""
+
+        prompt = self.organize_prompt(answer, **kwargs)
+
+        responses = self.llm_model.forward(
+            user_prompt=prompt,
+            per_request_responses=per_request_responses,
+            sys_prompt=self.system_prompt,
+        )
+        extracted_solution = self.llm_model.read_response_contents(responses)[0]
+
+        return extracted_solution

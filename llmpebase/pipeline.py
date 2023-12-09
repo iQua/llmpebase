@@ -15,7 +15,7 @@ from llmpebase.dataset.base import BaseDataset
 from llmpebase.extractor.base import BaseReExtractor, BaseLlmExtractor
 from llmpebase.model.prompting.base import BasePrompting
 from llmpebase.evaluator.base import BaseEvaluator, BaseLLMEvaluator
-from llmpebase.model import define_prompt
+from llmpebase.model import define_prompt, define_model
 from llmpebase.dataset import define_dataset
 from llmpebase.extractor import get as get_extractor
 from llmpebase.evaluator import get as get_evaluator
@@ -59,7 +59,7 @@ class Pipeline:
         # The evaluator used to evaluate the result
         self.evaluator = evaluator
 
-        # Basic componenet for the pipeline
+        # Basic components of the pipeline
         # ID of the pipeline
         self.pipeline_id: int = 0
         # sampler used by the dataset of this pipeline
@@ -92,11 +92,15 @@ class Pipeline:
             )
 
         if self.extractor is None:
-            self.extractor = get_extractor(
+            config = eval_config["extractor"]
+            extractor = get_extractor(
                 data_name=self.data_config["data_name"],
-                purpose=eval_config["extractor"]["purpose"],
-                style=eval_config["extractor"]["style"],
-            )()
+                config=config,
+            )
+            if config["style"] == "llm":
+                if "llm_config" not in config:
+                    config["llm_config"] = self.model_config
+                self.extractor = extractor(llm_model=define_model(config["llm_config"]))
 
         if self.evaluator is None:
             self.evaluator = get_evaluator(
@@ -141,18 +145,20 @@ class Pipeline:
 
             results = [
                 self.extractor.forward(
-                    content, solution_flag=self.prompter.solution_flag
+                    content,
+                    solution_flag=self.prompter.solution_flag,
+                    problem_name=sample["auxiliary"]["sample_problem"],
                 )
                 for content in contents
             ]
             groundtruths = [groundtruth] * len(results)
-            comparsion = self.evaluator.forward(results, groundtruths)
+            comparison = self.evaluator.forward(results, groundtruths)
             output = {
                 "request_prompt": prompt_sample,
                 "responses": contents,
                 "groundtruth": groundtruths,
                 "results": results,
-                "comparsion": comparsion,
+                "comparison": comparison,
             }
 
             self.recorder.add_one_record(

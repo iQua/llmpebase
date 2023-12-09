@@ -18,6 +18,7 @@ from llmpebase.extractor.re_extraction import (
     GameOf24RespReExtractor,
 )
 
+from llmpebase.extractor.llm_extraction import GSM8KRespLlmExtractor
 
 gt_extractors = {
     "GSM8K": {"re": GSM8KGtReExtractor, "llm": "not implemented"},
@@ -28,7 +29,7 @@ gt_extractors = {
 }
 
 resp_extractors = {
-    "GSM8K": {"re": GSM8KRespReExtractor, "llm": "not implemented"},
+    "GSM8K": {"re": GSM8KRespReExtractor, "llm": GSM8KRespLlmExtractor},
     "MMLU": {"re": MMLURespReExtractor, "llm": "not implemented"},
     "MATH": {"re": MATHRespReExtractor, "llm": "not implemented"},
     "BBH": {"re": BBHRespReExtractor, "llm": "not implemented"},
@@ -37,8 +38,10 @@ resp_extractors = {
 }
 
 
-def get(data_name, purpose: str = None, style: str = None, **kwargs):
+def get(data_name, config: dict, **kwargs):
     """Get the extractors for the specific dataset."""
+    purpose = config["purpose"]
+    style = config["style"]
 
     assert purpose in ["groundtruth", "result"]
     assert style in ["re", "llm"]

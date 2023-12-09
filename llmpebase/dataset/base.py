@@ -74,8 +74,7 @@ class BaseDataset(torch.utils.data.Dataset):
         if self.gt_extractor is None and "extractor" in data_config:
             self.gt_extractor = get_extractor(
                 data_name=self.data_name,
-                style=data_config["extractor"]["style"],
-                purpose=data_config["extractor"]["purpose"],
+                config=data_config["extractor"],
             )()
 
     def get_sample(self, idx):

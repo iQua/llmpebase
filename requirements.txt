@@ -5,3 +5,5 @@ transformers
 selenium
 openai
 python-dotenv
+anytree
+pyarrow
