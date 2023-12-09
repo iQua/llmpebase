@@ -5,7 +5,6 @@ import json
 import random
 from typing import List, Union
 
-
 from llmpebase.dataset.data_generic import BaseQASample
 from llmpebase.dataset.base import BaseDataset
 

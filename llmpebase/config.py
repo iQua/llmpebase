@@ -18,6 +18,9 @@ import numpy as np
 import yaml
 
 
+logging.getLogger("httpx").setLevel(logging.CRITICAL)
+
+
 class Loader(yaml.SafeLoader):
     """YAML Loader with `!include` constructor."""
 

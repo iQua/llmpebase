@@ -15,6 +15,7 @@ from llmpebase.extractor.re_extraction import (
     BBHRespReExtractor,
     TheoremGtReExtractor,
     TheoremRespReExtractor,
+    GameOf24RespReExtractor,
 )
 
 
@@ -32,6 +33,7 @@ resp_extractors = {
     "MATH": {"re": MATHRespReExtractor, "llm": "not implemented"},
     "BBH": {"re": BBHRespReExtractor, "llm": "not implemented"},
     "TheoremQA": {"re": TheoremRespReExtractor, "llm": "not implemented"},
+    "GameOf24": {"re": GameOf24RespReExtractor, "llm": "not implemented"},
 }
 
 

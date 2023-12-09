@@ -15,6 +15,7 @@ basic_evaluators = {
     "MATH": GeneralEvaluator,
     "BBH": GeneralEvaluator,
     "TheoremQA": GeneralEvaluator,
+    "GameOf24": GeneralEvaluator,
 }
 
 llm_evaluators = {
@@ -23,6 +24,7 @@ llm_evaluators = {
     "MATH": "Not implemented",
     "BBH": "Not implemented",
     "TheoremQA": "Not implemented",
+    "GameOf24": "Not implemented",
 }
 
 

@@ -115,8 +115,8 @@ class GPTAPIRequest(base.BaseLlmRequest):
                 messages=input_messages,
                 **self.generation_config,
             )
-            model_responses.append(output)
 
+            model_responses.append(output)
         # Compute the resources
         self.compute_costs(input_messages, model_responses)
 

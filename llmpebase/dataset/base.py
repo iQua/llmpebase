@@ -71,7 +71,7 @@ class BaseDataset(torch.utils.data.Dataset):
             logging.info("Created data catalog in %s.", self.data_catalog_path)
 
         # Set the extractor for the groundtruth extraction
-        if self.gt_extractor is None:
+        if self.gt_extractor is None and "extractor" in data_config:
             self.gt_extractor = get_extractor(
                 data_name=self.data_name,
                 style=data_config["extractor"]["style"],

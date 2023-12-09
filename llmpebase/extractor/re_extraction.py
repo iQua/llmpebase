@@ -339,3 +339,28 @@ class TheoremRespReExtractor(base.BaseReExtractor):
         # Only maintain the final figure as the result
         result = results[-1].rstrip(".") if results is not None else conclusion
         return result
+
+
+class GameOf24RespReExtractor(base.BaseReExtractor):
+    """A base extractor to extract the result from the response."""
+
+    def forward(self, answer: str, **kwargs) -> List[str]:
+        """Extract the result from the response for the GSM8K dataset."""
+
+        # To obtain the target solution
+        conclusion = extract_solution(answer, solution_flag=kwargs["solution_flag"])
+
+        # When no target solution is obtained, we assume that the final sentence
+        # will be the solution following the common behaviors.
+        if conclusion is None:
+            sentences = extract_sentences(answer)
+            # Extract the corresponding conclusion which is the final sentence
+            conclusion = sentences[-1]
+
+        results = extract_figures(conclusion, target_format="$")
+        if "[" in conclusion or "]" in conclusion:
+            return results
+
+        # Only maintain the final figure as the result
+        result = results[-1].rstrip(".") if results is not None else conclusion
+        return result
