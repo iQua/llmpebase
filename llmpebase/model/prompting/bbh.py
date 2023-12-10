@@ -6,7 +6,7 @@ import glob
 import random
 
 from llmpebase.model.prompting import base
-from llmpebase.dataset.bbh import extract_problem_name
+from llmpebase.utils import tools
 
 
 class BBHStandardPrompting(base.BasePrompting):
@@ -50,7 +50,7 @@ class BBHCoTPrompting(base.BaseCoTPrompting):
         """Load the cot examples from the file."""
         cot_files = glob.glob(cot_filepath)
         self.cot_prompts = {
-            extract_problem_name(os.path.basename(path)): path for path in cot_files
+            tools.format_term(os.path.basename(path)): path for path in cot_files
         }
 
     def get_cot_prompt(self, problem_name: str, **kwargs):

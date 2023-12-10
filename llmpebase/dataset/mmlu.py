@@ -17,13 +17,14 @@ from llmpebase.dataset.data_generic import (
     BaseQASampleInfo,
     DatasetStatistics,
 )
+from llmpebase.utils import tools
 
 
 def extract_problem_name(filename: str, phase: str):
     """Extract the problem name from the filepath."""
     filename = filename.split(".csv")[0]
     phase = "dev" if phase == "train" else phase
-    return base.BaseDataset.format_term(filename.replace(phase, ""))
+    return tools.format_term(filename.replace(phase, ""))
 
 
 class MMLUDataset(base.BaseDataset):
@@ -98,7 +99,7 @@ class MMLUDataset(base.BaseDataset):
         answer, conclusion, groundtruth = self.gt_extractor.forward(
             data_frame, row_idx=row_idx
         )
-
+        question = f"""{question}\nSelect correct answers from the following options.\n{options_str}"""
         return BaseQASample(
             question=question,
             answer=answer,

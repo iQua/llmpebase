@@ -5,9 +5,6 @@ import json
 import random
 from typing import List, Union
 
-from llmpebase.dataset.data_generic import BaseQASample
-from llmpebase.dataset.base import BaseDataset
-
 
 class BasePrompting:
     """
@@ -101,10 +98,12 @@ class BasePrompting:
         prompt = f"""{fewshot_prompt}Notice: {notice}\n\n{test_qa_prompt}"""
         return prompt
 
-    def create_prompt_sample(
-        self, sample: BaseQASample, dataset: BaseDataset, config: dict
-    ):
-        """Create one prompt sample."""
+    def create_prompt_sample(self, sample, dataset, config: dict):
+        """Create one prompt sample.
+
+        :param sample: The `BaseQASample` instance.
+        :param dataset: The `BaseDataset` instance.
+        """
 
         n_shots = config["n_shots"]
 

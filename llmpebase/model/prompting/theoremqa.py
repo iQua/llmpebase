@@ -42,7 +42,7 @@ class TheoremQACoTPrompting(base.BaseCoTPrompting):
 
     # This should be the same as the answer format in the cot_filepath
     # Current CoT ones use "The answer is".
-    solution_flag: str = "The answer is "
+    solution_flag: str = "The final solution is "
 
     def load_cot_prompt(self, problem_name: str):
         """Load the cot prompt."""
@@ -50,7 +50,7 @@ class TheoremQACoTPrompting(base.BaseCoTPrompting):
         return self.cot_prompt[problem_name]
 
 
-class TheoremQAZeroShotCoTPrompting(TheoremQAStandardPrompting):
+class TheoremQAZeroShotCoTPrompting(base.BaseZeroShotPrompting):
     """The zeroshot CoT prompt of TheoremQA."""
 
     solution_flag: str = "The final solution is"

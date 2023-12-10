@@ -14,6 +14,7 @@ from llmpebase.dataset.data_generic import (
     DatasetMetaCatalog,
     DatasetCatalog,
 )
+from llmpebase.model import define_model
 from llmpebase.extractor import get as get_extractor
 from llmpebase.config import Config
 
@@ -59,7 +60,9 @@ class BaseDataset(torch.utils.data.Dataset):
     def configuration(self):
         """Configure the catalog of the dataset"""
         data_config = Config().data
+        model_config = Config().model
         data_config = Config.items_to_dict(data_config._asdict())
+        model_config = Config.items_to_dict(model_config._asdict())
         if os.path.exists(self.data_catalog_path):
             with open(self.data_catalog_path, "r", encoding="utf-8") as f:
                 self.data_catalog = self.customize_data_catalog(**json.load(f))
@@ -72,10 +75,20 @@ class BaseDataset(torch.utils.data.Dataset):
 
         # Set the extractor for the groundtruth extraction
         if self.gt_extractor is None and "extractor" in data_config:
-            self.gt_extractor = get_extractor(
-                data_name=self.data_name,
-                config=data_config["extractor"],
-            )()
+            config = data_config["extractor"]
+
+            extractor = get_extractor(
+                data_name=data_config["data_name"],
+                config=config,
+            )
+            if config["style"] == "llm":
+                if "llm_config" not in config:
+                    config["llm_config"] = model_config
+                self.gt_extractor = extractor(
+                    llm_model=define_model(config["llm_config"])
+                )
+            else:
+                self.gt_extractor = extractor()
 
     def get_sample(self, idx):
         """Get one sample."""
@@ -93,13 +106,6 @@ class BaseDataset(torch.utils.data.Dataset):
         """Get sample indexes of one problem."""
 
         return self.data_catalog.category_samples[problem_name]
-
-    @staticmethod
-    def format_term(terminology: str):
-        """Format the terminology to be the standard one.
-        This function ensure that all the terminology are in the same format.
-        """
-        return terminology.replace("_", " ").replace("and", "&").rstrip().title()
 
 
 class DataSource:

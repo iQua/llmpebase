@@ -16,6 +16,7 @@ from llmpebase.dataset.data_generic import (
     BaseQASampleInfo,
     DatasetStatistics,
 )
+from llmpebase.utils import tools
 
 
 def extract_problem_name(filename: str):
@@ -29,7 +30,7 @@ def extract_problem_name(filename: str):
     if "." in filename:
         file_extension = filename.split(".")[-1]
     filename = filename.split(f".{file_extension}")[0]
-    return base.BaseDataset.format_term(filename)
+    return tools.format_term(filename)
 
 
 class BBHDataset(base.BaseDataset):

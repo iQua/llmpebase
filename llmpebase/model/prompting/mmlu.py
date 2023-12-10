@@ -11,13 +11,6 @@ class MMLUStandardPrompting(base.BasePrompting):
 
     solution_flag: str = "The final choice is"
 
-    question_prompt_tail: str = "\nWhich of the following choices is correct?"
-
-    def organize_question_prompt(self, sample: dict):
-        prompt = super().organize_question_prompt(sample)
-        options = sample.auxiliary["option_str"]
-        return f"""{prompt}{options}"""
-
     def create_prompt_sample(self, sample, dataset, config):
         """Create the prompt sample from the sample of MMLU dataset."""
 
@@ -48,11 +41,6 @@ class MMLUCoTPrompting(base.BaseCoTPrompting):
     # Current CoT ones use "The answer is".
     solution_flag: str = "The answer is "
 
-    def organize_question_prompt(self, sample: dict):
-        prompt = super().organize_question_prompt(sample)
-        options = sample.auxiliary["option_str"]
-        return f"""{prompt}{options}"""
-
     def get_cot_prompt(self, problem_name: str, **kwargs):
         """Load the cot prompt.
         The problem name of CoT will be moral_scenarios.
@@ -67,10 +55,3 @@ class MMLUZeroShotCoTPrompting(base.BaseZeroShotPrompting):
     """The zeroshot CoT prompt of MMLU."""
 
     solution_flag: str = "The final choice is"
-
-    question_prompt_tail: str = "\nWhich of the following choices is correct?"
-
-    def organize_question_prompt(self, sample: dict):
-        prompt = super().organize_question_prompt(sample)
-        options = sample.auxiliary["option_str"]
-        return f"""{prompt}{options}"""
