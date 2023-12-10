@@ -101,6 +101,8 @@ class Pipeline:
                 if "llm_config" not in config:
                     config["llm_config"] = self.model_config
                 self.extractor = extractor(llm_model=define_model(config["llm_config"]))
+            else:
+                self.extractor = extractor()
 
         if self.evaluator is None:
             self.evaluator = get_evaluator(
@@ -148,6 +150,7 @@ class Pipeline:
                     content,
                     solution_flag=self.prompter.solution_flag,
                     problem_name=sample["auxiliary"]["sample_problem"],
+                    question=sample["question"],
                 )
                 for content in contents
             ]

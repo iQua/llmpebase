@@ -18,22 +18,33 @@ from llmpebase.extractor.re_extraction import (
     GameOf24RespReExtractor,
 )
 
-from llmpebase.extractor.llm_extraction import GSM8KRespLlmExtractor
+from llmpebase.extractor.llm_extraction import (
+    GSM8KRespLlmExtractor,
+    MMLURespLlmExtractor,
+    MATHGtLlmExtractor,
+    MATHRespLlmExtractor,
+    BBHRespLlmExtractor,
+    TheoremQARespLlmExtractor,
+)
 
+# The extractors for extracting groundtruth from the data sample
+# - not needed: no need to extract the groundtruth is either already
+# provided or easy to obtain
+# - not implemented: not implemented yet
 gt_extractors = {
-    "GSM8K": {"re": GSM8KGtReExtractor, "llm": "not implemented"},
-    "MMLU": {"re": MMLUGtReExtractor, "llm": "not implemented"},
-    "MATH": {"re": MATHGtReExtractor, "llm": "not implemented"},
-    "BBH": {"re": BBHGtReExtractor, "llm": "not implemented"},
-    "TheoremQA": {"re": TheoremGtReExtractor, "llm": "not implemented"},
+    "GSM8K": {"re": GSM8KGtReExtractor, "llm": "not needed"},
+    "MMLU": {"re": MMLUGtReExtractor, "llm": "no needed"},
+    "MATH": {"re": MATHGtReExtractor, "llm": MATHGtLlmExtractor},
+    "BBH": {"re": BBHGtReExtractor, "llm": "not needed"},
+    "TheoremQA": {"re": TheoremGtReExtractor, "llm": "not needed"},
 }
 
 resp_extractors = {
     "GSM8K": {"re": GSM8KRespReExtractor, "llm": GSM8KRespLlmExtractor},
-    "MMLU": {"re": MMLURespReExtractor, "llm": "not implemented"},
-    "MATH": {"re": MATHRespReExtractor, "llm": "not implemented"},
-    "BBH": {"re": BBHRespReExtractor, "llm": "not implemented"},
-    "TheoremQA": {"re": TheoremRespReExtractor, "llm": "not implemented"},
+    "MMLU": {"re": MMLURespReExtractor, "llm": MMLURespLlmExtractor},
+    "MATH": {"re": MATHRespReExtractor, "llm": MATHRespLlmExtractor},
+    "BBH": {"re": BBHRespReExtractor, "llm": BBHRespLlmExtractor},
+    "TheoremQA": {"re": TheoremRespReExtractor, "llm": TheoremQARespLlmExtractor},
     "GameOf24": {"re": GameOf24RespReExtractor, "llm": "not implemented"},
 }
 
