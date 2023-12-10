@@ -8,7 +8,8 @@ data:
 
   extractor:
     purpose: groundtruth
-    style: re
+    # Do not support Llm for groundtruth extraction
+    style: llm
   
 environment:
 
@@ -55,7 +56,7 @@ evaluation:
 
   extractor:
     purpose: result
-    style: re
+    style: llm
 
    
 

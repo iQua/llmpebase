@@ -58,6 +58,7 @@ evaluation:
 
   extractor:
     purpose: result
-    style: re
+    # re, llm
+    style: llm
 
    
