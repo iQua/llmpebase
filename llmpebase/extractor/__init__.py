@@ -25,6 +25,7 @@ from llmpebase.extractor.llm_extraction import (
     MATHRespLlmExtractor,
     BBHRespLlmExtractor,
     TheoremQARespLlmExtractor,
+    GameOf24RespLlmExtractor,
 )
 
 # The extractors for extracting groundtruth from the data sample
@@ -45,7 +46,7 @@ resp_extractors = {
     "MATH": {"re": MATHRespReExtractor, "llm": MATHRespLlmExtractor},
     "BBH": {"re": BBHRespReExtractor, "llm": BBHRespLlmExtractor},
     "TheoremQA": {"re": TheoremRespReExtractor, "llm": TheoremQARespLlmExtractor},
-    "GameOf24": {"re": GameOf24RespReExtractor, "llm": "not implemented"},
+    "GameOf24": {"re": GameOf24RespReExtractor, "llm": GameOf24RespLlmExtractor},
 }
 
 

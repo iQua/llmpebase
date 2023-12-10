@@ -26,7 +26,7 @@ class BaseLlmExtractor:
 
     extract_target: str = "pure mathematical types, such as an integer, float, fractional expression or a mathematical expression"
 
-    system_prompt = "You are a powerful AI extractor in math responsible for identifying and extracting the core solution for a question from a long text answer. Please summarizing the answer and extract the final solution presenting as {}. Please only maintain the original content without making any modifications. One important hint is that the final solution generally appears at the end of the answer."
+    system_prompt = "You are a powerful AI extractor in math responsible for identifying and extracting the core solution for a question from a long text answer. Please summarize the answer and extract the final solution as {}. Please only maintain the original content without making any modifications. One important hint is that the final solution generally appears at the end of the answer."
 
     polish_system_prompt = "You are a powerful string polisher in math responsible for processing a string into mathematical format. Please polish the given string into {}. Please remove useless, invalid, or additional strings or specific characters such as $. Just output the given string once there is no need to polish."
 

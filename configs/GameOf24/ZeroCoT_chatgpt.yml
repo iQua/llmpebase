@@ -52,7 +52,7 @@ evaluation:
 
   extractor:
     purpose: result
-    style: re
+    style: llm
 
 
 
