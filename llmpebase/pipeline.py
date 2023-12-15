@@ -6,7 +6,7 @@ This pipeline also works as a demo showing how to combine and utilize different
 components of the `llmpebase`.
 """
 
-from typing import Union, List
+from typing import Union
 
 import torch
 
@@ -42,17 +42,16 @@ class Pipeline:
         self,
         reasoner: Union[BaseLlmRequest, torch.nn.Module],
         dataset: BaseDataset = None,
-        prompter: BasePrompting = None,
+        data_prompter: BasePrompting = None,
         extractor: Union[BaseReExtractor, BaseLlmExtractor] = None,
         evaluator: Union[BaseEvaluator, BaseLLMEvaluator] = None,
     ):
         # The LLM model used to perform the request.
-        self.customize_reasoner = reasoner
-        self.reasoner = None
+        self.reasoner = reasoner
         # The dataset
         self.dataset = dataset
         # The prompting used to generate the prompt
-        self.prompter = prompter
+        self.data_prompter = data_prompter
         # The extractor used to extract the target result from the response
         # of the LLM
         self.extractor = extractor
@@ -62,8 +61,6 @@ class Pipeline:
         # Basic components of the pipeline
         # ID of the pipeline
         self.pipeline_id: int = 0
-        # sampler used by the dataset of this pipeline
-        self.sampler = None
 
         # The train, test, and val datasets
         self.trainset = None
@@ -82,11 +79,8 @@ class Pipeline:
         eval_config = Config.items_to_dict(Config().evaluation._asdict())
         logging_config = Config().logging
 
-        if self.reasoner is None:
-            self.reasoner = self.customize_reasoner(model_config=self.model_config)
-
-        if self.prompter is None:
-            self.prompter = define_prompt(
+        if self.data_prompter is None:
+            self.data_prompter = define_prompt(
                 self.data_config,
                 self.model_config,
             )
@@ -101,13 +95,11 @@ class Pipeline:
                 if "llm_config" not in config:
                     config["llm_config"] = self.model_config
                 self.extractor = extractor(llm_model=define_model(config["llm_config"]))
-            else:
-                self.extractor = extractor()
 
         if self.evaluator is None:
             self.evaluator = get_evaluator(
                 data_name=self.data_config["data_name"], style=eval_config["style"]
-            )()
+            )(filename="eval_results.json", save_path=logging_config.result_path)
 
         if self.recorder is None:
             self.recorder = recorder.BaseRecorder(
@@ -128,27 +120,20 @@ class Pipeline:
         if self.testset is None:
             self.testset = self.dataset.get_test_set()
 
-    def perform_reasoning(self, request_prompt: str) -> List[str]:
-        """Perform the reasoning process.
-
-        :return contents: The contents of the responses from reasoner.
-        """
-        return self.reasoner.forward(request_prompt)
-
     def execute(self):
         """Execute the pipeline to obtain the results."""
 
         for sample in self.testset:
-            prompt_sample, groundtruth = self.prompter.create_prompt_sample(
+            prompt_sample, groundtruth = self.data_prompter.create_prompt_sample(
                 sample, self.trainset, self.model_config
             )
 
-            contents = self.perform_reasoning(request_prompt=prompt_sample)
+            contents = self.reasoner.forward(prompt_sample=prompt_sample)
 
             results = [
                 self.extractor.forward(
                     content,
-                    solution_flag=self.prompter.solution_flag,
+                    solution_flag=self.data_prompter.solution_flag,
                     problem_name=sample["auxiliary"]["sample_problem"],
                     question=sample["question"],
                 )
@@ -157,7 +142,7 @@ class Pipeline:
             groundtruths = [groundtruth] * len(results)
             comparison = self.evaluator.forward(results, groundtruths)
             output = {
-                "request_prompt": prompt_sample,
+                "request_prompt": str(prompt_sample),
                 "responses": contents,
                 "groundtruth": groundtruths,
                 "results": results,
@@ -170,3 +155,4 @@ class Pipeline:
                 statistic=self.reasoner.llm_model.get_cost_statistics(latest=True),
             )
             self.recorder.save_records()
+            self.evaluator.save_measures()

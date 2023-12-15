@@ -4,7 +4,12 @@ An interface of models and prompts
 import logging
 
 from llmpebase.model.LM import gpts, llama_falcon, llama_pipeline  # , llama2
-from llmpebase.model.prompting import bbh, game24, gsm8k, math, mmlu, theoremqa
+from llmpebase.model.prompting import (
+    base,
+    zeroshot,
+    cot,
+    fewshot,
+)
 
 llms_factory = {
     "gpt": gpts.GPTAPIRequest,
@@ -16,34 +21,34 @@ llms_factory = {
 
 prompts_factory = {
     "mmlu": {
-        "standard": mmlu.MMLUStandardPrompting,
-        "cot": mmlu.MMLUCoTPrompting,
-        "zeroshot_cot": mmlu.MMLUZeroShotCoTPrompting,
+        "fewshot": fewshot.MMLUFewShotPrompting,
+        "cot": cot.MMLUCoTPrompting,
+        "zeroshot": zeroshot.MMLUZeroShotPrompting,
     },
     "gsm8k": {
-        "standard": gsm8k.GSM8KStandardPrompting,
-        "cot": gsm8k.GSM8KCoTPrompting,
-        "zeroshot_cot": gsm8k.GSM8KZeroShotCoTPrompting,
+        "standard": base.BasePrompting,
+        "cot": cot.GSM8KCoTPrompting,
+        "zeroshot": base.BaseZeroShotPrompting,
     },
     "gameof24": {
         "standard": "Not provided",
         "cot": "Not provided",
-        "zeroshot_cot": game24.GameOf24ZeroShotPrompting,
+        "zeroshot": zeroshot.GameOf24ZeroShotPrompting,
     },
     "math": {
-        "standard": math.MATHStandardPrompting,
-        "cot": math.MATHCoTPrompting,
-        "zeroshot_cot": math.MATHZeroShotCoTPrompting,
+        "standard": fewshot.MATHFewShotPrompting,
+        "cot": cot.MATHCoTPrompting,
+        "zeroshot": base.BaseZeroShotPrompting,
     },
     "bbh": {
-        "standard": bbh.BBHStandardPrompting,
-        "cot": bbh.BBHCoTPrompting,
-        "zeroshot_cot": bbh.BBHZeroShotCoTPrompting,
+        "standard": fewshot.BBHFewShotPrompting,
+        "cot": cot.BBHCoTPrompting,
+        "zeroshot": base.BaseZeroShotPrompting,
     },
     "theoremqa": {
-        "standard": theoremqa.TheoremQAStandardPrompting,
-        "cot": theoremqa.TheoremQACoTPrompting,
-        "zeroshot_cot": theoremqa.TheoremQAZeroShotCoTPrompting,
+        "standard": fewshot.TheoremQAFewShotPrompting,
+        "cot": cot.TheoremQACoTPrompting,
+        "zeroshot": zeroshot.TheoremQAZeroShotPrompting,
     },
 }
 
