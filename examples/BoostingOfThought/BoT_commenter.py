@@ -44,7 +44,7 @@ class ReasoningChainCommenter:
         prompt = self.organize_chain_feedback_prompt(task_prompt, chain_content_prompt)
 
         # Forward the generation model to get responses
-        responses = self.request_model.perform_request(
+        responses = self.request_model.forward(
             user_prompt=prompt, per_request_responses=3, sys_prompt=self.system_prompt
         )
         response_contents = self.request_model.extract_response_contents(responses)
