@@ -1,9 +1,93 @@
 """
-Basic implementation of prompting class.
+Basic implementations of standard, fewshot, and zeroshot prompting.
 """
 import json
 import random
 from typing import List, Union
+from dataclasses import dataclass
+
+
+@dataclass
+class BasicDemonstrationPrompt:
+    """
+    A basic structure for the prompt of demonstrations.
+    """
+
+    head: str = "\nFollowing demonstrations are question-answer pairs about {}.\n\n"
+    content: str = "{}\n"
+    notice: str = "\n"
+    tail: str = (
+        "With the above demonstrations, please answer the subsequently question.\n\n"
+    )
+
+    prompt: str = f"""{head}{content}{notice}{tail}"""
+
+    def __str__(self):
+        # Build the prompt by combing each part
+        self.prompt = f"""{self.head}{self.content}{self.notice}{self.tail}"""
+        return f"""{self.prompt}"""
+
+
+@dataclass
+class BasicQuestionPrompt:
+    """
+    A basic structure for the prompt of question.
+    """
+
+    head: str = ""
+    content: str = "Question: {}"
+    notice: str = " "
+    tail: str = "\n"
+
+    prompt: str = f"""{head}{content}{notice}{tail}"""
+
+    def __str__(self):
+        # Build the prompt by combing each part
+        self.prompt = f"""{self.head}{self.content}{self.notice}{self.tail}"""
+        return f"""{self.prompt}"""
+
+
+@dataclass
+class BasicAnswerPrompt:
+    """
+    A basic structure for the prompt of answer.
+    """
+
+    head: str = "\n"
+    content: str = "Answer: {}"
+    groundtruth: str = " "
+    notice: str = ""
+    tail: str = ""
+
+    prompt: str = f"""{head}{notice}{content}{tail}"""
+
+    def __str__(self):
+        # Build the prompt by combing each part
+        self.prompt = (
+            f"""{self.head}{self.notice}{self.content} {self.groundtruth}{self.tail}"""
+        )
+        return f"""{self.prompt}"""
+
+
+@dataclass
+class BasicPromptSample:
+    """
+    A basic structure for the prompt sample, which is used as the input
+    for the Llm to perform the reasoning.
+    """
+
+    head: str = "Answer the question about the problem {}."
+    notice: str = "After getting the final solution, place it after the sentence '{}' for readability.\n"
+    demonstrations: BasicDemonstrationPrompt = ""
+    question: BasicQuestionPrompt = ""
+    answer: BasicAnswerPrompt = ""
+
+    prompt = f"""{head}{demonstrations}{question}{answer}"""
+
+    def __str__(self):
+        # Build the prompt by combing each part
+        self.prompt = f"""{self.head} {self.notice}{self.demonstrations}\n{self.question}{self.answer}"""
+        return f"""{self.prompt}"""
 
 
 class BasePrompting:
@@ -16,87 +100,78 @@ class BasePrompting:
     # Thus, no punctuation is needed to be added during organizing prompts.
     solution_flag: str = "The final solution is"
 
-    template_prompt_head: str = (
-        "Following examples are question-answer pairs about {}.\n\n"
-    )
-    template_prompt_tail: str = (
-        "With above examples, please answer the given question.\n\n"
-    )
-
-    question_prompt_head: str = "Question:"
-    question_prompt_tail: str = ""
-
-    answer_prompt_head: str = "Answer:"
-
-    notice: str = "Place the final solution after the sentence '{}' at the end of the answer for readability."
-
     def __init__(self, model_config: dict = None):
-        """ """
         self.model_config = model_config
 
-    def organize_question_prompt(self, sample: dict):
+    def organize_question_prompt(self, sample: dict, problem_name: str):
         """Organize the question prompt."""
+        question_prompt = BasicQuestionPrompt()
         question = sample["question"]
-        prompt = (
-            f"""{self.question_prompt_head} {question}. {self.question_prompt_tail}\n"""
-        )
-        return prompt
+        question_prompt.content = question_prompt.content.format(question)
+
+        return question_prompt
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organize the answer prompt."""
+        answer_prompt = BasicAnswerPrompt()
+        answer = sample["answer"] if is_answer_included else ""
 
         if is_answer_included:
-            answer = sample["answer"]
-            groundtruth = sample["groundtruth"]
-            answer = "" if not is_answer_included else answer
-            groundtruth = "" if not is_answer_included else groundtruth
+            groundtruth = sample["groundtruth"] if is_answer_included else ""
+            answer_prompt.groundtruth = f"""{self.solution_flag} {groundtruth}"""
 
-            return f"""{self.answer_prompt_head} {answer}. {self.solution_flag} {groundtruth}."""
+        answer_prompt.content = answer_prompt.content.format(answer)
+        return answer_prompt
 
-        return f"""{self.answer_prompt_head}"""
-
-    def organize_qa_prompt(self, sample: dict, is_answer_included=True):
-        """Formatting the qa sample to a format structure."""
-
-        format_question_prompt = self.organize_question_prompt(sample)
-        format_answer_prompt = self.organize_answer_prompt(sample, is_answer_included)
-
-        format_str = f"""{format_question_prompt}\n{format_answer_prompt}"""
-
-        return format_str
-
-    def organize_template_prompt(
+    def organize_demonstration_prompt(
         self,
-        samples: Union[str, List[dict]] = None,
+        demonstrations: Union[str, List[dict]] = None,
         problem_name: str = None,
     ):
         """organizing the prompt including the few-shot ."""
+
+        if demonstrations is None:
+            return ""
+
+        demonstration_prompt = BasicDemonstrationPrompt()
         problem_name = "" if problem_name is None else problem_name
-        fewshot = "" if samples is None else samples
-        if fewshot is not None and isinstance(fewshot, list):
-            fewshot = "\n\n".join(
-                [self.organize_qa_prompt(sample) for sample in samples]
-            )
+        content = demonstrations if isinstance(demonstrations, str) else []
 
-        head = self.template_prompt_head.format(problem_name)
-        prompt = f"""{head}{fewshot}\n\n{self.template_prompt_tail}"""
+        if isinstance(demonstrations, list):
+            for example in demonstrations:
+                question_prompt = self.organize_question_prompt(example, problem_name)
+                answer_prompt = self.organize_answer_prompt(example)
+                content.append(f"""{question_prompt}{answer_prompt}""")
 
-        return prompt
+            content = "\n\n".join(content)
+
+        demonstration_prompt.head = demonstration_prompt.head.format(problem_name)
+        demonstration_prompt.content = demonstration_prompt.content.format(content)
+
+        return demonstration_prompt
 
     def create_test_prompt(
         self,
         problem_name: str,
         test_sample: dict,
-        template_samples: Union[str, List[dict]],
+        demonstrations: Union[str, List[dict]],
     ):
         """Organizing the prompt for test."""
-        fewshot_prompt = self.organize_template_prompt(template_samples, problem_name)
-        test_qa_prompt = self.organize_qa_prompt(test_sample, is_answer_included=False)
-
-        # Assign the solution flag to the notice
-        notice = self.notice.format(self.solution_flag)
-        prompt = f"""{fewshot_prompt}Notice: {notice}\n\n{test_qa_prompt}"""
-        return prompt
+        demonstration_prompt = self.organize_demonstration_prompt(
+            demonstrations, problem_name
+        )
+        question_prompt = self.organize_question_prompt(test_sample, problem_name)
+        answer_prompt = self.organize_answer_prompt(
+            test_sample, is_answer_included=False
+        )
+        prompt_sample = BasicPromptSample(
+            demonstrations=demonstration_prompt,
+            question=question_prompt,
+            answer=answer_prompt,
+        )
+        prompt_sample.head = prompt_sample.head.format(problem_name)
+        prompt_sample.notice = prompt_sample.notice.format(self.solution_flag)
+        return prompt_sample
 
     def create_prompt_sample(self, sample, dataset, config: dict):
         """Create one prompt sample.
@@ -112,7 +187,7 @@ class BasePrompting:
         return (
             self.create_test_prompt(
                 problem_name=sample["auxiliary"]["sample_problem"],
-                template_samples=samples,
+                demonstrations=samples,
                 test_sample=sample,
             ),
             sample["groundtruth"],
@@ -122,7 +197,7 @@ class BasePrompting:
 class BaseCoTPrompting(BasePrompting):
     """A base CoT prompting to load prompt from a file."""
 
-    answer_prompt_head: str = "Answer: Let's think step by step. "
+    answer_content: str = "Answer: Let's think step by step. "
 
     def __init__(self, model_config: dict, cot_filepath: str = None) -> None:
         super().__init__(model_config)
@@ -147,36 +222,34 @@ class BaseCoTPrompting(BasePrompting):
         """Create one prompt sample."""
         problem_name = sample["auxiliary"]["sample_problem"]
         cot_samples = self.get_cot_prompt(problem_name)
-        return (
-            self.create_test_prompt(
-                problem_name=problem_name,
-                template_samples=cot_samples,
-                test_sample=sample,
-            ),
-            sample["groundtruth"],
+        prompt_sample = self.create_test_prompt(
+            problem_name=problem_name, demonstrations=cot_samples, test_sample=sample
         )
+
+        prompt_sample.answer.content = self.answer_content
+        return prompt_sample, sample["groundtruth"]
 
 
 class BaseZeroShotPrompting(BasePrompting):
-    """A base zero-shot prompting"""
+    """A base zero-shot prompting."""
 
-    answer_prompt_head: str = "Answer: Let's think step by step."
-
-    template_prompt_head: str = "Answer the question about the problem {}"
-    template_prompt_tail: str = ""
+    answer_content: str = "Answer: Let's think step by step."
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organize the answer prompt."""
-        return f"""{self.answer_prompt_head}\n"""
+        answer_prompt = super().organize_answer_prompt(sample, is_answer_included=False)
+        answer_prompt.content = self.answer_content
+
+        return answer_prompt
 
     def create_prompt_sample(self, sample, dataset, config):
         """Create one prompt sample."""
-
-        return (
-            self.create_test_prompt(
-                problem_name=sample["auxiliary"]["sample_problem"],
-                template_samples=None,
-                test_sample=sample,
-            ),
-            sample["groundtruth"],
+        prompt_sample = self.create_test_prompt(
+            problem_name=sample["auxiliary"]["sample_problem"],
+            demonstrations=None,
+            test_sample=sample,
         )
+
+        prompt_sample.answer.content = self.answer_content
+
+        return prompt_sample, sample["groundtruth"]

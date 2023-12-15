@@ -151,23 +151,3 @@ class GPTAPIRequest(base.BaseLlmRequest):
     def is_limit_request(self):
         """ChapGPT has the upper bound of the request rate."""
         return True
-
-
-if __name__ == "__main__":
-    chatgpt_api = GPTAPIRequest(model_config={"model_name": "gpt-3.5-turbo"})
-
-    # Define the system message
-    system_msg = "You are a helpful assistant who understands data science."
-
-    # Define the user message
-    user_msg = 'Create a small dataset about total sales over the last year. The format of the dataset should be a data frame with 12 rows and 2 columns. The columns should be called "month" and "total_sales_usd". The "month" column should contain the shortened forms of month names from "Jan" to "Dec". The "total_sales_usd" column should contain random numeric values taken from a normal distribution with mean 100000 and standard deviation 5000. Provide Python code to generate the dataset, then provide the output in the format of a markdown table.'
-
-    created_messages = chatgpt_api.create_format_input(
-        user_prompt=user_msg, sys_prompt=system_msg
-    )
-
-    response = chatgpt_api.forward(request_input=created_messages)
-    content = chatgpt_api.extract_response_contents(response)
-    print("\n")
-    print(response)
-    print(content)
