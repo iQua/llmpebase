@@ -23,7 +23,7 @@ model:
   model_name: gpt-3.5-turbo # "gpt-3.5-turbo","gpt-4"
   model_type: gpt
 
-  prompt_type: zeroshot_cot
+  prompt_type: zeroshot
   
   authorization_path: ./.env
 

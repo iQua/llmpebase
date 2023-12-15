@@ -1,11 +1,16 @@
 data:
 
-  data_name: GameOf24
+  data_name: BBH
   data_path: data
 
-  # One may need to download the GSM8k dataset
-  download_url: null
+  # One may need to download the BBH dataset
+  download_url: https://github.com/suzgunmirac/BIG-Bench-Hard/archive/refs/heads/main.zip
   
+  extractor:
+    purpose: groundtruth
+    style: re
+  
+
 environment:
 
   # The name of the project
@@ -21,7 +26,7 @@ model:
   model_name: gpt-3.5-turbo # "gpt-3.5-turbo","gpt-4"
   model_type: gpt
 
-  prompt_type: zeroshot_cot
+  prompt_type: zeroshot
 
   authorization_path: ./.env
   
@@ -53,8 +58,6 @@ evaluation:
   extractor:
     purpose: result
     style: llm
-
-
 
 
 
