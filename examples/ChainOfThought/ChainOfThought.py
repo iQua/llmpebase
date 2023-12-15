@@ -8,11 +8,16 @@ import reasoner
 
 from llmpebase.pipeline import Pipeline
 
+from llmpebase.config import Config
+
 
 def _main():
     """The core function for model running."""
+    model_config = Config().model
+    model_config = Config.items_to_dict(Config().model._asdict())
+    cot_reasoner = reasoner.CoTReasoner(model_config=model_config)
 
-    pipeline = Pipeline(reasoner=reasoner.CoTReasoner)
+    pipeline = Pipeline(reasoner=cot_reasoner)
     pipeline.setup()
     pipeline.load_data()
     pipeline.execute()
