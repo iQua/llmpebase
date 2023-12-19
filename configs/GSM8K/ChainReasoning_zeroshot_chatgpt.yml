@@ -36,7 +36,11 @@ model:
 
   thought_structure:
     num_next_steps: 1
-    max_length: 4
+    # Note that the length computation includes the root node
+    # Set the length to be longer to reach the final solution
+    # and the chain growth in the thought structure will be stopped 
+    # when reach the solution is reached in the node.
+    max_length: 6
     max_stops: 1
     min_thought_similarity: 0.9
     max_score_diff: 0.1
