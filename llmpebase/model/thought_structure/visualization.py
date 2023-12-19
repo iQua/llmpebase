@@ -124,16 +124,13 @@ class BasicStructureVisualizer:
         self, graph: nx.Graph, node_pool: List[BasicNode], save_name: str = None
     ):
         """Plot the thought structure."""
+
         whole_fig, ax = plt.subplots()
         ax = self.draw_graph(ax, graph=graph, node_pool=node_pool)
         ax.axis("off")
         self.num_visual += 1
-        plt.show(block=False)
-        plt.pause(2)
 
         self.save_fig(fig=whole_fig, save_name=save_name)
-
-        plt.close()
 
     def save_fig(self, fig: plt.figure, save_name: str):
         """Save the figure."""
@@ -146,3 +143,5 @@ class BasicStructureVisualizer:
         )
         fig.savefig(f"{self.save_path}/{save_name}.png")
         fig.savefig(f"{self.save_path}/{save_name}.pdf")
+
+        plt.close(fig)

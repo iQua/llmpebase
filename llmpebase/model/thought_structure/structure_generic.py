@@ -24,22 +24,25 @@ class BasicThoughtStep(FieldFrozenContainer):
     thought_score: float = None
     step_name: str = None
 
-    backup_thoughts: List[str] = None
-    backup_thought_scores: List[float] = None
-    backup_thought_similarity: List[float] = None
+    similar_thoughts: List[str] = None
+    similar_thought_scores: List[float] = None
+    similar_thought_similarity: List[float] = None
+    thought_similarity_prompt: List[str] = None
 
     def backup_though(
-        self, thought: str, thought_score: float, similarity_score: float
+        self, thought: str, thought_score: float, similarity_score: float, prompt: str
     ):
         """Add a similar though to the backup."""
-        if self.backup_thoughts is None:
-            self.backup_thoughts = []
-            self.backup_thought_scores = []
-            self.backup_thought_similarity = []
+        if self.similar_thoughts is None:
+            self.similar_thoughts = []
+            self.similar_thought_scores = []
+            self.similar_thought_similarity = []
+            self.thought_similarity_prompt = []
 
-        self.backup_thoughts.append(thought)
-        self.backup_thought_scores.append(thought_score)
-        self.backup_thought_similarity.append(similarity_score)
+        self.similar_thoughts.append(thought)
+        self.similar_thought_scores.append(thought_score)
+        self.similar_thought_similarity.append(similarity_score)
+        self.thought_similarity_prompt.append(prompt)
 
 
 @dataclass
@@ -51,7 +54,7 @@ class BasicNode(BasicThoughtStep):
     When the node is the root node, the thought is the BasicPromptSample.
     """
 
-    identity: int = None
+    identity: str = None
     node_name: str = None
     position: str = None
     growth: str = None
