@@ -7,3 +7,4 @@ openai
 python-dotenv
 pyarrow
 networkx
+pydot
