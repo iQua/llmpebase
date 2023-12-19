@@ -31,22 +31,9 @@ class GameOf24ZeroShotPrompting(base.BaseZeroShotPrompting):
 
     question_prompt_head: str = f"""In the game of 24, you are given four numbers, and each number can be used only once. The goal is to use basic arithmetic operations (+, -, *, /) to combine these numbers and obtain a result of 24.\n Rule: {instruction}\n Analysis format of each step: {analysis_format}.\n"""
 
-    def create_test_prompt(
-        self,
-        problem_name: str,
-        test_sample: dict,
-        demonstrations: Union[str, List[dict]],
-    ) -> str:
-        """Create the test prompt for the sample."""
-        # Create the question prompt
-        prompt_sample = super().create_test_prompt(
-            problem_name, test_sample, demonstrations
-        )
-
-        # Added the question prompt head
-        prompt_sample.question.head = self.question_prompt_head
-        prompt_sample.question.content = prompt_sample.question.content.replace(
-            "Question", "Four given numbers are"
-        )
-
-        return prompt_sample
+    question_format = base.BasicPromptFormat(
+        head=question_prompt_head,
+        content="Four given numbers are: {}",
+        notice=" ",
+        tail="\n",
+    )

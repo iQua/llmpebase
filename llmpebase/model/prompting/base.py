@@ -4,90 +4,14 @@ Basic implementations of standard, fewshot, and zeroshot prompting.
 import json
 import random
 from typing import List, Union
-from dataclasses import dataclass
+from dataclasses import asdict
 
 
-@dataclass
-class BasicDemonstrationPrompt:
-    """
-    A basic structure for the prompt of demonstrations.
-    """
-
-    head: str = "\nFollowing demonstrations are question-answer pairs about {}.\n\n"
-    content: str = "{}\n"
-    notice: str = "\n"
-    tail: str = (
-        "With the above demonstrations, please answer the subsequently question.\n\n"
-    )
-
-    prompt: str = f"""{head}{content}{notice}{tail}"""
-
-    def __str__(self):
-        # Build the prompt by combing each part
-        self.prompt = f"""{self.head}{self.content}{self.notice}{self.tail}"""
-        return f"""{self.prompt}"""
-
-
-@dataclass
-class BasicQuestionPrompt:
-    """
-    A basic structure for the prompt of question.
-    """
-
-    head: str = ""
-    content: str = "Question: {}"
-    notice: str = " "
-    tail: str = "\n"
-
-    prompt: str = f"""{head}{content}{notice}{tail}"""
-
-    def __str__(self):
-        # Build the prompt by combing each part
-        self.prompt = f"""{self.head}{self.content}{self.notice}{self.tail}"""
-        return f"""{self.prompt}"""
-
-
-@dataclass
-class BasicAnswerPrompt:
-    """
-    A basic structure for the prompt of answer.
-    """
-
-    head: str = "\n"
-    content: str = "Answer: {}"
-    groundtruth: str = " "
-    notice: str = ""
-    tail: str = ""
-
-    prompt: str = f"""{head}{notice}{content}{tail}"""
-
-    def __str__(self):
-        # Build the prompt by combing each part
-        self.prompt = (
-            f"""{self.head}{self.notice}{self.content} {self.groundtruth}{self.tail}"""
-        )
-        return f"""{self.prompt}"""
-
-
-@dataclass
-class BasicPromptSample:
-    """
-    A basic structure for the prompt sample, which is used as the input
-    for the Llm to perform the reasoning.
-    """
-
-    head: str = "Answer the question about the problem {}."
-    notice: str = "After getting the final solution, place it after the sentence '{}' for readability.\n"
-    demonstrations: BasicDemonstrationPrompt = ""
-    question: BasicQuestionPrompt = ""
-    answer: BasicAnswerPrompt = ""
-
-    prompt = f"""{head}{demonstrations}{question}{answer}"""
-
-    def __str__(self):
-        # Build the prompt by combing each part
-        self.prompt = f"""{self.head} {self.notice}{self.demonstrations}\n{self.question}{self.answer}"""
-        return f"""{self.prompt}"""
+from llmpebase.model.prompting.prompt_generic import (
+    BasicPromptFormat,
+    BasicAnswerPromptFormat,
+    BasicPromptSample,
+)
 
 
 class BasePrompting:
@@ -100,12 +24,41 @@ class BasePrompting:
     # Thus, no punctuation is needed to be added during organizing prompts.
     solution_flag: str = "The final solution is"
 
+    # Set the basic format for each part of the prompt
+    demonstrate_format = BasicPromptFormat(
+        head="\nFollowing demonstrations are question-answer pairs about {}.\n\n",
+        content="{}\n",
+        notice="\n",
+        tail=(
+            "With the above demonstrations, please answer the subsequently question.\n\n"
+        ),
+        prompt="",
+    )
+    question_format = BasicPromptFormat(
+        head="",
+        content="Question: {}",
+        notice=" ",
+        tail="\n",
+        prompt="",
+    )
+
+    answer_format = BasicAnswerPromptFormat(
+        head="\n",
+        content="Answer: {}",
+        groundtruth=" ",
+        notice="",
+        tail="",
+        prompt="",
+    )
+
     def __init__(self, model_config: dict = None):
         self.model_config = model_config
 
     def organize_question_prompt(self, sample: dict, problem_name: str):
         """Organize the question prompt."""
-        question_prompt = BasicQuestionPrompt()
+        # Create the question prompt following the format
+        question_prompt = BasicPromptFormat(**asdict(self.question_format))
+
         question = sample["question"]
         question_prompt.content = question_prompt.content.format(question)
 
@@ -113,7 +66,7 @@ class BasePrompting:
 
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organize the answer prompt."""
-        answer_prompt = BasicAnswerPrompt()
+        answer_prompt = BasicAnswerPromptFormat(**asdict(self.answer_format))
         answer = sample["answer"] if is_answer_included else ""
 
         if is_answer_included:
@@ -133,7 +86,7 @@ class BasePrompting:
         if demonstrations is None:
             return ""
 
-        demonstration_prompt = BasicDemonstrationPrompt()
+        demonstration_prompt = BasicPromptFormat(**asdict(self.demonstrate_format))
         problem_name = "" if problem_name is None else problem_name
         content = demonstrations if isinstance(demonstrations, str) else []
 
@@ -165,9 +118,12 @@ class BasePrompting:
             test_sample, is_answer_included=False
         )
         prompt_sample = BasicPromptSample(
+            notice="After getting the final solution, place it after the sentence '{}' for readability.\n",
+            solution_flag=self.solution_flag,
             demonstrations=demonstration_prompt,
             question=question_prompt,
             answer=answer_prompt,
+            prompt="",
         )
         prompt_sample.head = prompt_sample.head.format(problem_name)
         prompt_sample.notice = prompt_sample.notice.format(self.solution_flag)
