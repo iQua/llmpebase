@@ -60,10 +60,10 @@ class BaseRecorder:
         """Saving the records to the disk."""
 
         with open(self.output_save_path, "w", encoding="utf-8") as file:
-            json.dump(self.outputs, file, indent=2)
+            json.dump(self.outputs, file)
 
         with open(self.sample_save_path, "w", encoding="utf-8") as file:
-            json.dump(self.samples, file, indent=2)
+            json.dump(self.samples, file)
 
         with open(self.statistic_save_path, "w", encoding="utf-8") as file:
-            json.dump(self.statistics, file, indent=2)
+            json.dump(self.statistics, file)
