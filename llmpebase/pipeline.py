@@ -152,9 +152,9 @@ class Pipeline:
                 "comparison": comparison,
             }
 
-            self.recorder.add_one_record(
+            self.recorder.save_one_record(
                 sample=sample,
                 output=output,
                 statistic=self.reasoner.get_cost_statistics(latest=True),
+                sample_idx=idx,
             )
-            self.recorder.save_records()

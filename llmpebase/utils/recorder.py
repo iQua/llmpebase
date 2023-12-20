@@ -3,7 +3,6 @@ Implementation of recorders for saving outputs to files.
 """
 
 import os
-from typing import List
 import json
 
 from llmpebase.dataset.data_generic import BaseQASample
@@ -33,37 +32,27 @@ class BaseRecorder:
 
         os.makedirs(self.record_dir_path, exist_ok=True)
 
-        self.output_save_path = os.path.join(
-            self.record_dir_path, self.output_filename + ".json"
-        )
-        self.sample_save_path = os.path.join(
-            self.record_dir_path, self.sample_filename + ".json"
-        )
-        self.statistic_save_path = os.path.join(
-            self.record_dir_path, self.statistic_filename + ".json"
-        )
-        # Record of the outputs
-        self.outputs: List[dict] = []
-        # Record of the id of samples
-        self.samples: List[BaseQASample] = []
-        # Record of resource consumption statistics
-        self.statistics: List[dict] = []
+    def save_one_record(
+        self, sample: BaseQASample, output: dict, statistic: dict, sample_idx: int
+    ):
+        """Save one record to the disk."""
+        with open(
+            f"{self.record_dir_path}/{self.output_filename}_{sample_idx}.json",
+            "w",
+            encoding="utf-8",
+        ) as file:
+            json.dump(output, file)
 
-    def add_one_record(self, sample: BaseQASample, output: dict, statistic: dict):
-        """Add one record to the recorder."""
-        self.outputs.append(output)
-        self.samples.append(sample)
+        with open(
+            f"{self.record_dir_path}/{self.sample_filename}_{sample_idx}.json",
+            "w",
+            encoding="utf-8",
+        ) as file:
+            json.dump(sample, file)
 
-        self.statistics.append(statistic)
-
-    def save_records(self):
-        """Saving the records to the disk."""
-
-        with open(self.output_save_path, "w", encoding="utf-8") as file:
-            json.dump(self.outputs, file)
-
-        with open(self.sample_save_path, "w", encoding="utf-8") as file:
-            json.dump(self.samples, file)
-
-        with open(self.statistic_save_path, "w", encoding="utf-8") as file:
-            json.dump(self.statistics, file)
+        with open(
+            f"{self.record_dir_path}/{self.statistic_filename}_{sample_idx}.json",
+            "w",
+            encoding="utf-8",
+        ) as file:
+            json.dump(statistic, file)
