@@ -99,7 +99,7 @@ class Pipeline:
         if self.evaluator is None:
             self.evaluator = get_evaluator(
                 data_name=self.data_config["data_name"], style=eval_config["style"]
-            )(filename="eval_results.json", save_path=logging_config.result_path)
+            )()
 
         if self.recorder is None:
             self.recorder = recorder.BaseRecorder(
@@ -123,12 +123,15 @@ class Pipeline:
     def execute(self):
         """Execute the pipeline to obtain the results."""
 
-        for sample in self.testset:
+        for idx, sample in enumerate(self.testset):
             prompt_sample, groundtruth = self.data_prompter.create_prompt_sample(
                 sample, self.trainset, self.model_config
             )
 
-            contents = self.reasoner.forward(prompt_sample=prompt_sample)
+            contents = self.reasoner.forward(
+                prompt_sample=prompt_sample, sample_idx=idx
+            )
+            assert isinstance(contents, list)
 
             results = [
                 self.extractor.forward(
@@ -152,7 +155,6 @@ class Pipeline:
             self.recorder.add_one_record(
                 sample=sample,
                 output=output,
-                statistic=self.reasoner.llm_model.get_cost_statistics(latest=True),
+                statistic=self.reasoner.get_cost_statistics(latest=True),
             )
             self.recorder.save_records()
-            self.evaluator.save_measures()
