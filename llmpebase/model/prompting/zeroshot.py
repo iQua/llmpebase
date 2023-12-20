@@ -1,7 +1,6 @@
 """
 Implementations of Zero-shot prompting
 """
-from typing import List, Union
 
 from llmpebase.model.prompting import base
 
@@ -19,7 +18,7 @@ class MMLUZeroShotPrompting(base.BaseZeroShotPrompting):
 
 
 class GameOf24ZeroShotPrompting(base.BaseZeroShotPrompting):
-    """The standard prompt of GameOf24."""
+    """The zeroshot prompt of GameOf24."""
 
     solution_flag: str = "The solution equation is:"
 

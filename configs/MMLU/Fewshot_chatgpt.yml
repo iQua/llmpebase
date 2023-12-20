@@ -1,14 +1,15 @@
+
 data:
 
   data_name: MMLU
   data_path: data
 
   download_url: http://people.eecs.berkeley.edu/~hendrycks/data.tar 
-
+  
   extractor:
     purpose: groundtruth
     style: re
-
+    
 environment:
 
   # The name of the project
@@ -24,10 +25,11 @@ model:
   model_name: gpt-3.5-turbo # "gpt-3.5-turbo","gpt-4"
   model_type: gpt
 
-  prompt_type: zeroshot
+  prompt_type: fewshot
+  n_shots: 5
 
   authorization_path: ./.env
-  
+
   generation_settings:
     temperature: 0.7
     max_tokens: 1000
@@ -36,6 +38,7 @@ model:
     stop: null 
 
   pretrained_models_path: experiments/pretrained_models
+
 
 trainer:
 
@@ -49,14 +52,13 @@ logging:
   visualization_path: experiments/visualizations
 
 evaluation:
-
+  
   # basic, llm
   style: basic
 
   extractor:
     purpose: result
+    # re, llm
     style: llm
 
-
-
-
+   

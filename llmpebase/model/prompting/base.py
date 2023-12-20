@@ -1,5 +1,5 @@
 """
-Basic implementations of standard, fewshot, and zeroshot prompting.
+Basic implementations of fewshot, cot, and zeroshot prompting.
 """
 import json
 import random

@@ -1,19 +1,20 @@
 data:
 
-  data_name: BBH
+  data_name: MATH
   data_path: data
 
   # One may need to download the GSM8k dataset
-  download_url: https://github.com/suzgunmirac/BIG-Bench-Hard/archive/refs/heads/main.zip
+  download_url: null
 
   extractor:
     purpose: groundtruth
-    style: re
-
+    # Do not support Llm for groundtruth extraction
+    style: llm
+  
 environment:
 
   # The name of the project
-  project_name: ICLR 
+  project_name: LLMPE 
   
   # Fix the see for reproducible
   seed: 15
@@ -23,7 +24,7 @@ model:
   model_name: gpt-3.5-turbo # "gpt-3.5-turbo","gpt-4"
   model_type: gpt
 
-  prompt_type: standard
+  prompt_type: fewshot
   n_shots: 5
 
   authorization_path: ./.env
@@ -49,7 +50,7 @@ logging:
   visualization_path: experiments/visualizations
 
 evaluation:
- 
+   
   # basic, llm
   style: basic
 
@@ -57,7 +58,6 @@ evaluation:
     purpose: result
     style: llm
 
-
-
+   
 
 

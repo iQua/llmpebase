@@ -20,7 +20,7 @@ class CoTReasoner:
 
         self.llm_model = llm_model
 
-    def forward(self, prompt_sample: BasicPromptSample):
+    def forward(self, prompt_sample: BasicPromptSample, **kwargs):
         """Answer the question with the CoT reasoner."""
         # Generate the request prompt
         input_message = self.llm_model.create_format_input(
@@ -33,3 +33,9 @@ class CoTReasoner:
             input_request=input_message, per_request_responses=2
         )
         return self.llm_model.read_response_contents(responses)
+
+    def get_cost_statistics(self, **kwargs):
+        """Get the cost statistics of the model."""
+        data = self.llm_model.get_cost_statistics()
+        self.llm_model.reset_cost_statistics()
+        return data

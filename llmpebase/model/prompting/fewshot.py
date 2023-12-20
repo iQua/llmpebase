@@ -1,5 +1,5 @@
 """
-Implementations of Few-shot prompting, which is the standard prompt engineering.
+Implementations of Few-shot prompting, which is the fewshot prompt engineering.
 """
 
 import random
@@ -8,7 +8,7 @@ from llmpebase.model.prompting import base
 
 
 class BBHFewShotPrompting(base.BasePrompting):
-    """The standard prompt of BBH."""
+    """The fewshot prompt of BBH."""
 
     def create_prompt_sample(self, sample, dataset, config):
         """Evaluating the BBH dataset."""
@@ -38,7 +38,7 @@ class BBHFewShotPrompting(base.BasePrompting):
 
 
 class MATHFewShotPrompting(base.BasePrompting):
-    """The standard prompting for MATH."""
+    """The fewshot prompting for MATH."""
 
     def create_prompt_sample(self, sample, dataset, config):
         """Create the prompt sample from the sample of MATH dataset."""
@@ -64,7 +64,7 @@ class MATHFewShotPrompting(base.BasePrompting):
 
 
 class MMLUFewShotPrompting(base.BasePrompting):
-    """The standard prompt of MMLU."""
+    """The fewshot prompt of MMLU."""
 
     solution_flag: str = "The final choice is"
 
@@ -92,7 +92,7 @@ class MMLUFewShotPrompting(base.BasePrompting):
 
 
 class TheoremQAFewShotPrompting(base.BasePrompting):
-    """The standard prompt of TheoremQA."""
+    """The fewshot prompt of TheoremQA."""
 
     solution_flag: str = "The answer is"
 

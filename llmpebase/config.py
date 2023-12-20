@@ -1,6 +1,5 @@
 """
-Reading runtime parameters from a standard configuration file (which is easier
-to work on than JSON).
+Reading runtime parameters from a configuration file.
 """
 import sys
 import time

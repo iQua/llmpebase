@@ -13,7 +13,7 @@ data:
 environment:
 
   # The name of the project
-  project_name: ICLR 
+  project_name: LLMPE 
   
   # Fix the see for reproducible
   seed: 15
@@ -23,7 +23,7 @@ model:
   model_name: llama-2-7b-chat # name of the model used by the project 
   model_type: llamav2 
 
-  prompt_type: standard
+  prompt_type: fewshot
 
   downloaded_model_dir: DownloadedLLMs/llama-2-7b-chat
   downloaded_tokenizer_path: DownloadedLLMs/tokenizer.model

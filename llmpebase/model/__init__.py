@@ -26,27 +26,27 @@ prompts_factory = {
         "zeroshot": zeroshot.MMLUZeroShotPrompting,
     },
     "gsm8k": {
-        "standard": base.BasePrompting,
+        "fewshot": base.BasePrompting,
         "cot": cot.GSM8KCoTPrompting,
         "zeroshot": base.BaseZeroShotPrompting,
     },
     "gameof24": {
-        "standard": "Not provided",
+        "fewshot": "Not provided",
         "cot": "Not provided",
         "zeroshot": zeroshot.GameOf24ZeroShotPrompting,
     },
     "math": {
-        "standard": fewshot.MATHFewShotPrompting,
+        "fewshot": fewshot.MATHFewShotPrompting,
         "cot": cot.MATHCoTPrompting,
         "zeroshot": base.BaseZeroShotPrompting,
     },
     "bbh": {
-        "standard": fewshot.BBHFewShotPrompting,
+        "fewshot": fewshot.BBHFewShotPrompting,
         "cot": cot.BBHCoTPrompting,
         "zeroshot": base.BaseZeroShotPrompting,
     },
     "theoremqa": {
-        "standard": fewshot.TheoremQAFewShotPrompting,
+        "fewshot": fewshot.TheoremQAFewShotPrompting,
         "cot": cot.TheoremQACoTPrompting,
         "zeroshot": zeroshot.TheoremQAZeroShotPrompting,
     },

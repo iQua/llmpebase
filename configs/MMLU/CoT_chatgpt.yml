@@ -12,7 +12,7 @@ data:
 environment:
 
   # The name of the project
-  project_name: ICLR 
+  project_name: LLMPE 
   
   # Fix the see for reproducible
   seed: 15

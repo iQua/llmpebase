@@ -1,31 +1,29 @@
-
 data:
-
-  data_name: MMLU
+ 
+  data_name: GSM8K
   data_path: data
 
-  download_url: http://people.eecs.berkeley.edu/~hendrycks/data.tar 
-  
+  # One may need to download the GSM8k dataset
+  download_url: null
+
   extractor:
     purpose: groundtruth
     style: re
-    
+  
 environment:
 
   # The name of the project
-  project_name: ICLR 
+  project_name: LLMPE 
   
   # Fix the see for reproducible
   seed: 15
-
-  
   
 model:
 
   model_name: gpt-3.5-turbo # "gpt-3.5-turbo","gpt-4"
   model_type: gpt
 
-  prompt_type: standard
+  prompt_type: fewshot
   n_shots: 5
 
   authorization_path: ./.env
@@ -62,3 +60,7 @@ evaluation:
     style: llm
 
    
+
+
+
+
