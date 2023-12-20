@@ -65,14 +65,10 @@ class BasicStructureVisualizer:
     """A visualizer to visualize the thought structure."""
 
     def __init__(
-        self, logging_config: str, visualization_name: str = "thought_structure"
+        self, logging_config: str, visualization_foldername: str = "thought_structure"
     ):
-        visualization_path = logging_config["visualization_path"]
-        self.visualization_name = visualization_name
-        self.save_path = f"{visualization_path}/{self.visualization_name}"
-        os.makedirs(self.save_path, exist_ok=True)
-
-        self.num_visual = 1
+        self.visualization_path = logging_config["visualization_path"]
+        self.visualization_foldername = visualization_foldername
 
     def draw_graph(
         self,
@@ -128,20 +124,22 @@ class BasicStructureVisualizer:
         whole_fig, ax = plt.subplots()
         ax = self.draw_graph(ax, graph=graph, node_pool=node_pool)
         ax.axis("off")
-        self.num_visual += 1
+
+        plt.show(block=False)
+        plt.pause(1)
 
         self.save_fig(fig=whole_fig, save_name=save_name)
 
+        plt.close("all")
+
     def save_fig(self, fig: plt.figure, save_name: str):
         """Save the figure."""
+        save_path = f"{self.visualization_path}/{self.visualization_foldername}"
+        os.makedirs(save_path, exist_ok=True)
 
         fig.tight_layout()
 
         # Save the figure
-        save_name = (
-            save_name if save_name is not None else f"visual_{str(self.num_visual)}"
-        )
-        fig.savefig(f"{self.save_path}/{save_name}.png")
-        fig.savefig(f"{self.save_path}/{save_name}.pdf")
-
-        plt.close(fig)
+        save_name = save_name if save_name is not None else "structure_visualization"
+        fig.savefig(f"{save_path}/{save_name}.png")
+        fig.savefig(f"{save_path}/{save_name}.pdf")

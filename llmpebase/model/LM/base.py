@@ -114,3 +114,11 @@ class BaseLlmRequest(torch.nn.Module):
             "num_completion_words": self.num_completion_words,
             "num_completion_tokens": self.num_completion_tokens,
         }
+
+    def reset_cost_statistics(self):
+        """Reset the cost statistics."""
+        self.num_requests = 0
+        self.num_words = {"system": [], "user": []}
+        self.num_prompt_tokens = []
+        self.num_completion_words = []
+        self.num_completion_tokens = []

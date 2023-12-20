@@ -96,6 +96,7 @@ class BaseThoughtStructure:
             0.9 if "max_stop_score" not in config else config["max_stop_score"]
         )
         self.save_path = logging_config["result_path"]
+        self.save_foldername = "thought_structure"
 
     def create_node(
         self,
@@ -471,8 +472,6 @@ class BaseThoughtStructure:
                     save_name=f"Step_{grow_node.step_idx + 1}",
                 )
 
-        # Save the graph into the disk
-        self.save_structure()
         # Draw the whole graph after building
         if visualizer is not None:
             visualizer.visualize(
@@ -556,12 +555,14 @@ class BaseThoughtStructure:
     def reset_structure(self):
         """Reset the tee."""
         self.root: BasicNode = None
+        self.node_pool: Dict[str, BasicNode] = None
+        self.edge_pool: Dict[str, BasicEdge] = None
         self.graph.clear()
         self.node_id_tracker = -1
 
-    def create_save_path(self, foldername: str = None, location: str = None) -> str:
+    def create_save_folder(self, foldername: str = None, location: str = None) -> str:
         """Create the save path for the thought structure."""
-        foldername = "thought_structure" if foldername is None else foldername
+        foldername = self.save_foldername if foldername is None else foldername
         location = self.save_path if location is None else location
         path = f"{location}/{foldername}"
         os.makedirs(path, exist_ok=True)
@@ -570,22 +571,22 @@ class BaseThoughtStructure:
     def save_thought_path(
         self,
         thought_path: List[BasicNode],
-        path_name: str = None,
+        filename: str = None,
         foldername: str = None,
         location: str = None,
     ):
         """Save the branch of the structure."""
-        path_name = "thought_chain" if path_name is None else path_name
-        save_path = self.create_save_path(foldername, location)
+        filename = "thought_chain" if filename is None else filename
+        save_path = self.create_save_folder(foldername, location)
 
         # Save the information of the thought path
-        file_path = f"{save_path}/{path_name}.json"
+        file_path = f"{save_path}/{filename}.json"
         with open(file_path, "w", encoding="utf-8") as file:
             json.dump(thought_path, file)
 
     def save_structure(self, foldername: str = None, location: str = None):
         """Save the structure to the path."""
-        save_path = self.create_save_path(foldername, location)
+        save_path = self.create_save_folder(foldername, location)
         # Save the graph structure
         nx.write_gexf(self.graph, f"{save_path}/main_structure.gexf")
         nx.write_gml(self.graph, f"{save_path}/main_structure.gml")

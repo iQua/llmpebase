@@ -2,6 +2,8 @@
 A reasoner to perform the reasoning step by step in a chain structure.
 """
 
+from typing import List
+
 from torch import nn
 
 from llmpebase.model.thought_structure import chains
@@ -36,9 +38,14 @@ class ChainReasoner:
 
         self.solution_extractor = ChainExtractor()
 
-    def forward(self, prompt_sample: BasicPromptSample):
+    def forward(
+        self, prompt_sample: BasicPromptSample, sample_idx: int = 0
+    ) -> List[str]:
         """Forward the reasoning in the chain structure."""
         # Make changes to the prompt sample
+        structure_folder = f"thought_structure_{sample_idx}"
+        self.visualizer.visualization_foldername = structure_folder
+        self.structure.save_foldername = structure_folder
         # Place the task prompt in the root so that all subsequent thought chains
         # include the task prompt
         self.structure.construct_root(thought=prompt_sample, thought_score=None)
@@ -46,13 +53,33 @@ class ChainReasoner:
         self.structure.build_structure(
             thought_model=self.thought_model, visualizer=self.visualizer
         )
+        # Save the graph into the disk
+        self.structure.save_structure()
 
         # Get the chain and save it
         solution_chain = self.solution_extractor.extract_thought_chain(self.structure)
-        self.structure.save_thought_path(solution_chain, path_name="solution_chain")
-        # Convert the chain into a string
-        solution_str = self.thought_model.prompter.organize_chain_prompt(
-            chain_nodes=solution_chain
+        self.structure.save_thought_path(
+            solution_chain,
+            filename="solution_chain",
         )
+        # Convert the chain into a string
+        # We remove the root prompt and the evaluation score to organize
+        # a prompt as the reasoning answer
+        solution_str = self.thought_model.prompter.organize_chain_prompt(
+            chain_nodes=solution_chain[1:],
+            with_step_idx=False,
+            with_flag=False,
+            with_evaluation_score=False,
+        )
+        # Clean the structure after the reasoning
+        self.structure.reset_structure()
 
-        return solution_str
+        return [solution_str]
+
+    def get_cost_statistics(self, **kwargs):
+        """Get the cost statistics by using Llm."""
+        # Get the statistics data
+        data = self.thought_model.llm_model.get_cost_statistics(latest=False)
+        # Reset the cost statistics for the llm model
+        self.thought_model.llm_model.reset_cost_statistics()
+        return data

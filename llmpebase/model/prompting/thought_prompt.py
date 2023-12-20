@@ -41,13 +41,14 @@ class ThoughtStructurePrompt:
         self,
         chain_nodes: List[base.BasicNode],
         with_step_idx: int = False,
-        with_start_end: int = True,
+        with_flag: int = True,
+        with_evaluation_score: bool = True,
     ):
         """Organize thoughts chain into the prompt.
 
         :param chain_nodes: A list of thought nodes in the chain.
         :param with_step_idx: Whether to include the step index in the prompt.
-        :param with_start_end: Whether to include the start and end flag in the prompt.
+        :param with_flag: Whether to include the start and end flag in the prompt.
         """
         # initial prompt should be the thought of the root noe
 
@@ -58,7 +59,7 @@ class ThoughtStructurePrompt:
             if with_step_idx:
                 step_head = self.step_head.format(idx + 1)
             score = ""
-            if thought_node.thought_score is not None:
+            if thought_node.thought_score is not None and with_evaluation_score:
                 score = f"Evaluation Score: {thought_node.thought_score}"
 
             intermediate_steps.append(
@@ -68,7 +69,7 @@ class ThoughtStructurePrompt:
         intermediate_steps = "\n".join(intermediate_steps)
         reasoning_chain_prompt = f"""{intermediate_steps}"""
 
-        if with_start_end:
+        if with_flag:
             reasoning_chain_prompt = f"""{self.thought_flag}\n{reasoning_chain_prompt}\n{self.thought_flag}"""
 
         return reasoning_chain_prompt
@@ -76,7 +77,7 @@ class ThoughtStructurePrompt:
     def organize_next_thought_prompt(self, chain_nodes: List[base.BasicNode]):
         """Generating the prompt for next thought."""
         root_prompt = str(chain_nodes[0].thought)
-        chain_prompt = self.organize_chain_prompt(chain_nodes[1:], with_start_end=True)
+        chain_prompt = self.organize_chain_prompt(chain_nodes[1:], with_flag=True)
         head_prompt = self.generation_head.format(root_prompt)
         generation_content = self.generation_content.format(chain_prompt)
         generation_target = self.generation_target.format(self.thought_flag)
@@ -93,7 +94,7 @@ class ThoughtStructurePrompt:
         # Convert the root prompt to be the evaluation prompt
         question = root_prompt.question.content
 
-        chain_prompt = self.organize_chain_prompt(chain_nodes[1:], with_start_end=True)
+        chain_prompt = self.organize_chain_prompt(chain_nodes[1:], with_flag=True)
 
         content = self.evaluate_content.format(chain_prompt, self.thought_flag, thought)
         prompt = f"""{self.evaluate_head}\n{question}\n{content}{self.evaluate_metric}{self.evaluate_notice}{self.evaluate_answer}"""
