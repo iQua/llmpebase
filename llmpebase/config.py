@@ -150,6 +150,11 @@ class Config:
             # The precisions are unique for all parts of the model
             Config.params["run_id"] = os.getpid()
 
+            # Get the prefix of the filename
+            # It is hope that the prefix will be the method name
+            method_name = os.path.basename(filename).split("_")[0]
+            Config.params["method_name"] = method_name
+
             # Project dir
             # The base path used for all datasets, models, checkpoints, and results
             Config.params["base_path"] = Config.args.base.replace("~", HOMEPATH)
@@ -442,8 +447,13 @@ class Config:
         """
         Create the basic save name for the current run-time configuration.
         """
+        method_name = Config.params["method_name"]
+        show_name = (
+            f"{method_name}Reasoning" if "Reasoning" not in method_name else method_name
+        )
         save_name = "__".join(
             [
+                show_name,
                 Config.params["model_name"],
                 Config.model.prompt_type,
                 Config.params["data_name"],

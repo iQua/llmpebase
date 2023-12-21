@@ -24,7 +24,6 @@ model:
   model_type: gpt
 
   prompt_type: fewshot
-  n_shots: 5
 
   authorization_path: ./.env
 
