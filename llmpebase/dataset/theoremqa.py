@@ -19,6 +19,8 @@ from llmpebase.dataset.data_generic import (
     DatasetStatistics,
 )
 
+from llmpebase.utils import tools
+
 
 class TheoremQADataset(base.BaseDataset):
     """
@@ -34,8 +36,8 @@ class TheoremQADataset(base.BaseDataset):
         category_info = defaultdict(dict)
         category_samples = defaultdict(dict)
         for idx, example in enumerate(data):
-            field = base.BaseDataset.format_term(example["field"])
-            subfield = base.BaseDataset.format_term(example["subfield"])
+            field = tools.format_term(example["field"])
+            subfield = tools.format_term(example["subfield"])
 
             # Get the explanation path
             root_path = os.path.dirname(self.phase_data_path)
@@ -58,7 +60,7 @@ class TheoremQADataset(base.BaseDataset):
                     sample_filepath=self.phase_data_path,
                     auxiliary={
                         # The theorem used in the answer
-                        "theorem": base.BaseDataset.format_term(example["theorem"]),
+                        "theorem": tools.format_term(example["theorem"]),
                         # The detailed reasoning steps
                         "explain_path": explain_path,
                         # Visual path
