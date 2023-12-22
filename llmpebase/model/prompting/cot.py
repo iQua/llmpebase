@@ -19,11 +19,13 @@ class BBHCoTPrompting(base.BaseCoTPrompting):
         """Load the cot examples from the file."""
         cot_files = glob.glob(cot_filepath)
         self.cot_prompts = {
-            tools.format_term(os.path.basename(path)): path for path in cot_files
+            tools.format_term(os.path.basename(path).split(".")[0]): path
+            for path in cot_files
         }
 
     def get_cot_prompt(self, problem_name: str, **kwargs):
         """Load the cot prompt."""
+
         prompt_path = self.cot_prompts[problem_name]
         with open(prompt_path, "r", encoding="utf-8") as f:
             cot_prompt = f.read()
@@ -69,14 +71,14 @@ class MATHCoTPrompting(base.BaseCoTPrompting):
         Load the cot as a dictionary, with the structure:
          - problem_name:
             - prompt: filepath
-
         """
         folders = glob.glob(cot_filepath + "/*")
         for folder_path in folders:
-            folder_name = os.path.basename(folder_path)
+            folder_name = os.path.basename(folder_path).split(".")[0]
+            category_name = tools.format_term(folder_name)
             prompt_files = glob.glob(folder_path + "/*")
             self.cot_prompt = {
-                folder_name: {
+                category_name: {
                     os.path.basename(file_path): file_path for file_path in prompt_files
                 }
             }
@@ -87,7 +89,6 @@ class MATHCoTPrompting(base.BaseCoTPrompting):
         When the format problem name of llmpebase is Moral Scenarios,
         we need to make a conversion.
         """
-        problem_name = problem_name.lower()
         return self.cot_prompt[problem_name][self.cot_filename]
 
 
@@ -98,13 +99,21 @@ class MMLUCoTPrompting(base.BaseCoTPrompting):
     # Current CoT ones use "The answer is".
     solution_flag: str = "The answer is "
 
+    def load_cot(self, cot_filepath: str):
+        """Load the cot examples from the file."""
+        super().load_cot(cot_filepath)
+        # Convert the keys of cot_prompt to be the format one
+        self.cot_prompt = {
+            tools.format_term(key): value for key, value in self.cot_prompt.items()
+        }
+
     def get_cot_prompt(self, problem_name: str, **kwargs):
         """Load the cot prompt.
         The problem name of CoT will be moral_scenarios.
         When the format problem name of llmpebase is Moral Scenarios,
         we need to make a conversion.
         """
-        problem_name = problem_name.replace(" ", "_").lower()
+
         return self.cot_prompt[problem_name]
 
 

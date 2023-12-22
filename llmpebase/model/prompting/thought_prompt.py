@@ -77,7 +77,9 @@ class ThoughtStructurePrompt:
     def organize_next_thought_prompt(self, chain_nodes: List[base.BasicNode]):
         """Generating the prompt for next thought."""
         root_prompt = str(chain_nodes[0].thought)
-        chain_prompt = self.organize_chain_prompt(chain_nodes[1:], with_flag=True)
+        chain_prompt = self.organize_chain_prompt(
+            chain_nodes[1:], with_flag=True, with_evaluation_score=False
+        )
         head_prompt = self.generation_head.format(root_prompt)
         generation_content = self.generation_content.format(chain_prompt)
         generation_target = self.generation_target.format(self.thought_flag)

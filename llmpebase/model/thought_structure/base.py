@@ -387,12 +387,17 @@ class BaseThoughtStructure:
         ):
             # Find which nodes contain the similar thought with this
             # to be added thought
-            similar_nodes = self.search_identical_thought(
-                thought,
-                prev_node_id=prev_node_id,
-                thought_score=score,
-                thought_similarities=similarities,
-            )
+            similar_nodes = []
+            # Only search similar thought when the current thought
+            # is not the solution
+            if not self.root.thought.solution_flag in str(thought):
+                similar_nodes = self.search_identical_thought(
+                    thought,
+                    prev_node_id=prev_node_id,
+                    thought_score=score,
+                    thought_similarities=similarities,
+                )
+
             # If there is no identical thought, add the thought to the structure
             # as a new node
             if len(similar_nodes) == 0:
