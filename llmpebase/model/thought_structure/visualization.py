@@ -84,7 +84,9 @@ class BasicStructureVisualizer:
         # Get the positions
         pos = graphviz_layout(graph, prog="dot")
         labels = {
-            node_pool[node_id].identity: f"Step {node_pool[node_id].step_idx}"
+            node_pool[
+                node_id
+            ].identity: f"Node {node_pool[node_id].identity}\n Step {node_pool[node_id].step_idx}"
             for node_id in graph.nodes
         }
         for node_id in graph.nodes:
