@@ -9,7 +9,7 @@ from torch import nn
 from llmpebase.model.thought_structure import chains
 from llmpebase.model.prompting.base import BasicPromptSample
 from llmpebase.model.thought_structure.visualization import BasicStructureVisualizer
-from llmpebase.model.thought_structure.chain_extractors import ChainExtractor
+from llmpebase.model.thought_structure.chain_extractors import SolutionExtractor
 
 
 class ChainReasoner:
@@ -33,10 +33,13 @@ class ChainReasoner:
         self.visualizer = BasicStructureVisualizer(logging_config=logging_config)
 
         self.structure = chains.ChainThoughtStructure(
-            model_config, logging_config=logging_config
+            thought_model=self.thought_model,
+            model_config=model_config,
+            logging_config=logging_config,
+            visualizer=self.visualizer,
         )
 
-        self.solution_extractor = ChainExtractor()
+        self.solution_extractor = SolutionExtractor()
 
     def forward(
         self, prompt_sample: BasicPromptSample, sample_idx: int = 0
@@ -50,14 +53,12 @@ class ChainReasoner:
         # include the task prompt
         self.structure.construct_root(thought=prompt_sample, thought_score=None)
         # Grow the thought structure
-        self.structure.build_structure(
-            thought_model=self.thought_model, visualizer=self.visualizer
-        )
+        self.structure.build_structure()
         # Save the graph into the disk
         self.structure.save_structure()
 
         # Get the chain and save it
-        solution_chain = self.solution_extractor.extract_thought_chain(self.structure)
+        solution_chain = self.solution_extractor.extract_solution_chain(self.structure)
         self.structure.save_thought_path(
             solution_chain,
             filename="solution_chain",
