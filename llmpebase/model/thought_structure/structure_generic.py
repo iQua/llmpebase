@@ -63,14 +63,22 @@ class BasicNode(BasicThoughtStep):
 
     def set_position(self, position: str = "Intermediate"):
         """Set the node position."""
+
         assert position in self.position_types
-        self.position = position
-        self.node_name = f"{position} Node"
-        # By default, Stop is unable to grow.
-        self.growth = "Un-growable" if position == "Stop" else "Growable"
-        logging.info(
-            "Set the node %s to be %s and %s", self.identity, self.position, self.growth
-        )
+        # Only make adjustment when the position
+        # is different from the current one.
+        if position != self.position:
+            self.position = position
+            self.node_name = f"{position} Node"
+            # By default, Stop is unable to grow.
+            self.growth = "Un-growable" if position == "Stop" else "Growable"
+
+            logging.info(
+                "Set the node %s to be %s and %s",
+                self.identity,
+                self.position,
+                self.growth,
+            )
 
     def set_growth(self, status: str = "Growable"):
         """Set the node growth status."""
