@@ -26,9 +26,19 @@ class BaseThoughtStructure:
 
     def __init__(
         self,
+        thought_model: torch.nn.Module,
         model_config: dict,
         logging_config: dict,
+        visualizer: BasicStructureVisualizer = None,
     ):
+        # The thought model is the necessary part for the thought
+        # structure building
+        self.thought_model = thought_model
+        assert hasattr(self.thought_model, "generate_thoughts")
+        assert hasattr(self.thought_model, "evaluate_thoughts")
+        assert hasattr(self.thought_model, "measure_thought_similarity")
+        # The visualizer to visualize the thought structure
+        self.visualizer = visualizer
         # Tracker of the node id starting from 0
         # thus, root of the tree should be 0
         self.node_id_tracker = -1
@@ -199,9 +209,16 @@ class BaseThoughtStructure:
         node2_id: int,
     ):
         """
-        Two nodes organize the same path when they are derived
-        from a same prev branch, which is the shortest path
-        between the node and the root .
+        Two nodes are regarded as the same path when they are derived
+        from a same path, which is the shortest path
+        between the node and the root.
+
+        We should note that this judgement constrain a very strong and
+        strict as it requires the node id along the path of these two nodes
+        are the same, making them actually grown from the same parent node.
+
+        One may need to enhance or adjust this function to make it more
+        flexible.
         """
         return nx.shortest_path(
             self.graph, self.root.identity, node1_id
@@ -211,15 +228,13 @@ class BaseThoughtStructure:
         self,
         grow_node: BasicNode,
         thoughts: List[str],
-        thought_model,
     ):
         """
         Measure the similarity between the given thoughts and thoughts in the structure.
 
         :param grow_node: The node the thoughts should be added to.
         :param thoughts: The thoughts to be added.
-        :param thought_model: A defined thought model that uses Llm to compute the
-         similarity.
+
         """
         similarities = [{}] * len(thoughts)
         prompts = [{}] * len(thoughts)
@@ -229,7 +244,7 @@ class BaseThoughtStructure:
         for idx, thought in enumerate(thoughts):
             for node_id in self.graph.nodes:
                 node = self.node_pool[node_id]
-                score, prompt = thought_model.measure_thought_similarity(
+                score, prompt = self.thought_model.measure_thought_similarity(
                     thought,
                     node.thought,
                     thought_chain=grow_path,
@@ -289,7 +304,7 @@ class BaseThoughtStructure:
         self,
         thought: str,
         prev_node_id: str,
-        evaluation: float = 1.0,
+        thought_score: float = 1.0,
         edge_weight: float = 1.0,
         **kwargs,
     ) -> int:
@@ -304,7 +319,7 @@ class BaseThoughtStructure:
             identity=node_id,
             step_idx=step_idx,
             thought=thought,
-            thought_score=evaluation,
+            thought_score=thought_score,
             node_name=f"Intermediate Node {node_id}",
             step_name=f"Reasoning step {step_idx}",
             position="Intermediate",
@@ -330,7 +345,7 @@ class BaseThoughtStructure:
         self.set_node_status(new_node.identity)
 
         logging.info(
-            "Added new %s node (%s) %s grown from the node %s",
+            "  Created new %s node (%s) %s grown from the node %s",
             self.node_pool[node_id].position,
             self.node_pool[node_id].growth,
             node_id,
@@ -342,24 +357,53 @@ class BaseThoughtStructure:
     def extend_node(
         self,
         thought: str,
-        evaluation_score: float,
-        similar_thought_nodes: List[BasicNode],
+        thought_score: float,
+        node_ids: List[int],
         thought_similarity: Dict[str, float],
         similarity_prompts: Dict[str, str],
+        **kwargs,
     ):
         """Extend the node by adding similar thoughts to it."""
-        node_id = similar_thought_nodes[0]
+        node_id = node_ids[0]
         sim_score = thought_similarity[node_id]
         sim_prompt = similarity_prompts[node_id]
 
         self.node_pool[node_id].backup_though(
-            thought, evaluation_score, similarity_score=sim_score, prompt=sim_prompt
+            thought, thought_score, similarity_score=sim_score, prompt=sim_prompt
         )
 
         logging.info(
-            "Extended the thought for an existing node %s",
+            "  Backed it up to an existing node %s",
             node_id,
         )
+        return node_id
+
+    def add_thought(
+        self,
+        thought: str,
+        thought_score: float,
+        prev_node_id: int,
+        to_node_ids: List[int],
+        similarities: Dict[str, float],
+        similarity_prompt: Dict[str, str],
+        **kwargs,
+    ):
+        """Add the thought to the structure."""
+        logging.info("Adding the thought derived from the node %s", prev_node_id)
+        # If there is no identical thought, add the thought to the structure
+        # as a new node
+        if len(to_node_ids) == 0:
+            node_id = self.add_node(thought, prev_node_id, thought_score, **kwargs)
+        else:
+            node_id = self.extend_node(
+                thought,
+                thought_score,
+                node_ids=to_node_ids,
+                thought_similarity=similarities,
+                similarity_prompts=similarity_prompt,
+                prev_node_id=prev_node_id,
+            )
+
         return node_id
 
     def grow_structure(
@@ -372,10 +416,13 @@ class BaseThoughtStructure:
     ):
         """Grow the structure by adding new thoughts.
 
-        :param prev_node_id: The node id of thought that is the previous step of
-         the input thoughts.
+        :param prev_node_id: The node id, which produces the thoughts as the next
+         steps.
         :param thoughts: The thoughts to be added.
         :param thought_scores: The evaluation scores of thoughts.
+        :param thought_similarities: The similarity scores in which each item is a list
+         containing the similarity scores between the corresponding thought and all existing
+         thoughts in nodes of the structure.
         """
         similarity_prompts = (
             kwargs["similarity_prompts"]
@@ -385,31 +432,36 @@ class BaseThoughtStructure:
         for idx, (thought, score, similarities) in enumerate(
             zip(thoughts, thought_scores, thought_similarities)
         ):
+            # Judge whether the prev_node is full
+            # if true, there is no need to add more thoughts either
+            # as new node (impossible) or as similar thoughts (unnecessary)
+            if len(list(self.graph.successors(prev_node_id))) >= self.num_next_steps:
+                break
             # Find which nodes contain the similar thought with this
             # to be added thought
-            similar_nodes = []
+            similar_node_ids = []
             # Only search similar thought when the current thought
             # is not the solution
             if not self.root.thought.solution_flag in str(thought):
-                similar_nodes = self.search_identical_thought(
+                similar_node_ids = self.search_identical_thought(
                     thought,
                     prev_node_id=prev_node_id,
                     thought_score=score,
                     thought_similarities=similarities,
                 )
+            # Add the thought to the structure either as a new node
+            # or being added to 'to_nodes' based on the similarity
+            # measurement
+            self.add_thought(
+                thought=thought,
+                thought_score=score,
+                prev_node_id=prev_node_id,
+                to_node_ids=similar_node_ids,
+                similarities=similarities,
+                similarity_prompt=similarity_prompts[idx],
+                **kwargs,
+            )
 
-            # If there is no identical thought, add the thought to the structure
-            # as a new node
-            if len(similar_nodes) == 0:
-                node_id = self.add_node(thought, prev_node_id, score, **kwargs)
-            else:
-                node_id = self.extend_node(
-                    thought,
-                    score,
-                    similar_nodes,
-                    thought_similarity=similarities,
-                    similarity_prompts=similarity_prompts[idx],
-                )
         # Set the status of nodes in the graph
         for node_id in self.graph.nodes:
             self.set_node_status(node_id)
@@ -419,15 +471,12 @@ class BaseThoughtStructure:
 
     def build_structure(
         self,
-        thought_model: torch.nn.Module,
-        visualizer: BasicStructureVisualizer = None,
         **kwargs,
     ):
         """Grow the structure by adding new thoughts.
 
         :param thought_model: A defined thought model used to build the structure.
         """
-        assert hasattr(thought_model, "generate_thoughts")
 
         while not self.stop_growth():
             # Get the node to be grown
@@ -435,27 +484,23 @@ class BaseThoughtStructure:
             # Get the thought path of the node to be grown
             thought_path = self.get_node_path(self.root.identity, grow_node.identity)
             # Generate and then evaluate the next thoughts
-            thoughts, gen_prompt = thought_model.generate_thoughts(
+            thoughts, gen_prompt = self.thought_model.generate_thoughts(
                 thought_chain=thought_path, num_thoughts=self.num_next_steps
             )
 
             scores = [None] * len(thoughts)
             eval_prompt = None
-            if hasattr(thought_model, "evaluate_thoughts"):
-                scores, eval_prompt = thought_model.evaluate_thoughts(
-                    thoughts, thought_chain=thought_path
-                )
+            scores, eval_prompt = self.thought_model.evaluate_thoughts(
+                thoughts, thought_chain=thought_path
+            )
 
             # Measure the similarity between new thoughts and existing thoughts in the
             # structure
             similarities = [{}] * len(thoughts)
             sim_prompts = [{}] * len(thoughts)
-            if hasattr(thought_model, "measure_thought_similarity"):
-                similarities, sim_prompts = self.compute_thought_similarity(
-                    grow_node,
-                    thoughts,
-                    thought_model=thought_model,
-                )
+            similarities, sim_prompts = self.compute_thought_similarity(
+                grow_node, thoughts
+            )
 
             # Grow the structure by adding the thoughts
             self.grow_structure(
@@ -470,16 +515,16 @@ class BaseThoughtStructure:
 
             # Draw the graph and save to the disk
             # as each node added to the graph means a new step
-            if visualizer is not None:
-                visualizer.visualize(
+            if self.visualizer is not None:
+                self.visualizer.visualize(
                     self.graph,
                     self.node_pool,
                     save_name=f"Step_{grow_node.step_idx + 1}",
                 )
 
         # Draw the whole graph after building
-        if visualizer is not None:
-            visualizer.visualize(
+        if self.visualizer is not None:
+            self.visualizer.visualize(
                 self.graph, self.node_pool, save_name="built_structure"
             )
 
