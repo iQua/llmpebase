@@ -8,10 +8,10 @@ from typing import List
 from llmpebase.model.thought_structure import base
 
 
-class ChainExtractor:
+class SolutionExtractor:
     """A base extractor to extract the thought chain from the thought structure."""
 
-    def extract_thought_chain(
+    def extract_solution_chain(
         self,
         structure: base.BaseThoughtStructure,
     ) -> List[base.BasicNode]:

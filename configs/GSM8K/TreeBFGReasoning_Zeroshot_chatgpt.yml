@@ -35,7 +35,7 @@ model:
     stop: null 
 
   thought_structure:
-    growth_type: dfs
+    growth_type: bfg
     num_next_steps: 2
     # Note that the length computation includes the root node
     # Set the length to be longer to reach the final solution
