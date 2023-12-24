@@ -7,7 +7,7 @@ from typing import List
 from torch import nn
 
 from llmpebase.model.thought_structure import trees
-from llmpebase.model.prompting.base import BasicPromptSample
+from llmpebase.model.prompting.base import BasicSamplePrompt
 from llmpebase.model.thought_structure.visualization import BasicStructureVisualizer
 from llmpebase.model.thought_structure.chain_extractors import SolutionExtractor
 
@@ -43,7 +43,7 @@ class TreeReasoner:
         self.solution_extractor = SolutionExtractor()
 
     def forward(
-        self, prompt_sample: BasicPromptSample, sample_idx: int = 0
+        self, prompt_sample: BasicSamplePrompt, sample_idx: int = 0
     ) -> List[str]:
         """Forward the reasoning in the chain structure."""
         # Make changes to the prompt sample

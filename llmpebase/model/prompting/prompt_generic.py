@@ -43,7 +43,7 @@ class BasicAnswerPromptFormat(BasicPromptFormat):
 
 
 @dataclass
-class BasicPromptSample(FieldFrozenContainer):
+class BasicSamplePrompt(FieldFrozenContainer):
     """
     A basic structure for the prompt sample, which is used as the input
     for the Llm to perform the reasoning.
@@ -61,4 +61,21 @@ class BasicPromptSample(FieldFrozenContainer):
     def __str__(self):
         # Build the prompt by combing each part
         self.prompt = f"""{self.head} {self.notice}{self.demonstrations}\n{self.question}{self.answer}"""
+        return self.prompt
+
+
+@dataclass
+class BasicThoughtPromptFormat(BasicPromptFormat):
+    """
+    A basic structure for the prompt of the thought generation.
+    """
+
+    target: str = None
+
+    def __str__(self):
+        # Build the prompt by combing each part
+
+        self.prompt = (
+            f"""{self.head}{self.content}{self.target}{self.notice}{self.tail}"""
+        )
         return self.prompt

@@ -10,7 +10,7 @@ from dataclasses import asdict
 from llmpebase.model.prompting.prompt_generic import (
     BasicPromptFormat,
     BasicAnswerPromptFormat,
-    BasicPromptSample,
+    BasicSamplePrompt,
 )
 
 
@@ -117,7 +117,7 @@ class BasePrompting:
         answer_prompt = self.organize_answer_prompt(
             test_sample, is_answer_included=False
         )
-        prompt_sample = BasicPromptSample(
+        prompt_sample = BasicSamplePrompt(
             notice="After getting the final solution, place it after the sentence '{}' for readability.\n",
             solution_flag=self.solution_flag,
             demonstrations=demonstration_prompt,

@@ -4,7 +4,7 @@ A reasoner to perform the reasoning process.
 
 from llmpebase.model import define_model
 from llmpebase.model.LM.base import BaseLlmRequest
-from llmpebase.model.prompting.base import BasicPromptSample
+from llmpebase.model.prompting.base import BasicSamplePrompt
 
 
 class CoTReasoner:
@@ -20,7 +20,7 @@ class CoTReasoner:
 
         self.llm_model = llm_model
 
-    def forward(self, prompt_sample: BasicPromptSample, **kwargs):
+    def forward(self, prompt_sample: BasicSamplePrompt, **kwargs):
         """Answer the question with the CoT reasoner."""
         # Generate the request prompt
         input_message = self.llm_model.create_format_input(

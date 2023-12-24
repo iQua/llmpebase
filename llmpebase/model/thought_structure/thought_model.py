@@ -33,7 +33,7 @@ class LlmThoughtModel:
         prompt = self.prompter.organize_next_thought_prompt(chain_nodes=thought_chain)
 
         responses = self.llm_model.forward(
-            user_prompt=prompt,
+            user_prompt=str(prompt),
             per_request_responses=num_thoughts,
             sys_prompt=self.prompter.generation_system_prompt,
         )
@@ -54,7 +54,7 @@ class LlmThoughtModel:
             )
 
             responses = self.llm_model.forward(
-                user_prompt=prompt,
+                user_prompt=str(prompt),
                 per_request_responses=1,
                 sys_prompt=self.prompter.generation_system_prompt,
             )
@@ -83,7 +83,7 @@ class LlmThoughtModel:
         )
 
         responses = self.llm_model.forward(
-            user_prompt=prompt,
+            user_prompt=str(prompt),
             per_request_responses=1,
             sys_prompt=self.prompter.similarity_system_prompt,
         )

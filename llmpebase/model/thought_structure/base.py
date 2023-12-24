@@ -13,7 +13,7 @@ from typing import List, Union, Tuple, Dict
 import torch
 import networkx as nx
 
-from llmpebase.model.prompting.base import BasicPromptSample
+from llmpebase.model.prompting.base import BasicSamplePrompt
 from llmpebase.model.thought_structure.visualization import BasicStructureVisualizer
 from llmpebase.model.thought_structure.structure_generic import BasicNode, BasicEdge
 
@@ -112,7 +112,7 @@ class BaseThoughtStructure:
         self,
         identity: str,
         step_idx: int,
-        thought: Union[str, BasicPromptSample],
+        thought: Union[str, BasicSamplePrompt],
         thought_score: float = 1.0,
         step_name: str = "Reasoning Step",
         node_name: str = "Intermediate Node",
@@ -161,7 +161,7 @@ class BaseThoughtStructure:
 
     def construct_root(
         self,
-        thought: BasicPromptSample = None,
+        thought: BasicSamplePrompt = None,
         thought_score: float = None,
         **kwargs,
     ):
@@ -234,7 +234,6 @@ class BaseThoughtStructure:
 
         :param grow_node: The node the thoughts should be added to.
         :param thoughts: The thoughts to be added.
-
         """
         similarities = [{}] * len(thoughts)
         prompts = [{}] * len(thoughts)
@@ -243,12 +242,16 @@ class BaseThoughtStructure:
         )
         for idx, thought in enumerate(thoughts):
             for node_id in self.graph.nodes:
-                node = self.node_pool[node_id]
-                score, prompt = self.thought_model.measure_thought_similarity(
-                    thought,
-                    node.thought,
-                    thought_chain=grow_path,
-                )
+                score = 0.0
+                prompt = ""
+                node = self.root
+                if node_id != self.root.identity:
+                    node = self.node_pool[node_id]
+                    score, prompt = self.thought_model.measure_thought_similarity(
+                        thought,
+                        node.thought,
+                        thought_chain=grow_path,
+                    )
                 similarities[idx][node.identity] = score
                 prompts[idx][node.identity] = prompt
         return similarities, prompts
