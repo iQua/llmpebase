@@ -85,7 +85,11 @@ class LWGTreeThoughtStructure(base.BaseThoughtStructure):
         # When the depth reaches the maximum, stop growing
         if num_depth >= self.max_length:
             return None
-
+        # Leaf-wise growth strategy will stop grow when getting the final solution.
+        if any(
+            [self.node_pool[node_id].position == "Stop" for node_id in self.graph.nodes]
+        ):
+            return None
         # Visit the thought value of node in the current level
         nodes = level_nodes[num_depth - 1]
         # Get the one with highest thought value

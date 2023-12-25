@@ -84,9 +84,10 @@ class BasePrompting:
         """organizing the prompt including the few-shot ."""
 
         if demonstrations is None:
-            return ""
+            return BasicPromptFormat(head="", content="", notice="", tail="", prompt="")
 
         demonstration_prompt = BasicPromptFormat(**asdict(self.demonstrate_format))
+
         problem_name = "" if problem_name is None else problem_name
         content = demonstrations if isinstance(demonstrations, str) else []
 
@@ -113,6 +114,7 @@ class BasePrompting:
         demonstration_prompt = self.organize_demonstration_prompt(
             demonstrations, problem_name
         )
+
         question_prompt = self.organize_question_prompt(test_sample, problem_name)
         answer_prompt = self.organize_answer_prompt(
             test_sample, is_answer_included=False
@@ -125,6 +127,7 @@ class BasePrompting:
             answer=answer_prompt,
             prompt="",
         )
+
         prompt_sample.head = prompt_sample.head.format(problem_name)
         prompt_sample.notice = prompt_sample.notice.format(self.solution_flag)
         return prompt_sample
@@ -132,8 +135,8 @@ class BasePrompting:
     def create_prompt_sample(self, sample, dataset, config: dict):
         """Create one prompt sample.
 
-        :param sample: The `BaseQASample` instance.
-        :param dataset: The `BaseDataset` instance.
+        :param sample: An instance of the BaseQASample obtained from the data loader.
+        :param dataset: An instance of the BaseDataset.
         """
 
         n_shots = config["n_shots"]
