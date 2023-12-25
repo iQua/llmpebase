@@ -20,9 +20,9 @@ class ThoughtStructurePrompt:
     similarity_system_prompt: str = """You are an expert at measuring the similarity between two reasoning steps by comparing their mathematical logic, mathematical content overlap, mathematical conclusion, and contribution to the final solution for the question. Output the evaluation result as a score ranging from 0 to 1 with higher value measures better."""
 
     generation_prompt = BasicThoughtPromptFormat(
-        head="{}Let's focus on generating one step at a time.\n",
-        content="Below is an obtained reasoning chain containing reasoning steps presented in order:\n{}\n\n",
-        target="Based on above reasoning steps within '{}', please generate one subsequent possible reasoning step. Please only provide one single step next to the given reasoning steps. When there are no given steps, please generate the first reasoning step.\nGenerate one next reasoning step.",
+        head="{}Let's focus on generating one next possible reasoning step for the reasoning steps below.\n",
+        content="\n{}\n\n",
+        target="For reasoning steps within {}, the next reasoning step with the specific mathematical analysis should be: ",
         notice="",
         tail="",
         prompt="",
@@ -92,6 +92,8 @@ class ThoughtStructurePrompt:
         generation_prompt.head = generation_prompt.head.format(root_prompt)
         generation_prompt.content = generation_prompt.content.format(chain_prompt)
         generation_prompt.target = generation_prompt.target.format(self.thought_flag)
+
+        print(generation_prompt)
 
         return generation_prompt
 
