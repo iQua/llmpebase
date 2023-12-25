@@ -45,7 +45,7 @@ class GraphReasoner:
         self, prompt_sample: BasicSamplePrompt, sample_idx: int = 0
     ) -> List[str]:
         """Forward the reasoning in the chain structure."""
-        # Make changes to the prompt sample
+        # Create the visualization path
         structure_folder = f"thought_structure_{sample_idx}"
         self.visualizer.visualization_foldername = structure_folder
         self.structure.save_foldername = structure_folder

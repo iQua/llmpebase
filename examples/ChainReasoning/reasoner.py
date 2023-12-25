@@ -13,11 +13,13 @@ from llmpebase.model.thought_structure.chain_extractors import SolutionExtractor
 
 
 class ChainReasoner:
-    """A CoT reasoner to answer the question with the request model.
+    """
+    A CoT reasoner to answer the question with the request model.
 
     Args:
-        thought_model: A defined thought model used to generate thought with
-         the implemented functions `generate_thoughts`.
+        thought_model: A defined thought model used to generate thought
+        during the growth of the chain structure. For the required functions
+        of this mode, please access the thought_model.py file.
     """
 
     def __init__(
@@ -45,7 +47,7 @@ class ChainReasoner:
         self, prompt_sample: BasicSamplePrompt, sample_idx: int = 0
     ) -> List[str]:
         """Forward the reasoning in the chain structure."""
-        # Make changes to the prompt sample
+        # Create the visualization path
         structure_folder = f"thought_structure_{sample_idx}"
         self.visualizer.visualization_foldername = structure_folder
         self.structure.save_foldername = structure_folder
