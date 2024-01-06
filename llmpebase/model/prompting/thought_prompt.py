@@ -93,8 +93,6 @@ class ThoughtStructurePrompt:
         generation_prompt.content = generation_prompt.content.format(chain_prompt)
         generation_prompt.target = generation_prompt.target.format(self.thought_flag)
 
-        print(generation_prompt)
-
         return generation_prompt
 
     def organize_evaluation_prompt(
