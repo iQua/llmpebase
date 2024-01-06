@@ -3,20 +3,18 @@
 
 # dataset settings for the original dataset and the corresponding multimodal data processor
 data:
-  datasource_name: MMLU
-  datasource_path: data # path of the source data
 
   data_name: MMLU
   data_path: data
 
   # One may need to download the GSM8k dataset
-  datasource_download_url: null # mainly for website
+  download_url: null # mainly for website
 
   
 environment:
 
   # The name of the project
-  project_name: ICLR 
+  project_name: LLMPE 
   
   # Fix the see for reproducible
   seed: 15
@@ -26,7 +24,7 @@ model:
   model_name: gpt-4 # "gpt-3.5-turbo","gpt-4"
   model_type: gpt
 
-  prompt_type: zeroshot_cot
+  prompt_type: zeroshot
 
   authorization_env_path: ./.env
 

@@ -1,0 +1,62 @@
+data:
+  data_name: BBH
+  data_path: data
+
+  # One may need to download the BBH dataset
+  download_url: https://github.com/suzgunmirac/BIG-Bench-Hard/archive/refs/heads/main.zip
+  
+  extractor:
+    purpose: groundtruth
+    style: re
+  
+
+environment:
+
+  # The name of the project
+  project_name: LLMPE 
+  
+  # Fix the see for reproducible
+  seed: 15
+
+  
+  
+model:
+
+  model_name: gpt-3.5-turbo # "gpt-3.5-turbo","gpt-4"
+  model_type: gpt
+
+  prompt_type: cot
+  cot_filepath: ./examples//Prompts/BBH/*.txt
+
+
+  authorization_path: ./.env
+  
+  generation_settings:
+    temperature: 0.7
+    max_tokens: 1000
+    # n here is n_completions_per_prompt
+    n: 1
+    stop: null 
+
+  pretrained_models_path: experiments/pretrained_models
+
+trainer:
+
+logging:
+  # path where to save, empty for no saving
+  experiment_path: experiments
+  checkpoint_path: experiments/checkpoints
+  result_path: experiments/results
+  logging_path: experiments/loggings
+  visualization_path: experiments/visualizations
+
+evaluation:
+
+  # basic, llm
+  style: basic
+
+  extractor:
+    purpose: result
+    style: llm
+
+

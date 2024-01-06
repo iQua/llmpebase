@@ -1,20 +1,18 @@
-# include basic settings for the models and the learning process
-
-
-# dataset settings for the original dataset and the corresponding multimodal data processor
 data:
-  datasource_name: MMLU
-  datasource_path: data # path of the source data
 
   data_name: MMLU
   data_path: data
 
-  datasource_download_url: http://people.eecs.berkeley.edu/~hendrycks/data.tar 
-  
+  download_url: http://people.eecs.berkeley.edu/~hendrycks/data.tar 
+
+  extractor:
+    purpose: groundtruth
+    style: re
+
 environment:
 
   # The name of the project
-  project_name: ICLR 
+  project_name: LLMPE 
   
   # Fix the see for reproducible
   seed: 15
@@ -27,10 +25,10 @@ model:
   model_type: gpt
 
   prompt_type: cot
-  cot_filepath: ./examples/ChainOfThought/mmlu-cot-claude.json
+  cot_filepath: ./examples/Prompts/MMLU/mmlu-cot-claude.json
 
 
-  authorization_env_path: ./.env
+  authorization_path: ./.env
   
   generation_settings:
     temperature: 0.7
@@ -38,14 +36,6 @@ model:
     # n here is n_completions_per_prompt
     n: 1
     stop: null 
-
-  tree_settings:
-    num_leaves: 6
-    max_depth: 4
-    min_leaf_thought_score: 0.3
-    max_leaf_thought_score: 0.9
-    min_thoughts_similarity: 0.6
-    max_thoughts_score_diff: 0.3
 
   pretrained_models_path: experiments/pretrained_models
 
@@ -61,9 +51,11 @@ logging:
 
 evaluation:
 
-  # set the hyper parameters for performance
-  performance:
+  # basic, llm
+  style: basic
 
-
+  extractor:
+    purpose: result
+    style: llm
 
 

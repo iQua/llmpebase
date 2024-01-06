@@ -543,6 +543,13 @@ visualizations/
 DownloadedLLMs/
 
 commends/
-ICLR/
+
 examples/ChainOfThought/gsm8k_prompt/
 examples/run_scripts/
+checkpoints/
+issues/
+data/
+logging/
+pretrained_models/
+results/
+visualizations/

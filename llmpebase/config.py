@@ -1,6 +1,5 @@
 """
-Reading runtime parameters from a standard configuration file (which is easier
-to work on than JSON).
+Reading runtime parameters from a configuration file.
 """
 import sys
 import time
@@ -16,6 +15,9 @@ import shutil
 import torch
 import numpy as np
 import yaml
+
+
+logging.getLogger("httpx").setLevel(logging.CRITICAL)
 
 
 class Loader(yaml.SafeLoader):
@@ -148,6 +150,11 @@ class Config:
             # The precisions are unique for all parts of the model
             Config.params["run_id"] = os.getpid()
 
+            # Get the prefix of the filename
+            # It is hope that the prefix will be the method name
+            method_name = os.path.basename(filename).split("_")[0]
+            Config.params["method_name"] = method_name
+
             # Project dir
             # The base path used for all datasets, models, checkpoints, and results
             Config.params["base_path"] = Config.args.base.replace("~", HOMEPATH)
@@ -168,24 +175,16 @@ class Config:
             # we hope the data can be placed under the project dir directly
             #   instead of be placing under project_path/project_name
             data_path = Config().data.data_path.replace("~", HOMEPATH)
-            if not os.path.exists(data_path):
-                Config.data = Config.data._replace(
-                    data_path=Path(os.path.join(project_path, "data"))
-                )
 
-            if hasattr(Config().data, "datasource_path") and (
-                Config().data.datasource_path is not None
-            ):
+            if data_path is not None:
                 # if the set dir is not correct, we redirect to
-                #   the default dir {data_path}/datasource_path
-                datasource_path = Config().data.datasource_path.replace("~", HOMEPATH)
-                if not os.path.exists(datasource_path):
-                    expected_datasource_path = os.path.join(
-                        project_path, datasource_path
-                    )
+                #   the default dir {data_path}/data_path
+                data_path = Config().data.data_path.replace("~", HOMEPATH)
+                if not os.path.exists(data_path):
+                    expected_data_path = os.path.join(project_path, data_path)
 
                     Config.data = Config.data._replace(
-                        datasource_path=Path(expected_datasource_path).as_posix()
+                        data_path=Path(expected_data_path).as_posix()
                     )
 
             # now = datetime.datetime.now()
@@ -448,8 +447,13 @@ class Config:
         """
         Create the basic save name for the current run-time configuration.
         """
+        method_name = Config.params["method_name"]
+        show_name = (
+            f"{method_name}Reasoning" if "Reasoning" not in method_name else method_name
+        )
         save_name = "__".join(
             [
+                show_name,
                 Config.params["model_name"],
                 Config.model.prompt_type,
                 Config.params["data_name"],
