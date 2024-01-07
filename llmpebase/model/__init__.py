@@ -53,6 +53,13 @@ prompts_factory = {
     "csqa": {
         "zeroshot": zeroshot.CSQAZeroShotPrompting,
     },
+    "aqua": {
+        "fewshot": fewshot.AQUAFewShotPrompting,
+        "zeroshot": zeroshot.AQUAZeroShotPrompting,
+        # CoT of AQUA is the same as the fewshot as the
+        # 'rationale' is provided by the dataset
+        "cot": fewshot.AQUAFewShotPrompting,
+    },
 }
 
 

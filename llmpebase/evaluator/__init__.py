@@ -17,6 +17,7 @@ basic_evaluators = {
     "TheoremQA": GeneralEvaluator,
     "GameOf24": GeneralEvaluator,
     "CSQA": GeneralEvaluator,
+    "AQUA": GeneralEvaluator,
 }
 
 llm_evaluators = {

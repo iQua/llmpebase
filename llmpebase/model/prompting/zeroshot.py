@@ -23,6 +23,12 @@ class CSQAZeroShotPrompting(base.BaseZeroShotPrompting):
     solution_flag: str = "The final choice is"
 
 
+class AQUAZeroShotPrompting(base.BaseZeroShotPrompting):
+    """The zeroshot CoT prompt of AQUA-RAT."""
+
+    solution_flag: str = "The final choice is"
+
+
 class GameOf24ZeroShotPrompting(base.BaseZeroShotPrompting):
     """The zeroshot prompt of GameOf24."""
 

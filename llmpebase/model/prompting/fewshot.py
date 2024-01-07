@@ -91,6 +91,34 @@ class MMLUFewShotPrompting(base.BasePrompting):
         )
 
 
+class AQUAFewShotPrompting(base.BasePrompting):
+    """The fewshot prompt of AQUA."""
+
+    solution_flag: str = "The final choice is"
+
+    def create_prompt_sample(self, sample, dataset, config):
+        """Create the prompt sample from the sample of MMLU dataset."""
+
+        n_shots = config["n_shots"]
+
+        problem_name = sample.auxiliary["sample_problem"]
+        sample_indexes = dataset.get_problem_sample_indexes(problem_name)
+        fewshot_indexes = (
+            random.sample(sample_indexes, n_shots)
+            if len(sample_indexes) > n_shots
+            else sample_indexes
+        )
+        examples = [dataset[idx] for idx in fewshot_indexes]
+        return (
+            self.create_test_prompt(
+                problem_name=problem_name,
+                demonstrations=examples,
+                test_sample=sample,
+            ),
+            sample["groundtruth"],
+        )
+
+
 class TheoremQAFewShotPrompting(base.BasePrompting):
     """The fewshot prompt of TheoremQA."""
 
