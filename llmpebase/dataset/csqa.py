@@ -7,7 +7,6 @@ import os
 from collections import defaultdict
 
 import glob
-import pyarrow as pa
 from datasets import load_dataset
 
 from llmpebase.dataset import base
@@ -27,7 +26,11 @@ class CSQADataset(base.BaseDataset):
     """
 
     def create_data_catalog(self):
-        phase_data = load_dataset("commonsense_qa", split=self.phase)
+        phase_data = load_dataset(
+            self.data_meta_catalog["huggingface_dataname"],
+            split=self.phase,
+            trust_remote_code=True,
+        )
 
         problem_category = []
         collect_items = []
@@ -59,7 +62,11 @@ class CSQADataset(base.BaseDataset):
         )
 
     def get_sample(self, idx):
-        phase_data = load_dataset("commonsense_qa", split=self.phase)
+        phase_data = load_dataset(
+            self.data_meta_catalog["huggingface_dataname"],
+            split=self.phase,
+            trust_remote_code=True,
+        )
         # 'id', 'question', 'question_concept', 'choices', 'answerKey'
         phase_sample = phase_data[idx]
 
@@ -95,7 +102,7 @@ class CSQADataset(base.BaseDataset):
 
 
 class DataSource(base.DataSource):
-    """The BBH datasource."""
+    """The CSQA datasource."""
 
     def __init__(self):
         super().__init__()
@@ -108,10 +115,12 @@ class DataSource(base.DataSource):
         if os.path.exists(self.data_meta_catalog["split_path"][phase]):
             return
 
-        load_dataset("commonsense_qa", split=phase)
+        data_name = self.data_meta_catalog["huggingface_dataname"]
+
+        load_dataset(data_name, split=phase, trust_remote_code=True)
         download_path = os.path.join(
             "~/.cache/huggingface/datasets",
-            self.data_meta_catalog["huggingface_dataname"],
+            data_name,
         )
         # Search the download path to get the phase data
         download_path = os.path.expanduser(download_path)

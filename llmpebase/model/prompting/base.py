@@ -67,6 +67,7 @@ class BasePrompting:
     def organize_answer_prompt(self, sample, is_answer_included=True):
         """Organize the answer prompt."""
         answer_prompt = BasicAnswerPromptFormat(**asdict(self.answer_format))
+
         answer = sample["answer"] if is_answer_included else ""
 
         if is_answer_included:
@@ -74,6 +75,7 @@ class BasePrompting:
             answer_prompt.groundtruth = f"""{self.solution_flag} {groundtruth}"""
 
         answer_prompt.content = answer_prompt.content.format(answer)
+
         return answer_prompt
 
     def organize_demonstration_prompt(
