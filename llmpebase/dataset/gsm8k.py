@@ -82,6 +82,6 @@ class DataSource(base.DataSource):
             split_path={
                 "train": os.path.join(self.data_path, "train.parquet"),
                 "test": os.path.join(self.data_path, "test.parquet"),
-                "val": os.path.join(self.data_path, "test.parquet"),
+                "validation": os.path.join(self.data_path, "test.parquet"),
             },
         )

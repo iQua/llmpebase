@@ -26,6 +26,7 @@ from llmpebase.extractor.llm_extraction import (
     BBHRespLlmExtractor,
     TheoremQARespLlmExtractor,
     GameOf24RespLlmExtractor,
+    CSQARespLlmExtractor,
 )
 
 # The extractors for extracting groundtruth from the data sample
@@ -47,6 +48,7 @@ resp_extractors = {
     "BBH": {"re": BBHRespReExtractor, "llm": BBHRespLlmExtractor},
     "TheoremQA": {"re": TheoremRespReExtractor, "llm": TheoremQARespLlmExtractor},
     "GameOf24": {"re": GameOf24RespReExtractor, "llm": GameOf24RespLlmExtractor},
+    "CSQA": {"re": "not implemented", "llm": CSQARespLlmExtractor},
 }
 
 

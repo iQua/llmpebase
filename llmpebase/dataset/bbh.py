@@ -121,6 +121,8 @@ class DataSource(base.DataSource):
             split_path={
                 "train": os.path.join(self.data_path, "BIG-Bench-Hard-main", "bbh"),
                 "test": os.path.join(self.data_path, "BIG-Bench-Hard-main", "bbh"),
-                "val": os.path.join(self.data_path, "BIG-Bench-Hard-main", "bbh"),
+                "validation": os.path.join(
+                    self.data_path, "BIG-Bench-Hard-main", "bbh"
+                ),
             },
         )

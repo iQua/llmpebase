@@ -17,6 +17,12 @@ class MMLUZeroShotPrompting(base.BaseZeroShotPrompting):
     solution_flag: str = "The final choice is"
 
 
+class CSQAZeroShotPrompting(base.BaseZeroShotPrompting):
+    """The zeroshot CoT prompt of CommonsenseQA."""
+
+    solution_flag: str = "The final choice is"
+
+
 class GameOf24ZeroShotPrompting(base.BaseZeroShotPrompting):
     """The zeroshot prompt of GameOf24."""
 

@@ -32,6 +32,8 @@ class DatasetMetaCatalog(FieldFrozenContainer):
     dataset_path: Optional[str] = None
     split_path: Optional[Dict[str, str]] = None
 
+    huggingface_dataname: Optional[str] = None
+
 
 @dataclass
 class BaseQASampleInfo(FieldFrozenContainer):

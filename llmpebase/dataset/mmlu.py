@@ -134,6 +134,6 @@ class DataSource(base.DataSource):
                     os.path.join(self.data_path, "auxiliary_train"),
                 ],
                 "test": os.path.join(self.data_path, "test"),
-                "val": os.path.join(self.data_path, "val"),
+                "validation": os.path.join(self.data_path, "validation"),
             },
         )

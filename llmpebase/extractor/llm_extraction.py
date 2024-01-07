@@ -17,6 +17,12 @@ class MMLURespLlmExtractor(base.BaseLlmExtractor):
     extract_target: str = "pure options/choices, such as A-Z"
 
 
+class CSQARespLlmExtractor(base.BaseLlmExtractor):
+    """A extractor relying on LLM to extract the target results from a long response."""
+
+    extract_target: str = "pure options/choices, such as A-Z"
+
+
 class MATHGtLlmExtractor(base.BaseLlmExtractor):
     """A extractor relying on LLM to extract the target results from a long response for the MATH dataset."""
 

@@ -8,3 +8,4 @@ python-dotenv
 pyarrow
 networkx
 pydot
+datasets

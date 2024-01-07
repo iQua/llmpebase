@@ -50,6 +50,9 @@ prompts_factory = {
         "cot": cot.TheoremQACoTPrompting,
         "zeroshot": zeroshot.TheoremQAZeroShotPrompting,
     },
+    "csqa": {
+        "zeroshot": zeroshot.CSQAZeroShotPrompting,
+    },
 }
 
 
