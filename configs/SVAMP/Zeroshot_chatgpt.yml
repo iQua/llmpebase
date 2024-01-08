@@ -1,13 +1,10 @@
 data:
-  data_name: AQUA
+  data_name: SVAMP
   data_path: data
 
   # One may need to download the dataset
   download_url: null
   
-  extractor:
-    purpose: groundtruth
-    style: re
     
 environment:
 
@@ -17,6 +14,7 @@ environment:
   # Fix the see for reproducible
   seed: 15
 
+  
   
 model:
 

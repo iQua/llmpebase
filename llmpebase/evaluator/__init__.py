@@ -18,6 +18,7 @@ basic_evaluators = {
     "GameOf24": GeneralEvaluator,
     "CSQA": GeneralEvaluator,
     "AQUA": GeneralEvaluator,
+    "SVAMP": GeneralEvaluator,
 }
 
 llm_evaluators = {

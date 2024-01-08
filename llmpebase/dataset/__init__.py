@@ -11,7 +11,7 @@ from llmpebase.dataset.bbh import DataSource as bbh_datasource
 from llmpebase.dataset.theoremqa import DataSource as theoremqa_datasource
 from llmpebase.dataset.csqa import DataSource as csqa_datasource
 from llmpebase.dataset.aqua import DataSource as aqua_datasource
-
+from llmpebase.dataset.svamp import DataSource as svamp_datasource
 
 datasources = {
     "GSM8K": gsm8k_datasource,
@@ -22,6 +22,7 @@ datasources = {
     "TheoremQA": theoremqa_datasource,
     "CSQA": csqa_datasource,
     "AQUA": aqua_datasource,
+    "SVAMP": svamp_datasource,
 }
 
 

@@ -7,10 +7,6 @@ from llmpebase.extractor import base
 from llmpebase.extractor.re_extraction import extract_flagged_conclusion
 
 
-class GSM8KRespLlmExtractor(base.BaseLlmExtractor):
-    """A extractor relying on LLM to extract the target results from a long response."""
-
-
 class MMLURespLlmExtractor(base.BaseLlmExtractor):
     """A extractor relying on LLM to extract the target results from a long response."""
 
@@ -39,18 +35,6 @@ class MATHGtLlmExtractor(base.BaseLlmExtractor):
             answer, flags=["=", "\\boxed"], weights=[1, 3]
         )
         return answer, conclusion, groundtruth
-
-
-class MATHRespLlmExtractor(base.BaseLlmExtractor):
-    """A extractor relying on LLM to extract the target results from a long response for the MATH dataset."""
-
-
-class BBHRespLlmExtractor(base.BaseLlmExtractor):
-    """A extractor relying on LLM to extract the target results from a long response for the BBH dataset."""
-
-
-class TheoremQARespLlmExtractor(base.BaseLlmExtractor):
-    """A extractor relying on LLM to extract the target results from a long response for the TheoremQA dataset."""
 
 
 class GameOf24RespLlmExtractor(base.BaseLlmExtractor):
