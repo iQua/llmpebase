@@ -36,12 +36,12 @@ prompts_factory = {
         "zeroshot": zeroshot.GameOf24ZeroShotPrompting,
     },
     "math": {
-        "fewshot": fewshot.MATHFewShotPrompting,
+        "fewshot": fewshot.ProblemFewShotPrompting,
         "cot": cot.MATHCoTPrompting,
         "zeroshot": base.BaseZeroShotPrompting,
     },
     "bbh": {
-        "fewshot": fewshot.BBHFewShotPrompting,
+        "fewshot": fewshot.ProblemFewShotPrompting,
         "cot": cot.BBHCoTPrompting,
         "zeroshot": base.BaseZeroShotPrompting,
     },
@@ -49,6 +49,20 @@ prompts_factory = {
         "fewshot": fewshot.TheoremQAFewShotPrompting,
         "cot": cot.TheoremQACoTPrompting,
         "zeroshot": zeroshot.TheoremQAZeroShotPrompting,
+    },
+    "csqa": {
+        "zeroshot": zeroshot.CSQAZeroShotPrompting,
+    },
+    "aqua": {
+        "fewshot": fewshot.AQUAFewShotPrompting,
+        "zeroshot": zeroshot.AQUAZeroShotPrompting,
+        # CoT of AQUA is the same as the fewshot as the
+        # 'rationale' is provided by the dataset
+        "cot": fewshot.AQUAFewShotPrompting,
+    },
+    "svamp": {
+        "fewshot": fewshot.ProblemFewShotPrompting,
+        "zeroshot": base.BaseZeroShotPrompting,
     },
 }
 

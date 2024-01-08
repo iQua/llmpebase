@@ -157,7 +157,7 @@ class DataSource(base.DataSource):
                     "TheoremQA-main",
                     "theoremqa_visual_subset_test.json",
                 ),
-                "val": os.path.join(
+                "validation": os.path.join(
                     self.data_path, "TheoremQA-main", "theoremqa_test.json"
                 ),
                 "images": os.path.join(self.data_path, "TheoremQA-main", "images"),

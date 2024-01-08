@@ -79,7 +79,7 @@ class DataSource(base.DataSource):
             split_path={
                 "train": os.path.join(self.data_path, "24.csv"),
                 "test": os.path.join(self.data_path, "24.csv"),
-                "val": os.path.join(self.data_path, "24.csv"),
+                "validation": os.path.join(self.data_path, "24.csv"),
             },
         )
 

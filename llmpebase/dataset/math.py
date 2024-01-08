@@ -150,6 +150,6 @@ class DataSource(base.DataSource):
             split_path={
                 "train": os.path.join(self.data_path, "MATH/train"),
                 "test": os.path.join(self.data_path, "MATH/test"),
-                "val": os.path.join(self.data_path, "MATH/test"),
+                "validation": os.path.join(self.data_path, "MATH/test"),
             },
         )

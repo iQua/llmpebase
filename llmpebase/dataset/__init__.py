@@ -9,6 +9,9 @@ from llmpebase.dataset.game24 import DataSource as game24_datasource
 from llmpebase.dataset.math import DataSource as math_datasource
 from llmpebase.dataset.bbh import DataSource as bbh_datasource
 from llmpebase.dataset.theoremqa import DataSource as theoremqa_datasource
+from llmpebase.dataset.csqa import DataSource as csqa_datasource
+from llmpebase.dataset.aqua import DataSource as aqua_datasource
+from llmpebase.dataset.svamp import DataSource as svamp_datasource
 
 datasources = {
     "GSM8K": gsm8k_datasource,
@@ -17,6 +20,9 @@ datasources = {
     "MATH": math_datasource,
     "BBH": bbh_datasource,
     "TheoremQA": theoremqa_datasource,
+    "CSQA": csqa_datasource,
+    "AQUA": aqua_datasource,
+    "SVAMP": svamp_datasource,
 }
 
 

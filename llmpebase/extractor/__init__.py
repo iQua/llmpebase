@@ -4,6 +4,8 @@ extract the target result from the response.
 """
 import logging
 
+from llmpebase.extractor.base import BaseLlmExtractor
+
 from llmpebase.extractor.re_extraction import (
     GSM8KGtReExtractor,
     GSM8KRespReExtractor,
@@ -16,16 +18,15 @@ from llmpebase.extractor.re_extraction import (
     TheoremGtReExtractor,
     TheoremRespReExtractor,
     GameOf24RespReExtractor,
+    AQUAGtReExtractor,
 )
 
 from llmpebase.extractor.llm_extraction import (
-    GSM8KRespLlmExtractor,
     MMLURespLlmExtractor,
     MATHGtLlmExtractor,
-    MATHRespLlmExtractor,
-    BBHRespLlmExtractor,
-    TheoremQARespLlmExtractor,
     GameOf24RespLlmExtractor,
+    CSQARespLlmExtractor,
+    AQUARespLlmExtractor,
 )
 
 # The extractors for extracting groundtruth from the data sample
@@ -38,15 +39,19 @@ gt_extractors = {
     "MATH": {"re": MATHGtReExtractor, "llm": MATHGtLlmExtractor},
     "BBH": {"re": BBHGtReExtractor, "llm": "not needed"},
     "TheoremQA": {"re": TheoremGtReExtractor, "llm": "not needed"},
+    "AQUA": {"re": AQUAGtReExtractor, "llm": "not needed"},
 }
 
 resp_extractors = {
-    "GSM8K": {"re": GSM8KRespReExtractor, "llm": GSM8KRespLlmExtractor},
+    "GSM8K": {"re": GSM8KRespReExtractor, "llm": BaseLlmExtractor},
     "MMLU": {"re": MMLURespReExtractor, "llm": MMLURespLlmExtractor},
-    "MATH": {"re": MATHRespReExtractor, "llm": MATHRespLlmExtractor},
-    "BBH": {"re": BBHRespReExtractor, "llm": BBHRespLlmExtractor},
-    "TheoremQA": {"re": TheoremRespReExtractor, "llm": TheoremQARespLlmExtractor},
+    "MATH": {"re": MATHRespReExtractor, "llm": BaseLlmExtractor},
+    "BBH": {"re": BBHRespReExtractor, "llm": BaseLlmExtractor},
+    "TheoremQA": {"re": TheoremRespReExtractor, "llm": BaseLlmExtractor},
     "GameOf24": {"re": GameOf24RespReExtractor, "llm": GameOf24RespLlmExtractor},
+    "CSQA": {"re": "not implemented", "llm": CSQARespLlmExtractor},
+    "AQUA": {"re": "not implemented", "llm": AQUARespLlmExtractor},
+    "SVAMP": {"re": "not implemented", "llm": BaseLlmExtractor},
 }
 
 

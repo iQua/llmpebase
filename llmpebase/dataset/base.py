@@ -36,7 +36,7 @@ class BaseDataset(torch.utils.data.Dataset):
         self, data_meta_catalog: DatasetMetaCatalog, phase: str, gt_extractor=None
     ):
         super().__init__()
-
+        self.data_meta_catalog = data_meta_catalog
         self.data_name = data_meta_catalog["dataset_name"]
         self.phase = phase
         self.phase_data_path = data_meta_catalog.split_path[phase]
@@ -146,11 +146,8 @@ class DataSource:
             with open(self.meta_catalog_path, "w", encoding="utf-8") as f:
                 json.dump(self.data_meta_catalog, f)
 
-    def prepare_data(self, phase: str):
-        """Prepare the source data."""
-        # Configuration the dataset
-        self.configuration()
-
+    def download_data(self, phase):
+        """Download the data for the current phase."""
         phase_data_path = self.data_meta_catalog["split_path"][phase]
         phase_data_path = (
             phase_data_path[0]
@@ -183,6 +180,14 @@ class DataSource:
 
         logging.info("Connected to the data source in %s.", phase_data_path)
 
+    def prepare_data(self, phase: str):
+        """Prepare the source data."""
+        # Configuration the dataset
+        self.configuration()
+
+        # Download the data when necessary
+        self.download_data(phase)
+
     def get_phase_dataset(self, phase: str):
         """Obtain the dataset for the specific phase."""
 
@@ -199,6 +204,6 @@ class DataSource:
         return self.get_phase_dataset(phase)
 
     def get_test_set(self):
-        """Obtains the validation dataset."""
+        """Obtains the validationidation dataset."""
         phase = "test"
         return self.get_phase_dataset(phase)

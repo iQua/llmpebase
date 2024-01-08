@@ -126,7 +126,7 @@ class DataSource(base.DataSource):
         """Configure the dataset."""
         return DatasetMetaCatalog(
             dataset_name="MMLU",
-            task_type="Mathematical Reasoning",
+            task_type="Multi-task Knowledge",
             dataset_path=self.data_path,
             split_path={
                 "train": [
@@ -134,6 +134,6 @@ class DataSource(base.DataSource):
                     os.path.join(self.data_path, "auxiliary_train"),
                 ],
                 "test": os.path.join(self.data_path, "test"),
-                "val": os.path.join(self.data_path, "val"),
+                "validation": os.path.join(self.data_path, "validation"),
             },
         )

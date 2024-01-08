@@ -10,6 +10,8 @@ from transformers.utils import ModelOutput as FieldFrozenContainer
 def format_string(text: str):
     """Format the string by removing bad characters."""
     text = text.replace("’", "'")
+    text = text.replace("“", '"')
+    text = text.replace("”", '"')
     return text
 
 

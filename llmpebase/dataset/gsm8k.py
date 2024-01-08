@@ -41,7 +41,7 @@ class GSM8KDataset(base.BaseDataset):
             data_samples=collected_items,
             category_samples={"Algebra": list(range(n_itmes))},
             data_statistics=DatasetStatistics(
-                num_samples=n_itmes, category_info={"Algebra": n_itmes}
+                num_samples=n_itmes, category_info={"Algebra": {"num_samples": n_itmes}}
             ),
             problem_category=["Algebra"],
         )
@@ -82,6 +82,6 @@ class DataSource(base.DataSource):
             split_path={
                 "train": os.path.join(self.data_path, "train.parquet"),
                 "test": os.path.join(self.data_path, "test.parquet"),
-                "val": os.path.join(self.data_path, "test.parquet"),
+                "validation": os.path.join(self.data_path, "test.parquet"),
             },
         )

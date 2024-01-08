@@ -10,10 +10,15 @@ import pandas as pd
 from llmpebase.extractor import base
 
 
-def extract_sentences(text_str: str):
+def is_flag_string(text_str: str, flags: List[str]):
+    """Check whether the text_str contains the flags."""
+    return any([flag.lower() in text_str.lower() for flag in flags])
+
+
+def extract_sentences(text_str: str, split_pattern=r"(?<!\d)\.\s+|\n"):
     """Extract the final sentence from the string."""
     # Set the split pattern of the regular expression
-    pattern = r"(?<!\d)\.\s+|\n"
+    pattern = split_pattern
 
     # Find all sentences in the paragraph
     sentences = re.split(pattern, text_str.rstrip())
@@ -233,6 +238,39 @@ class MMLURespReExtractor(base.BaseReExtractor):
         # Only maintain the A/B/C/D option as the MMLU is a single-choice dataset
         result = results[-1].rstrip(".") if results is not None else conclusion
         return result
+
+
+class AQUAGtReExtractor(base.BaseReExtractor):
+    """A base extractor to extract the groundtruth from the response."""
+
+    def forward(self, answer: str, **kwargs):
+        """Extract the groundtruth from samples of the AQUA dataset."""
+
+        # Extract the sentences separately from the answer
+        sentences = answer.strip().split("\n")
+
+        # Filter the first sentence "Explain:" and the final
+        # "Answer: " to get the pure answer
+        start_idx = (
+            1
+            if is_flag_string(
+                sentences[0],
+                ["Explanation", "Solution", "Answer", "Ans"]
+                + [f"({chr(ord('A') + num)})" for num in range(5)],
+            )
+            else 0
+        )
+        end_idx = (
+            len(sentences) - 1
+            if is_flag_string(sentences[-1], ["Answer", "Ans"])
+            else len(sentences)
+        )
+        answer = "\n".join(sentences[start_idx:end_idx])
+        conclusion_idx = -1 if end_idx == len(sentences) else len(sentences) - 2
+        conclusion = sentences[conclusion_idx]
+        groundtruth = sentences[-1]
+
+        return answer, conclusion, groundtruth
 
 
 class MATHGtReExtractor(base.BaseReExtractor):
