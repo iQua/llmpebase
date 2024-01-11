@@ -71,7 +71,7 @@ class BasicNode(BasicThoughtStep):
             self.position = position
             self.node_name = f"{position} Node"
             # By default, Stop is unable to grow.
-            self.growth = "Un-growable" if position == "Stop" else "Growable"
+            self.growth = "Un-growable" if position == "Sink" else "Growable"
 
             logging.info(
                 "Set the node %s to be %s and %s",

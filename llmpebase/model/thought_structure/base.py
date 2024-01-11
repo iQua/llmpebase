@@ -62,7 +62,7 @@ class BaseThoughtStructure:
         # The edge pool to store all customized edges in the structure
         self.edge_pool: Dict[str, BasicEdge] = None
 
-        self.position_types = ("Root", "Intermediate", "Stop")
+        self.position_types = ("Root", "Intermediate", "Sink")
         self.growth_types = ("Growable", "Un-growable")
 
         # Get the configuration
@@ -438,7 +438,7 @@ class BaseThoughtStructure:
             # Judge whether the prev_node is full
             # if true, there is no need to add more thoughts either
             # as new node (impossible) or as similar thoughts (unnecessary)
-            if len(list(self.graph.successors(prev_node_id))) >= self.num_next_steps:
+            if not self.is_node_growable(prev_node_id):
                 break
             # Find which nodes contain the similar thought with this
             # to be added thought
@@ -464,6 +464,8 @@ class BaseThoughtStructure:
                 similarity_prompt=similarity_prompts[idx],
                 **kwargs,
             )
+
+            self.set_node_status(prev_node_id)
 
         # Set the status of nodes in the graph
         for node_id in self.graph.nodes:
@@ -564,7 +566,7 @@ class BaseThoughtStructure:
         return [
             self.node_pool[node_id]
             for node_id in self.graph.nodes
-            if self.node_pool[node_id].position == "Stop"
+            if self.node_pool[node_id].position == "Sink"
         ]
 
     def set_node_stop(self, node_id: int):
@@ -575,19 +577,19 @@ class BaseThoughtStructure:
             # Set the node to be the stop one
             # Thus change its position to be 'Stop' and set the
             # it un-growable
-            self.node_pool[node_id].set_position("Stop")
+            self.node_pool[node_id].set_position("Sink")
 
         # Set the node to be stop when the solution flag is detected
         solution_flag = self.root.thought.solution_flag
         thought = self.node_pool[node_id].thought
         if solution_flag in str(thought) and node_id != self.root.identity:
-            self.node_pool[node_id].set_position("Stop")
+            self.node_pool[node_id].set_position("Sink")
 
     def set_node_growth(self, node_id: int):
         """Set the node to be the growable one."""
         # Determine whether to stop the growth of the node as
         # this node has enough children
-        if len(list(self.graph.neighbors(node_id))) >= self.num_next_steps:
+        if len(list(self.graph.successors(node_id))) >= self.num_next_steps:
             # Set the node to be the stop one
             # Thus change its position to be 'Stop' and set the
             # it un-growable
@@ -604,6 +606,10 @@ class BaseThoughtStructure:
         if self.get_grow_node() is None:
             return True
         return False
+
+    def is_node_growable(self, node_id: int):
+        """Check whether the node is growable."""
+        return self.node_pool[node_id].growth == "Growable"
 
     def reset_structure(self):
         """Reset the tee."""
