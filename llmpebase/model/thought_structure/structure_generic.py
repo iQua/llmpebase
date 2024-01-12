@@ -61,8 +61,14 @@ class BasicNode(BasicThoughtStep):
     position_types: Tuple[str] = None
     growth_types: Tuple[str] = None
 
+    auxiliary: dict = None
+
     def set_position(self, position: str = "Intermediate"):
-        """Set the node position."""
+        """Set the node position.
+
+        Note that by default, the node is set to tbe Un-growable when
+        the position is Sink.
+        """
 
         assert position in self.position_types
         # Only make adjustment when the position
@@ -96,8 +102,11 @@ class BasicEdge(FieldFrozenContainer):
 
     edge_id: str
 
-    src_node_id: int = None
-    dst_node_id: int = None
+    src_node_id: str = None
+    dst_node_id: str = None
+    edge_type: str = None
     reasoning_prompt: str = None
     evaluation_prompt: str = None
     edge_score: float = None
+
+    auxiliary: dict = None
