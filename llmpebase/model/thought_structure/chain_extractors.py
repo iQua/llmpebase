@@ -21,11 +21,11 @@ class SolutionExtractor:
 
         # Get stop nodes as the stop node presents the end of a
         # reasoning chain
-        stop_nodes = structure.get_stop_nodes()
+        sink_nodes = structure.get_sink_nodes()
 
         max_scores = 0
         best_chain = None
-        for node in stop_nodes:
+        for node in sink_nodes:
             # By default, we extract the thought chain with the
             # highest evaluation score
             thought_chain = structure.get_node_path(

@@ -105,6 +105,7 @@ class GPTAPIRequest(base.BaseLlmRequest):
             if input_request is None
             else input_request
         )
+
         model_responses = []
         while per_request_responses > 0:
             n_responses = min(per_request_responses, 20)

@@ -86,7 +86,11 @@ class LWGTreeThoughtStructure(base.BaseThoughtStructure):
             return None
         # Leaf-wise growth strategy will stop grow when getting the final solution.
         if any(
-            [self.node_pool[node_id].position == "Sink" for node_id in self.graph.nodes]
+            [
+                self.node_pool[node_id].position == "Sink"
+                and self.node_pool[node_id].growth == "Un-growable"
+                for node_id in self.graph.nodes
+            ]
         ):
             return None
         # Visit the thought value of node in the current level
