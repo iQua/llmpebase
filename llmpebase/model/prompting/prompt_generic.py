@@ -34,6 +34,14 @@ class BasicPromptFormat(FieldFrozenContainer):
 
         return format_string(self.prompt)
 
+    def clean_prompt(self):
+        """Clean the prompt by removing the head, notice, and tail."""
+        self.head = ""
+        self.notice = ""
+        self.tail = ""
+        self.content = ""
+        self.prompt = ""
+
 
 @dataclass
 class BasicAnswerPromptFormat(BasicPromptFormat):
@@ -56,6 +64,14 @@ class BasicSamplePrompt(FieldFrozenContainer):
     """
     A basic structure for the prompt sample, which is used as the input
     for the Llm to perform the reasoning.
+
+    Note, as demonstrations, question, answer point to specific classes,
+    any changes made will affect the corresponding classes.
+    For example, one have a defined BasicSamplePrompt called root_prompt.
+    Then, do
+        temp_prompt = BasicSamplePrompt(**root_prompt)
+        temp_prompt.answer.clean()
+    This will make the root_prompt.answer to be cleaned as well.
     """
 
     head: str = "Answer the question about the problem {}."
