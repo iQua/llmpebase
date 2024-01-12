@@ -40,7 +40,7 @@ class BaseThoughtStructure:
         # The visualizer to visualize the thought structure
         self.visualizer = visualizer
         # Tracker of the node id starting from 0
-        # thus, root of the tree should be 0
+        # thus, root of the thought structure should be 0
         self.node_id_tracker = -1
         # Root node of the structure
         # The root node contains the most common thought behaving
@@ -122,6 +122,8 @@ class BaseThoughtStructure:
     ):
         """Create a node."""
 
+        assert isinstance(identity, str)
+
         return BasicNode(
             identity=identity,
             step_idx=step_idx,
@@ -141,22 +143,27 @@ class BaseThoughtStructure:
 
     def create_edge(
         self,
-        src_node_id: int,
-        dst_node_id: int,
+        src_node_id: str,
+        dst_node_id: str,
+        edge_type="Reasoning",
         reasoning_prompt="",
         evaluation_prompt="",
         edge_score: float = 1.0,
         edge_id=None,
+        auxiliary: dict = None,
     ):
         """Create an edge."""
+        assert isinstance(src_node_id, str) and isinstance(dst_node_id, str)
 
         return BasicEdge(
             src_node_id=src_node_id,
             dst_node_id=dst_node_id,
             reasoning_prompt=reasoning_prompt,
             evaluation_prompt=evaluation_prompt,
+            edge_type=edge_type,
             edge_score=edge_score,
             edge_id=edge_id,
+            auxiliary=auxiliary,
         )
 
     def construct_root(
@@ -199,14 +206,14 @@ class BaseThoughtStructure:
         new_id = str(new_id)
         return new_id
 
-    def generate_edge_id(self, src_node_id: int, dst_node_id: int):
+    def generate_edge_id(self, src_node_id: str, dst_node_id: str):
         """Generate an edge id."""
         return f"{src_node_id}->{dst_node_id}"
 
     def is_duplicated_path(
         self,
-        node1_id: int,
-        node2_id: int,
+        node1_id: str,
+        node2_id: str,
     ):
         """
         Two nodes are regarded as the same path when they are derived
@@ -259,10 +266,10 @@ class BaseThoughtStructure:
     def search_identical_thought(
         self,
         thought: str,
-        prev_node_id: int,
+        prev_node_id: str,
         thought_score: float,
         thought_similarities: dict,
-    ) -> List[int]:
+    ) -> List[str]:
         """
         Search the graph to obtain the identical thought.
 
@@ -311,7 +318,9 @@ class BaseThoughtStructure:
         edge_weight: float = 1.0,
         **kwargs,
     ) -> int:
-        """Adding one node to the tree."""
+        """Adding one node to the thought structure."""
+
+        assert isinstance(prev_node_id, str)
 
         node_id = self.generate_node_id()
         edge_id = self.generate_edge_id(prev_node_id, node_id)
@@ -331,18 +340,26 @@ class BaseThoughtStructure:
         # Create a edge create_edge
         new_edge = self.create_edge(
             edge_id=edge_id,
+            edge_type="Reasoning",
             src_node_id=prev_node_id,
             dst_node_id=node_id,
             reasoning_prompt=kwargs["reasoning_prompt"],
             evaluation_prompt=kwargs["evaluation_prompt"],
             edge_score=edge_weight,
+            auxiliary={},
         )
         # Add node to the graph
         self.node_pool[node_id] = new_node
         self.edge_pool[edge_id] = new_edge
         self.graph.add_node(node_id)
         # Connect the node to the previous node
-        self.graph.add_edge(prev_node_id, node_id, weight=edge_weight)
+        self.graph.add_edge(
+            prev_node_id,
+            node_id,
+            weight=edge_weight,
+            edge_id=edge_id,
+            edge_type="Reasoning",
+        )
 
         # Set the node status
         self.set_node_status(new_node.identity)
@@ -361,7 +378,7 @@ class BaseThoughtStructure:
         self,
         thought: str,
         thought_score: float,
-        node_ids: List[int],
+        node_ids: List[str],
         thought_similarity: Dict[str, float],
         similarity_prompts: Dict[str, str],
         **kwargs,
@@ -385,13 +402,16 @@ class BaseThoughtStructure:
         self,
         thought: str,
         thought_score: float,
-        prev_node_id: int,
-        to_node_ids: List[int],
+        prev_node_id: str,
+        to_node_ids: List[str],
         similarities: Dict[str, float],
         similarity_prompt: Dict[str, str],
         **kwargs,
     ):
         """Add the thought to the structure."""
+        assert isinstance(prev_node_id, str)
+        assert all([isinstance(node_id, str) for node_id in to_node_ids])
+
         logging.info("Adding the thought derived from the node %s", prev_node_id)
         # If there is no identical thought, add the thought to the structure
         # as a new node
@@ -411,7 +431,7 @@ class BaseThoughtStructure:
 
     def grow_structure(
         self,
-        prev_node_id: int,
+        prev_node_id: str,
         thoughts: List[str],
         thought_scores: List[float],
         thought_similarities: List[dict],
@@ -465,6 +485,8 @@ class BaseThoughtStructure:
                 **kwargs,
             )
 
+            # Change the status of the previous node
+            # as one of its children has been grown
             self.set_node_status(prev_node_id)
 
         # Set the status of nodes in the graph
@@ -478,14 +500,13 @@ class BaseThoughtStructure:
         self,
         **kwargs,
     ):
-        """Grow the structure by adding new thoughts.
+        """Grow the structure by adding new thoughts."""
 
-        :param thought_model: A defined thought model used to build the structure.
-        """
-
-        while not self.stop_growth():
+        while True:
             # Get the node to be grown
             grow_node = self.get_grow_node()
+            if grow_node is None:
+                break
             # Get the thought path of the node to be grown
             thought_path = self.get_node_path(self.root.identity, grow_node.identity)
             # Generate and then evaluate the next thoughts
@@ -534,7 +555,7 @@ class BaseThoughtStructure:
             )
 
     def get_node_path(
-        self, src_node_id: int, dst_node_id: int = None
+        self, src_node_id: str, dst_node_id: str = None
     ) -> List[BasicNode]:
         """Organize the thoughts towards target node."""
 
@@ -556,7 +577,7 @@ class BaseThoughtStructure:
                 break
         return node
 
-    def get_stop_nodes(self) -> List[BasicNode]:
+    def get_sink_nodes(self) -> List[BasicNode]:
         """Get the stop nodes of the thought structure.
 
         From the perspective of reasoning, the stop node means
@@ -569,47 +590,46 @@ class BaseThoughtStructure:
             if self.node_pool[node_id].position == "Sink"
         ]
 
-    def set_node_stop(self, node_id: int):
+    def set_node_sink(self, node_id: str):
         """Set the node to be the step node."""
         length = len(self.get_node_path(self.root.identity, node_id))
-        # Set the stop node when its length is larger than the max length
+        # Set the sink node when its length is larger than the max length
         if length >= self.max_length:
-            # Set the node to be the stop one
+            # Set the node to be the stop sink
             # Thus change its position to be 'Stop' and set the
-            # it un-growable
+            # it un-growable (default setup)
             self.node_pool[node_id].set_position("Sink")
 
         # Set the node to be stop when the solution flag is detected
         solution_flag = self.root.thought.solution_flag
         thought = self.node_pool[node_id].thought
-        if solution_flag in str(thought) and node_id != self.root.identity:
+        if (
+            solution_flag.lower() in str(thought).lower()
+            and node_id != self.root.identity
+        ):
             self.node_pool[node_id].set_position("Sink")
 
-    def set_node_growth(self, node_id: int):
+    def set_node_growth(self, node_id: str):
         """Set the node to be the growable one."""
-        # Determine whether to stop the growth of the node as
-        # this node has enough children
+        # Close growth of the node as this node has enough children
+        # Here we use the successors of the node as the flag to determine
+        # A better way is to use the edges, i.e., self.graph.edges(node_id)
         if len(list(self.graph.successors(node_id))) >= self.num_next_steps:
-            # Set the node to be the stop one
-            # Thus change its position to be 'Stop' and set the
-            # it un-growable
+            # Set the node to be un-growable
             self.node_pool[node_id].set_growth("Un-growable")
 
-    def set_node_status(self, node_id: int):
+    def set_node_status(self, node_id: str):
         """Set the node status."""
-        self.set_node_stop(node_id)
+        self.set_node_sink(node_id)
         self.set_node_growth(node_id)
 
-    def stop_growth(self):
-        """Whether to stop the growth of the structure."""
-        # Stop when all nodes in the queue are stop nodes
-        if self.get_grow_node() is None:
-            return True
-        return False
-
-    def is_node_growable(self, node_id: int):
+    def is_node_growable(self, node_id: str):
         """Check whether the node is growable."""
         return self.node_pool[node_id].growth == "Growable"
+
+    def is_node_sink(self, node_id: str):
+        """Check whether the node is growable."""
+        return self.node_pool[node_id].position == "Sink"
 
     def reset_structure(self):
         """Reset the tee."""
