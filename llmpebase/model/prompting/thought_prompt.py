@@ -12,7 +12,7 @@ from llmpebase.model.prompting.prompt_generic import BasicThoughtPromptFormat
 class ThoughtStructurePrompt:
     """A base class to organize the prompt of the thought structure."""
 
-    thought_flag: str = "-----------------------------------"
+    thought_flag: str = "-" * 20
     step_head: str = "Reasoning Step {}: "
 
     generation_system_prompt: str = """You are an expert at solving mathematical problems by performing step-by-step reasoning with each response containing only one reasoning step at a time. Each time, you generate one step as the subsequent reasoning step of the given reasoning steps so that the new reasoning chain approaches the solution of the given question."""
@@ -22,7 +22,7 @@ class ThoughtStructurePrompt:
     generation_prompt = BasicThoughtPromptFormat(
         head="{}Let's focus on generating one next possible reasoning step for the reasoning steps below.\n",
         content="\n{}\n\n",
-        target="For reasoning steps within {}, the next reasoning step with the specific mathematical analysis should be: ",
+        target="For reasoning steps within {}, the next reasoning step containing analysis and the corresponding mathematical expression should be: ",
         notice="",
         tail="",
         prompt="",
