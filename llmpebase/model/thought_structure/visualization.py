@@ -13,7 +13,7 @@ from llmpebase.model.thought_structure.structure_generic import BasicNode
 
 node_config = {
     "Root": {
-        "node_color": "#228B22",
+        "node_color": "#8FBC8F",
         "node_shape": "o",
         "node_size": 900,
         "alpha": 0.8,
@@ -21,7 +21,7 @@ node_config = {
     "Intermediate": {
         "node_color": "#6495ED",
         "node_shape": "s",
-        "node_size": 900,
+        "node_size": 850,
         "alpha": 0.9,
     },
     "Sink": {
@@ -53,10 +53,17 @@ edge_config = {
     },
 }
 
-labels_config = {
+node_labels_config = {
     "font_size": 10,
     "font_color": "black",
     "font_family": "sans-serif",
+    "font_weight": "normal",
+}
+
+edge_labels_config = {
+    "font_size": 6,
+    "font_family": "sans-serif",
+    "font_color": "red",
     "font_weight": "normal",
 }
 
@@ -73,7 +80,7 @@ class BasicStructureVisualizer:
     def draw_node(
         self,
         ax: plt.axes,
-        graph: nx.Graph,
+        graph: nx.DiGraph,
         pos: dict,
         node: BasicNode,
     ):
@@ -92,7 +99,7 @@ class BasicStructureVisualizer:
     def draw_node_edges(
         self,
         ax: plt.axes,
-        graph: nx.Graph,
+        graph: nx.DiGraph,
         pos: dict,
         node: BasicNode,
     ):
@@ -117,20 +124,38 @@ class BasicStructureVisualizer:
 
         return ax
 
-    def create_draw_labels(self, graph: nx.Graph, node_pool: List[BasicNode]):
-        """Create the labels of the node in the graph draw."""
+    def create_node_draw_labels(self, graph: nx.DiGraph, node_pool: List[BasicNode]):
+        """Create the labels of nodes for drawing the graph."""
+        # Create the labels to be plotted
+
         labels = {
-            node_pool[
-                node_id
-            ].identity: f"N-{node_pool[node_id].identity}\n S-{node_pool[node_id].step_idx}"
+            node_pool[node_id].identity: "Q"
+            if graph.in_degree(node_id) == 0
+            else f"N-{node_pool[node_id].identity}\n S-{node_pool[node_id].step_idx}"
             for node_id in graph.nodes
         }
         return labels
 
+    def create_edge_draw_labels(self, graph: nx.DiGraph, node_pool: List[BasicNode]):
+        """Create the labels of edges for drawing the graph."""
+        # Create the labels to be plotted
+        labels = {}
+        return labels
+
+    def draw_edge_labels(self, graph, node_pool, pos, ax):
+        """Draw edge labels of the graph."""
+        # Plot the labels of the edges
+        labels = self.create_edge_draw_labels(graph=graph, node_pool=node_pool)
+        nx.draw_networkx_edge_labels(
+            graph, pos, edge_labels=labels, ax=ax, **edge_labels_config
+        )
+
+        return ax
+
     def draw_graph(
         self,
         ax: plt.axes,
-        graph: nx.Graph,
+        graph: nx.DiGraph,
         node_pool: List[BasicNode],
     ):
         """Visualize the thought structure.
@@ -140,8 +165,7 @@ class BasicStructureVisualizer:
 
         # Get the positions
         pos = graphviz_layout(graph, prog="dot")
-        # Create the labels to be plotted
-        labels = self.create_draw_labels(graph=graph, node_pool=node_pool)
+
         for node_id in graph.nodes:
             node = node_pool[node_id]
 
@@ -151,17 +175,18 @@ class BasicStructureVisualizer:
             # Draw edges of the node
             ax = self.draw_node_edges(ax=ax, graph=graph, pos=pos, node=node)
 
-            # A root node is a node with no predecessors
-            if graph.in_degree(node_id) == 0:
-                labels[node_id] = "Q"
+        # Plot the labels of the nodes
+        labels = self.create_node_draw_labels(graph=graph, node_pool=node_pool)
+        nx.draw_networkx_labels(graph, pos, labels, ax=ax, **node_labels_config)
 
-        nx.draw_networkx_labels(graph, pos, labels, ax=ax, **labels_config)
+        # Plot the labels of the edges
+        ax = self.draw_edge_labels(graph=graph, node_pool=node_pool, pos=pos, ax=ax)
 
         return ax
 
     def visualize(
         self,
-        graph: nx.Graph,
+        graph: nx.DiGraph,
         node_pool: List[BasicNode],
         save_name: str = None,
     ):
