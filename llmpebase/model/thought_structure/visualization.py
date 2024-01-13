@@ -11,6 +11,8 @@ from networkx.drawing.nx_pydot import graphviz_layout
 from llmpebase.model.thought_structure.structure_generic import BasicNode
 
 
+# Note, you may need to access the website
+# https://python-charts.com/colors/ to get the color code
 node_config = {
     "Root": {
         "node_color": "#8FBC8F",
