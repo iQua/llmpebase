@@ -31,7 +31,7 @@ class TRThoughtModel(thought_model.LlmThoughtModel):
             # Extracting digital numbers
             indexes = [int(elem) for elem in re.findall(pattern, result)]
 
-            return indexes[0]
+            return indexes
 
     def generate_rollback(
         self,
@@ -61,16 +61,16 @@ class TRThoughtModel(thought_model.LlmThoughtModel):
         rollback_result = self.llm_model.read_response_contents(responses)[0]
         # Get the step idx that rollback to
         # This index is the step of thought_chain[1:]
-        rollback_step_idx = self.extract_rollback_index(
+        rollback_step_idxes = self.extract_rollback_index(
             rollback_result, self.prompter.rollback_solution_flag
         )
-        print("*" * 30)
-        print(analysis_prompt)
-        print("+" * 30)
-        print(reasoning_analysis)
-        print("+" * 30)
-        print(rollback_prompt)
-        print("+" * 30)
-        print(rollback_result)
+        # print("*" * 30)
+        # print(analysis_prompt)
+        # print("+" * 30)
+        # print(reasoning_analysis)
+        # print("+" * 30)
+        # print(rollback_prompt)
+        # print("+" * 30)
+        # print(rollback_result)
 
-        return rollback_step_idx, rollback_result, reasoning_analysis
+        return rollback_step_idxes, rollback_result, reasoning_analysis
