@@ -11,8 +11,11 @@ from networkx.drawing.nx_pydot import graphviz_layout
 from llmpebase.model.thought_structure.structure_generic import BasicNode
 
 
-# Note, you may need to access the website
+# Note:
+# 1. you may need to access the website
 # https://python-charts.com/colors/ to get the color code
+# 2. you may need to access the website
+# https://graphviz.org/docs/layouts/ to get the graphviz layout
 node_config = {
     "Root": {
         "node_color": "#8FBC8F",
@@ -37,19 +40,19 @@ node_config = {
 edge_config = {
     "Root": {
         "edge_color": "black",
-        "width": 1.111111110,
+        "width": 1.5,
         "style": "solid",
         "arrowsize": 10,
     },
     "Intermediate": {
         "edge_color": "gray",
-        "width": 1.0,
+        "width": 1.5,
         "style": "solid",
         "arrowsize": 10,
     },
     "Sink": {
         "edge_color": "green",
-        "width": 1.0,
+        "width": 1.5,
         "style": "solid",
         "arrowsize": 10,
     },
@@ -65,7 +68,7 @@ node_labels_config = {
 edge_labels_config = {
     "font_size": 6,
     "font_family": "sans-serif",
-    "font_color": "red",
+    "font_color": "black",
     "font_weight": "normal",
 }
 
@@ -78,6 +81,13 @@ class BasicStructureVisualizer:
     ):
         self.visualization_path = logging_config["visualization_path"]
         self.visualization_foldername = visualization_foldername
+
+        self.layout = (
+            "dot"
+            if "thought_structure" not in logging_config
+            or "layout" not in logging_config["thought_structure"]
+            else logging_config["thought_structure"]["layout"]
+        )
 
     def draw_node(
         self,
@@ -162,11 +172,11 @@ class BasicStructureVisualizer:
     ):
         """Visualize the thought structure.
         This function plots the structure in the tree format, which
-        relies on the `dot` of `graphviz`.
+        relies on the layout of `graphviz`.
         """
 
         # Get the positions
-        pos = graphviz_layout(graph, prog="dot")
+        pos = graphviz_layout(graph, prog=self.layout)
 
         for node_id in graph.nodes:
             node = node_pool[node_id]
