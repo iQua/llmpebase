@@ -1,6 +1,6 @@
 """
-Implementations of the chain extractor utilized to extract the thought chain
-from the thought structure.
+Implementations of the solution extractor utilized to extract the all
+solutions from the thought structure.
 """
 
 from typing import List
@@ -9,37 +9,30 @@ from llmpebase.model.thought_structure import base
 
 
 class SolutionExtractor:
-    """A base extractor to extract the thought chain from the thought structure."""
+    """A base extractor to extract solutions from the thought structure."""
 
     def extract_solution_chains(
         self,
         structure: base.BaseThoughtStructure,
     ) -> List[List[base.BasicNode]]:
         """
-        Extract the solution from the thought structure.
+        Extract all solutions from the thought structure.
 
-        This is a demo implementation that only returns the thought chain
-        with the highest evaluation score.
+        By default, a reasoning path toward a solution is the path
+        from the root node to a sink node.
         """
 
         root_node = structure.root
 
+        solution_chains = []
         # Get stop nodes as the stop node presents the end of a
         # reasoning chain
         sink_nodes = structure.get_sink_nodes()
-
-        max_scores = 0
-        best_chain = None
         for node in sink_nodes:
             # By default, we extract the thought chain with the
             # highest evaluation score
             thought_chain = structure.get_node_path(
                 src_node_id=root_node.identity, dst_node_id=node.identity
             )
-            # Get the sum score of the thought chain
-            chain_score = sum(structure.get_path_scores(thought_chain))
-            if chain_score > max_scores:
-                max_scores = chain_score
-                best_chain = thought_chain
-
-        return [best_chain]
+            solution_chains.append(thought_chain)
+        return solution_chains
