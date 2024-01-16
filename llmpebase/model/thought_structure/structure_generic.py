@@ -61,6 +61,9 @@ class BasicNode(BasicThoughtStep):
     position_types: Tuple[str] = None
     growth_types: Tuple[str] = None
 
+    # The auxiliary information for the node
+    # This aims to store any additional information
+    # so that there is no need to create a new Node class
     auxiliary: dict = None
 
     def set_position(self, position: str = "Intermediate"):

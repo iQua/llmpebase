@@ -10,11 +10,23 @@ from llmpebase.model.thought_structure.visualization import (
     BasicStructureVisualizer,
     edge_config,
     node_config,
-    edge_labels_config,
 )
 from llmpebase.model.thought_structure.structure_generic import BasicNode
 
 rollback_config = {"arc_rad": 0.25}
+
+rollback_edge_config = {
+    "edge_color": "red",
+    "width": 1.0,
+    "style": "dashed",
+    "arrowsize": 8,
+}
+rollback_edge_labels_config = {
+    "font_size": 5,
+    "font_family": "sans-serif",
+    "font_color": "red",
+    "font_weight": "normal",
+}
 
 
 def draw_rollback_edge_labels(
@@ -210,8 +222,8 @@ class TRVisualizer(BasicStructureVisualizer):
         # Get all edges of one node
         node_edges = list(graph.edges(node_id))
         # Get the node ids that are the rollbacks of the node
-        rollback_edges = [edge for edge in node_edges if edge[0] >= edge[1]]
-        reasoning_edges = [edge for edge in node_edges if edge[0] < edge[1]]
+        rollback_edges = [edge for edge in node_edges if int(edge[0]) >= int(edge[1])]
+        reasoning_edges = [edge for edge in node_edges if int(edge[0]) < int(edge[1])]
 
         # Draw edges of the node
         nx.draw_networkx_edges(
@@ -229,8 +241,7 @@ class TRVisualizer(BasicStructureVisualizer):
             pos,
             ax=ax,
             edgelist=rollback_edges,
-            edge_color="red",
-            style="dashed",
+            **rollback_edge_config,
             connectionstyle=f"arc3, rad = {arc_rad}",
             node_size=node_config[pos_type]["node_size"],
             # node_shape=node_config[pos_type]["node_shape"],
@@ -295,7 +306,7 @@ class TRVisualizer(BasicStructureVisualizer):
         # Plot the labels of the reasoning edges
         labels = self.create_edge_draw_labels(graph=graph, node_pool=node_pool)
         nx.draw_networkx_edge_labels(
-            graph, pos, edge_labels=labels, ax=ax, **edge_labels_config
+            graph, pos, edge_labels=labels, ax=ax, **rollback_edge_labels_config
         )
 
         # Plot the labels of the rollback edges
@@ -307,6 +318,6 @@ class TRVisualizer(BasicStructureVisualizer):
             edge_labels=rollback_edge_labels,
             rad=rollback_config["arc_rad"],
             ax=ax,
-            **edge_labels_config,
+            **rollback_edge_labels_config,
         )
         return ax

@@ -7,9 +7,9 @@ from torch import nn
 
 import TR_structure
 import visualization
+import chain_extractor
 
 from llmpebase.model.prompting.base import BasicSamplePrompt
-from llmpebase.model.thought_structure.chain_extractors import SolutionExtractor
 
 
 class ThoughtRollbackReasoner:
@@ -41,7 +41,7 @@ class ThoughtRollbackReasoner:
             visualizer=self.visualizer,
         )
 
-        self.solution_extractor = SolutionExtractor()
+        self.solution_extractor = chain_extractor.SolutionExtractor()
 
     def forward(
         self, prompt_sample: BasicSamplePrompt, sample_idx: int = 0
@@ -60,24 +60,30 @@ class ThoughtRollbackReasoner:
         self.structure.save_structure()
 
         # Get the chain and save it
-        solution_chain = self.solution_extractor.extract_solution_chain(self.structure)
-        self.structure.save_thought_path(
-            solution_chain,
-            filename="solution_chain",
+        solution_chains = self.solution_extractor.extract_solution_chains(
+            self.structure
         )
+        for idx, chain in enumerate(solution_chains):
+            self.structure.save_thought_path(
+                chain,
+                filename=f"{idx}-th_solution_chain_{chain[0].identity}->{chain[-1].identity}",
+            )
         # Convert the chain into a string
         # We remove the root prompt and the evaluation score to organize
         # a prompt as the reasoning answer
-        solution_str = self.thought_model.prompter.organize_chain_prompt(
-            chain_nodes=solution_chain[1:],
-            with_step_idx=False,
-            with_flag=False,
-            with_evaluation_score=False,
-        )
+        solution_strs = []
+        for chain in solution_chains:
+            solution_str = self.thought_model.prompter.organize_chain_prompt(
+                chain_nodes=chain[1:],
+                with_step_idx=False,
+                with_flag=False,
+                with_evaluation_score=False,
+            )
+            solution_strs.append(solution_str)
         # Clean the structure after the reasoning
         self.structure.reset_structure()
 
-        return [solution_str]
+        return solution_strs
 
     def get_cost_statistics(self, **kwargs):
         """Get the cost statistics by using Llm."""
