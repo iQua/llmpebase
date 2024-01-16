@@ -7,7 +7,7 @@ from torch import nn
 from llmpebase.model.prompting.base import BasicSamplePrompt
 from llmpebase.model.thought_structure import trees
 from llmpebase.model.thought_structure.visualization import BasicStructureVisualizer
-from llmpebase.model.thought_structure.chain_extractors import SolutionExtractor
+from llmpebase.model.thought_structure.solution_extractor import SolutionExtractor
 
 
 class BoTReasoner:
@@ -67,7 +67,7 @@ class BoTReasoner:
         self.structure.save_structure()
 
         # Get the chain and save it
-        solution_chain = self.solution_extractor.extract_solution_chain(self.structure)
+        solution_chain = self.solution_extractor.extract_solution_chains(self.structure)
         self.structure.save_thought_path(
             solution_chain,
             filename="solution_chain",

@@ -5,7 +5,7 @@ The implementation of the Thought Rollback (TR).
 import reasoner
 import thought_model
 import thought_prompter
-
+import visualization
 
 from llmpebase.pipeline import Pipeline
 from llmpebase.model import define_model
@@ -30,6 +30,7 @@ def _main():
         thought_model=llm_thought,
         model_config=model_config,
         logging_config=logging_config,
+        visualizer=visualization.TRVisualizer(logging_config=logging_config),
     )
 
     pipeline = Pipeline(

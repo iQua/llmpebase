@@ -21,7 +21,7 @@ def _main():
 
     llm_thought = thought_model.LlmThoughtModel(llm_model=llm_model)
 
-    chain_reasoner = reasoner.GraphReasoner(
+    chain_reasoner = reasoner.GraphThoughtReasoner(
         thought_model=llm_thought,
         model_config=model_config,
         logging_config=logging_config,
