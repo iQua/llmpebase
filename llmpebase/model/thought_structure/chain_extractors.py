@@ -11,11 +11,16 @@ from llmpebase.model.thought_structure import base
 class SolutionExtractor:
     """A base extractor to extract the thought chain from the thought structure."""
 
-    def extract_solution_chain(
+    def extract_solution_chains(
         self,
         structure: base.BaseThoughtStructure,
-    ) -> List[base.BasicNode]:
-        """Extract the solution from the thought structure."""
+    ) -> List[List[base.BasicNode]]:
+        """
+        Extract the solution from the thought structure.
+
+        This is a demo implementation that only returns the thought chain
+        with the highest evaluation score.
+        """
 
         root_node = structure.root
 
@@ -37,4 +42,4 @@ class SolutionExtractor:
                 max_scores = chain_score
                 best_chain = thought_chain
 
-        return best_chain
+        return [best_chain]
