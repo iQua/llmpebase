@@ -30,8 +30,6 @@ class GPTAPIRequest(base.BaseLlmRequest):
     def __init__(self, model_config: dict) -> None:
         super().__init__(model_config)
 
-        assert self.model_name in ["gpt-3.5-turbo", "gpt-4"]
-
         auth_env_path = model_config["authorization_path"]
         # there must have a .env file containing keywords
         # OPENAI_ORGAN_KEY and OPENAI_API_KEY
