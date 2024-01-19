@@ -226,3 +226,4 @@ class BasicStructureVisualizer:
         save_name = save_name if save_name is not None else "structure_visualization"
         fig.savefig(f"{save_path}/{save_name}.png")
         fig.savefig(f"{save_path}/{save_name}.pdf")
+        fig.savefig(f"{save_path}/{save_name}.svg", format="svg", dpi=150)

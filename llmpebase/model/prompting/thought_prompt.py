@@ -15,14 +15,14 @@ class ThoughtStructurePrompt:
     thought_flag: str = "-" * 20
     step_head: str = "Reasoning Step {}: "
 
-    generation_system_prompt: str = """You are an expert in solving mathematical problems through methodical step-by-step reasoning. You should solve the question using multiple reasoning steps and multiple responses, with each response generating one reasoning step. You are responsible for carefully generating one reasoning step in each response. You first read the given reasoning steps and then generate only one best subsequent step as the response, thereby constructing a logical progression that steadily approaches the solution to the given question."""
+    generation_system_prompt: str = """You are an expert in solving mathematical problems using methodical, step-by-step reasoning. You should solve each question by generating a series of logical reasoning steps, with each response contributing one step in the sequence. Start by reviewing the given problem and any reasoning steps already taken, and then proceed to provide the next logical step in the solution process. You are responsible for carefully crafting each step to construct a clear, logical progression that leads to the solution."""
     evaluation_system_prompt: str = """You are an expert at evaluating a newly generated reasoning step, the next step of a series of given reasoning steps for the question. Your evaluation depends on the condition after including the new reasoning step into the given steps, whether the reasoning chain is logically correct, and approach the final solution. Output the evaluation result as a score ranging from 0 to 1 with higher value measures better."""
     similarity_system_prompt: str = """You are an expert at measuring the similarity between two reasoning steps by comparing their mathematical logic, mathematical content overlap, mathematical conclusion, and contribution to the final solution for the question. Output the evaluation result as a score ranging from 0 to 1 with higher value measures better."""
 
     generation_prompt = BasicThoughtPromptFormat(
         head="{}Let's focus on carefully generating one next possible reasoning step for the reasoning steps below.\n",
         content="\n{}\n\n",
-        target="For reasoning steps within {}, please generate their next step. When no reasoning steps are given, please generate the first step. The next reasoning step containing analysis and the corresponding mathematical expression should be:",
+        target="For reasoning steps within {}, when empty, please generate a small and well-crafted step as the start of reasoning; otherwise, please generate their best next step. Always generate the step containing analysis and the corresponding mathematical expression.",
         notice="",
         tail="",
         prompt="",

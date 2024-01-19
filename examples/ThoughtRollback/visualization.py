@@ -19,7 +19,7 @@ rollback_edge_config = {
     "edge_color": "red",
     "width": 1.0,
     "style": "dashed",
-    "arrowsize": 8,
+    "arrowsize": 10,
 }
 rollback_edge_labels_config = {
     "font_size": 5,

@@ -20,7 +20,7 @@ environment:
   
 model:
 
-  model_name: gpt-3.5-turbo # "gpt-3.5-turbo","gpt-4"
+  model_name: gpt-4 # "gpt-3.5-turbo","gpt-4"
   model_type: gpt
 
   prompt_type: zeroshot
@@ -60,7 +60,7 @@ model:
     min_thought_similarity: null # 0.95
     max_score_difference: null # 0.1
 
-    model_name: gpt-3.5-turbo # "gpt-3.5-turbo","gpt-4"
+    model_name: gpt-4 # "gpt-3.5-turbo","gpt-4"
     model_type: gpt
     generation_settings:
       temperature: 0.7
@@ -85,7 +85,7 @@ logging:
   visualization_path: experiments/visualizations
 
   thought_structure:
-    layout: dot # circo, dot, fdp, neato, osage, sfdp, twopi
+    layout: fdp # dot, fdp, circo, neato, osage, sfdp, twopi
 
 
 evaluation:

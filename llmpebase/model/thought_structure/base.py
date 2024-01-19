@@ -499,7 +499,7 @@ class BaseThoughtStructure:
         # Set the status of nodes in the graph
         for node_id in self.graph.nodes:
             self.set_node_status(node_id)
-        logging.info("End the growth from the node %s", prev_node_id)
+
         # Set the status of edges in the graph
         self.save_structure()
 
