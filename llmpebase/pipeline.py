@@ -147,7 +147,6 @@ class Pipeline:
         """
         # Get where the current results are recorded
         exist_indexes = self.recorder.get_indexes()
-        print(exist_indexes)
         if len(exist_indexes) == 0:
             return 0
         return exist_indexes[-1]
