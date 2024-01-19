@@ -22,7 +22,8 @@ model:
 
   prompt_type: zeroshot
 
-
+  num_reasoning: 2
+  
   authorization_path: ./.env
   
   generation_settings:

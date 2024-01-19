@@ -27,7 +27,8 @@ model:
   prompt_type: cot
   cot_filepath: ./examples/Prompts/MMLU/mmlu-cot-claude.json
 
-
+  num_reasoning: 2
+  
   authorization_path: ./.env
   
   generation_settings:

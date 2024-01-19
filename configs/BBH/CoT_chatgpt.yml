@@ -28,6 +28,7 @@ model:
   prompt_type: cot
   cot_filepath: ./examples//Prompts/BBH/*.txt
 
+  num_reasoning: 2
 
   authorization_path: ./.env
   

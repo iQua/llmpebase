@@ -20,6 +20,14 @@ class BaseLLMReasoner:
         if llm_model is None:
             llm_model = define_model(model_config)
 
+        # How many reasoning to be performed
+        # Here the reasoning is the number of responses to be generated
+        # by the llm as each response contains a whole reasoning process
+        self.num_reasoning = (
+            1 if "num_reasoning" not in model_config else model_config["num_reasoning"]
+        )
+
+        # The basic llm model to perform reasoning
         self.llm_model = llm_model
 
     def forward(self, prompt_sample: BasicSamplePrompt, **kwargs):
@@ -32,7 +40,7 @@ class BaseLLMReasoner:
 
         # Do model request
         responses = self.llm_model.forward(
-            input_request=input_message, per_request_responses=2
+            input_request=input_message, per_request_responses=self.num_reasoning
         )
         return self.llm_model.read_response_contents(responses)
 

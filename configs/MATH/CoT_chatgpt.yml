@@ -30,6 +30,8 @@ model:
   cot_filepath: ./examples/Prompts/MATH
   cot_filename: prompt_grad_1.txt
 
+  num_reasoning: 2
+  
   authorization_path: ./.env
   
   generation_settings:

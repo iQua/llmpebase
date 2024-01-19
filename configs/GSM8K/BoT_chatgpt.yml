@@ -28,6 +28,8 @@ model:
 
   authorization_env_path: ./.env
 
+  num_reasoning: 1
+  
   num_trees: 1
   n_iteration: 3
   aggregation_type: best_first
