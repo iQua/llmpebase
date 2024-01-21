@@ -48,6 +48,15 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         # continuously roll back to 3, making 3 has many rollbacks.
         self.num_max_rollbacks_from_chain = config["num_max_rollbacks_from_chain"]
 
+        # Get the maximum number of rollbacks that are allowed to be existed in a
+        # chain. This is to avoid that one chain has too many rollbacks.
+        # For instance, 1 -> 2 -> 3 -> 4 -> 5.., If 3 is absolutely wrong, any
+        # subsequent will generate a rollback to 2 toward revision. This will
+        # introduce unnecessary complexity to the reasoning.
+        self.num_max_chain_rollbacks = config["num_max_chain_rollbacks"]
+
+        self.num_max_solutions = config["num_max_solutions"]
+
         # A variable to track which node is being rolled back to
         # thus creating a new reasoning path from it.
         self.rolling_back_state = None
@@ -101,7 +110,16 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         if node is None:
             return node
 
+        # Collect the number of sink nodes in the current structure
+        # When the number of sink nodes reaches the limit, no further
+        # reasoning will be performed
+        num_sink_nodes = len(self.get_sink_nodes())
+        print(f"Number of solutions: {len(num_sink_nodes)}")
+        if len(num_sink_nodes) >= self.num_max_solutions:
+            return None
+
         # Get the reasoning path from the root to the node
+
         nodes = self.get_node_path(
             src_node_id=self.root.identity, dst_node_id=node.identity
         )
@@ -121,10 +139,20 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         # the rollback from the node to other nodes
         outgoing_rollbacks = self.get_outgoing_rollbacks(node.identity)
 
-        # Once the node has not reached the limit of rollbacks,
+        # Get the rollbacks of the chain
+        num_chain_rollbacks = self.get_chain_rollbacks(
+            src_id=self.root.identity, dst_id=node.identity
+        )
+
+        # Once
+        #  1. the node has not reached the limit of rollbacks,
+        #  2. the chain has not reached the limit of rollbacks,
         # generate the rollback condition to see whether to perform rollback
         # and which step to rollback to
-        if len(outgoing_rollbacks) < self.num_max_rollbacks_to:
+        if (
+            len(outgoing_rollbacks) < self.num_max_rollbacks_to
+            and num_chain_rollbacks <= self.num_max_chain_rollbacks
+        ):
             print("Try Rollback for Node ", node.identity)
             # Get the rollback condition
             (
@@ -148,6 +176,7 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
                 # Get the rollbacks received by the node. The rollback here is
                 # the ones received by the node
                 incoming_rollbacks = self.get_incoming_rollbacks(rollback_to.identity)
+                print(f"num_chain_rollbacks: {num_chain_rollbacks}")
                 print(
                     f"{rollback_to.identity} node_chain_rollbacks: {node_chain_rollbacks}"
                 )
@@ -342,3 +371,13 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         ]
 
         return to_node_rollbacks
+
+    def get_chain_rollbacks(self, src_id: str, dst_id: str):
+        """Get the #rollbacks from src_id to dst_id."""
+        # Get the reasoning path
+        chain = self.get_node_path(src_node_id=src_id, dst_node_id=dst_id)
+        num_rollbacks = 0
+        for node in chain:
+            num_rollbacks += len(self.get_outgoing_rollbacks(node.identity))
+
+        return num_rollbacks

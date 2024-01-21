@@ -49,6 +49,16 @@ model:
     # Rollbacks are from the other node of the chain to 
     # the node
     num_max_rollbacks_from_chain: 2
+    # The maximum number of rollbacks allowed to be 
+    # existed in a reasoning chain
+    num_max_chain_rollbacks: 3
+
+    # The maximum number of solutions allowed to be
+    # generated during reasoning,
+    # Thus once reaches this upper bound, the reasoning
+    # will be stopped
+    num_max_solutions: 10
+
     do_experience_rollback: true
     num_next_steps: 1
     # Note that the length computation includes the root node
