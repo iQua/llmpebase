@@ -7,6 +7,7 @@ in the reasoning chain where a chain is presented as a path of the structure.
 """
 import os
 import json
+import glob
 import logging
 from typing import List, Union, Tuple, Dict
 
@@ -528,8 +529,10 @@ class BaseThoughtStructure:
         **kwargs,
     ):
         """Grow the structure by adding new thoughts."""
-
+        # Set the growth index
+        growth_idx = 1
         while True:
+            #
             # Get the node to be grown
             grow_node = self.get_grow_node()
             if grow_node is None:
@@ -564,8 +567,9 @@ class BaseThoughtStructure:
                 self.visualizer.visualize(
                     self.graph,
                     self.node_pool,
-                    save_name=f"Step_{grow_node.step_idx + 1}",
+                    save_name=f"Growth_{growth_idx}__Step_{grow_node.step_idx + 1}",
                 )
+            growth_idx += 1
 
         # Draw the whole graph after building
         if self.visualizer is not None:
@@ -715,3 +719,27 @@ class BaseThoughtStructure:
             file_path = f"{save_path}/{filename}.json"
             with open(file_path, "w", encoding="utf-8") as file:
                 json.dump(edge_data, file)
+
+    @staticmethod
+    def resume_structure(location: str = None):
+        """Resume the thought structure from files."""
+        # Load the core graph structure as the networkx
+        graph = nx.read_gml(f"{location}/main_structure.gml")
+        # Load the nodes
+        node_pool: Dict[str, BasicNode] = {}
+        # First load the root
+        root = json.load(open(f"{location}/root.json", "r", encoding="utf-8"))
+        node_pool[root["identity"]] = BasicNode(**root)
+        node_files = glob.glob(f"{location}/node_*.json")
+        for file_path in node_files:
+            node = json.load(open(file_path, "r", encoding="utf-8"))
+            node_pool[node["identity"]] = BasicNode(**node)
+
+        # Load the edges
+        edge_pool: Dict[str, BasicEdge] = {}
+        edge_files = glob.glob(f"{location}/edge_*.json")
+        for file_path in edge_files:
+            edge = json.load(open(file_path, "r", encoding="utf-8"))
+            edge_pool[edge["edge_id"]] = BasicEdge(**edge)
+
+        return graph, node_pool, edge_pool
