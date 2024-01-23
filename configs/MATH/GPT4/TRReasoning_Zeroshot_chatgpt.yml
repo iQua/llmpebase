@@ -57,7 +57,7 @@ model:
     # generated during reasoning,
     # Thus once reaches this upper bound, the reasoning
     # will be stopped
-    num_max_solutions: 10
+    num_max_solutions: 8
 
     do_experience_rollback: true
     num_next_steps: 1

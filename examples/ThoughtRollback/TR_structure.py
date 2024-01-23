@@ -113,9 +113,9 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         # Collect the number of sink nodes in the current structure
         # When the number of sink nodes reaches the limit, no further
         # reasoning will be performed
-        num_sink_nodes = len(self.get_sink_nodes())
-        print(f"Number of solutions: {len(num_sink_nodes)}")
-        if len(num_sink_nodes) >= self.num_max_solutions:
+        sink_nodes = self.get_sink_nodes()
+        print(f"Number of solutions: {len(sink_nodes)}")
+        if len(sink_nodes) >= self.num_max_solutions:
             return None
 
         # Get the reasoning path from the root to the node

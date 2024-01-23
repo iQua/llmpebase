@@ -22,7 +22,7 @@ rollback_edge_config = {
     "arrowsize": 10,
 }
 rollback_edge_labels_config = {
-    "font_size": 5,
+    "font_size": 10,
     "font_family": "sans-serif",
     "font_color": "red",
     "font_weight": "normal",
