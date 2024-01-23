@@ -201,15 +201,26 @@ class BasicStructureVisualizer:
         graph: nx.DiGraph,
         node_pool: List[BasicNode],
         save_name: str = None,
+        real_time_show: bool = False,
     ):
         """Plot the thought structure."""
+        # Dynamically calculate the figure size
+        node_count = graph.number_of_nodes()
+        edge_count = graph.number_of_edges()
 
-        whole_fig, ax = plt.subplots()
+        figsize = None
+        if node_count > 10:
+            fig_size = max(8, node_count / 2, edge_count / 2)
+            figsize = (fig_size, fig_size)
+
+        whole_fig, ax = plt.subplots(figsize=figsize)
+
         ax = self.draw_graph(ax, graph=graph, node_pool=node_pool)
         ax.axis("off")
 
-        plt.show(block=False)
-        plt.pause(1)
+        if real_time_show:
+            plt.show(block=False)
+            plt.pause(1)
 
         self.save_fig(fig=whole_fig, save_name=save_name)
 
