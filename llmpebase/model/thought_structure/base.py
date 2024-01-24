@@ -531,9 +531,10 @@ class BaseThoughtStructure:
         """Grow the structure by adding new thoughts."""
         # Set the growth index
         growth_idx = 1
-        num_nodes = len(self.node_pool)
+
         while True:
-            #
+            # Record the current node pool
+            num_nodes = len(self.node_pool)
             # Get the node to be grown
             grow_node = self.get_grow_node()
             if grow_node is None:
