@@ -31,7 +31,7 @@ class ThoughtStructurePrompt:
     first_step_generation_prompt = BasicThoughtPromptFormat(
         head="{}Let's focus on carefully generating the first reasoning step.\n",
         content="",
-        target="Generate a small and well-crafted first step containing analysis and the corresponding mathematical expression as the start of reasoning.",
+        target="Generate a small and well-crafted first step, i.e., step 1, containing analysis and the corresponding mathematical expression as the start of reasoning.",
         notice="",
         tail="",
         prompt="",

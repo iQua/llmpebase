@@ -531,6 +531,7 @@ class BaseThoughtStructure:
         """Grow the structure by adding new thoughts."""
         # Set the growth index
         growth_idx = 1
+        num_nodes = len(self.node_pool)
         while True:
             #
             # Get the node to be grown
@@ -563,13 +564,14 @@ class BaseThoughtStructure:
 
             # Draw the graph and save to the disk
             # as each node added to the graph means a new step
-            if self.visualizer is not None:
-                self.visualizer.visualize(
-                    self.graph,
-                    self.node_pool,
-                    save_name=f"Growth_{growth_idx}__Step_{grow_node.step_idx + 1}",
-                )
-            growth_idx += 1
+            if num_nodes < len(self.node_pool):
+                if self.visualizer is not None:
+                    self.visualizer.visualize(
+                        self.graph,
+                        self.node_pool,
+                        save_name=f"Growth_{growth_idx}__Step_{grow_node.step_idx + 1}",
+                    )
+                growth_idx += 1
 
         # Draw the whole graph after building
         if self.visualizer is not None:
