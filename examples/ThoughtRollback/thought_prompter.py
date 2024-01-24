@@ -37,12 +37,12 @@ class TRStructurePrompt(thought_prompt.ThoughtStructurePrompt):
         head="Experience containing previously made mistakes:\n",
         content="\n{}\n",
         notice="",
-        tail="Consider the analysis in the above experience to avoid making similar mistakes in the subsequent reasoning step (Ignore when experience is empty).\n\n",
+        tail="Consider the analysis in the above experience to avoid making similar mistakes during reasoning for the question.\n\n",
         prompt="",
     )
 
     # To include the experience in the system prompt
-    generation_system_prompt: str = """You possess expertise in solving mathematical problems through a systematic, step-by-step reasoning process, and you are dedicated to learning from past experiences to prevent repeating any errors. Your objective is to address the question using a series of reasoning steps delivered in multiple responses, with each response containing one reasoning step. It is crucial to avoid repeating errors mentioned in prior experiences. Begin by reviewing the provided reasoning steps, and then proceed to generate the most appropriate subsequent step in each response, ensuring that the logical progression steadily leads towards a solution."""
+    generation_system_prompt: str = """You possess expertise in solving mathematical problems through a systematic, step-by-step reasoning process during which you are dedicated to preventing repeating any errors analyzed in experiences. Your objective is to address the question using a series of reasoning steps delivered in multiple responses, with each response containing one reasoning step. It is crucial to avoid repeating errors mentioned in the given experiences. Begin by reading the provided reasoning steps and then proceed to generate the most appropriate next step in the response, ensuring that the logical progression steadily leads towards a solution."""
 
     rollback_solution_flag = "Bad step index:"
     intermediate_analysis_prompt_format = data_prompts.rollback_prompt_formats[
@@ -113,9 +113,11 @@ class TRStructurePrompt(thought_prompt.ThoughtStructurePrompt):
                     )
 
         # Organize the obtained experiences as a string
+        # Once there is no experience, return the original root prompt
         if len(experiences) == 0:
             return chain_nodes[0].thought
 
+        # Otherwise, add the experience as demonstrations to the root prompt
         experience_prompt = [
             f"{self.experience_flag.format(idx)}\n{exp[0]}\n\nAnalysis:{exp[1]}\n{self.analysis_flag}\n"
             for idx, exp in enumerate(experiences)
