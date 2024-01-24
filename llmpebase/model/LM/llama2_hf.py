@@ -1,61 +1,29 @@
 """
-Implementation of llama v2, which requires a new way to generate the text.
+Implementation of the text generation with Llama2 model under the HuggingFace.
+See https://huggingface.co/blog/llama2 for details.
 """
 
+from llmpebase.model.LM import llama2_meta
 
-from llama import Llama, Dialog
-
-from llmpebase.model.LM import llama_falcon
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
-class llama2Request(llama_falcon.LLaMARequest):
+class llama2Request(llama2_meta.LLaMARequest):
     """A class to make request on the LLaMA-V2 model."""
 
-    def get_generation_config(self):
-        """Getting the model request config."""
+    def __init__(self, model_config: dict) -> None:
+        super().__init__(model_config)
 
-        generation_settings = self.model_config["generation_settings"]
-        self.generation_config = generation_settings
-        # set the necessary hyper-parameters
-        temperature = (
-            generation_settings["temperature"]
-            if "temperature" in generation_settings
-            else 0.7
-        )
-        max_gen_len = (
-            generation_settings["max_gen_len"]
-            if "max_gen_len" in generation_settings
-            else 512
-        )
-        top_p = generation_settings["top_p"] if "top_p" in generation_settings else 0.75
-
-        # set basic default settings for gpt
-        self.generation_config.update(
-            {
-                "temperature": temperature,
-                "max_gen_len": max_gen_len,
-                "top_p": top_p,
-            }
-        )
-
-    def load_model(self, model_config: dict):
-        """loading the llama models."""
-
+        model_type = model_config["model_type"]
         model_name = model_config["model_name"]
-
-        model_dir = model_config["downloaded_model_dir"]
-        tokenizer_path = model_config["downloaded_tokenizer_path"]
-
-        generator = Llama.build(
-            ckpt_dir=model_dir,
-            tokenizer_path=tokenizer_path,
-            max_seq_len=512,
-            max_batch_size=8,
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            f"{model_type}/{model_name}", use_auth_token=True
+        )
+        self.model = AutoModelForCausalLM.from_pretrained(
+            f"{model_type}/{model_name}", use_auth_token=True, device_map="auto"
         )
 
-        return generator, None
-
-    def create_format_input(self, user_prompt: str, **kwargs) -> Dialog:
+    def create_format_input(self, user_prompt: str, **kwargs):
         """Creating messages to be used for forwarding."""
 
         sys_prompt = "Follow the given prompt to generate correct response."

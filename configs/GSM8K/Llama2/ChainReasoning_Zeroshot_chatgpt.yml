@@ -1,0 +1,88 @@
+data:
+ 
+  data_name: GSM8K
+  data_path: data
+
+  # One may need to download the GSM8k dataset
+  download_url: null
+
+  extractor:
+    purpose: groundtruth
+    style: re
+  
+environment:
+
+  # The name of the project
+  project_name: LLMPE 
+  
+  # Fix the see for reproducible
+  seed: 15
+  
+model:
+
+  model_name: Llama-2-7b-chat-hf # name of the model used by the project 
+  model_type: meta-llama 
+
+  downloaded_model_dir: DownloadedLLMs/llama-2-7b-chat
+  downloaded_tokenizer_path: DownloadedLLMs/tokenizer.model
+
+  prompt_type: zeroshot
+
+  generation_settings:
+    temperature: 0.7
+    max_tokens: 1000
+    top_p: 0.9
+    top_k: 50
+
+  thought_structure:
+    num_next_steps: 1
+    # Note that the length computation includes the root node
+    # Set the length to be longer to reach the final solution
+    # and the chain growth in the thought structure will be stopped 
+    # when reach the solution is reached in the node.
+    max_length: 6
+    max_stops: 1
+    min_thought_similarity: 0.9
+    max_score_diff: 0.1
+    min_stop_score: 0.1
+    max_stop_score: 1.0
+
+    model_name: gpt-3.5-turbo # "gpt-3.5-turbo","gpt-4"
+    model_type: gpt
+    generation_settings:
+      temperature: 0.7
+      max_tokens: 1000
+      # n here is n_completions_per_prompt
+      n: 1
+      stop: null 
+
+
+  pretrained_models_path: experiments/pretrained_models
+
+
+trainer:
+
+
+logging:
+  # path where to save, empty for no saving
+  experiment_path: experiments
+  checkpoint_path: experiments/checkpoints
+  result_path: experiments/results
+  logging_path: experiments/loggings
+  visualization_path: experiments/visualizations
+
+evaluation:
+  
+  # basic, llm
+  style: basic
+
+  extractor:
+    purpose: result
+    # re, llm
+    style: llm
+
+   
+
+
+
+

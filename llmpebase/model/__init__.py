@@ -3,7 +3,7 @@ An interface of models and prompts
 """
 import logging
 
-from llmpebase.model.LM import gpts, llama_falcon, llama_pipeline  # , llama2
+from llmpebase.model.LM import gpts, llama2_hf, llama2_meta
 from llmpebase.model.prompting import (
     base,
     zeroshot,
@@ -13,9 +13,8 @@ from llmpebase.model.prompting import (
 
 llms_factory = {
     "gpt": gpts.GPTAPIRequest,
-    "llama": llama_falcon.LLaMARequest,
-    "llama_pipeline": llama_pipeline.LLaMAPipelineRequest,
-    # "llama2": llama2.llama2Request,
+    "meta-llama": llama2_meta.LLaMARequest,
+    "llama2_hf": llama2_hf.llama2Request,
 }
 
 
