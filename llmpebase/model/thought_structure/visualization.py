@@ -146,6 +146,7 @@ class BasicStructureVisualizer:
             else f"N-{node_pool[node_id].identity}\n S-{node_pool[node_id].step_idx}"
             for node_id in graph.nodes
         }
+
         return labels
 
     def create_edge_draw_labels(self, graph: nx.DiGraph, node_pool: List[BasicNode]):
@@ -180,7 +181,6 @@ class BasicStructureVisualizer:
 
         for node_id in graph.nodes:
             node = node_pool[node_id]
-
             node_id = node.identity
             # Draw the node
             ax = self.draw_node(ax=ax, graph=graph, pos=pos, node=node)

@@ -20,13 +20,23 @@ class ThoughtStructurePrompt:
     similarity_system_prompt: str = """You are an expert at measuring the similarity between two reasoning steps by comparing their mathematical logic, mathematical content overlap, mathematical conclusion, and contribution to the final solution for the question. Output the evaluation result as a score ranging from 0 to 1 with higher value measures better."""
 
     generation_prompt = BasicThoughtPromptFormat(
-        head="{}Let's focus on carefully generating one next possible reasoning step for the reasoning steps below.\n",
+        head="{}Let's focus on carefully generating the next possible reasoning step for reasoning steps below.\n",
         content="\n{}\n\n",
-        target="For reasoning steps within {}, when empty, please generate a small and well-crafted step as the start of reasoning; otherwise, please generate their best next step. Always generate the step containing analysis and the corresponding mathematical expression.",
+        target="For reasoning steps within {}, please generate their best next step containing analysis and the corresponding mathematical expression.",
         notice="",
         tail="",
         prompt="",
     )
+
+    first_step_generation_prompt = BasicThoughtPromptFormat(
+        head="{}Let's focus on carefully generating the first reasoning step.\n",
+        content="",
+        target="Generate a small and well-crafted first step containing analysis and the corresponding mathematical expression as the start of reasoning.",
+        notice="",
+        tail="",
+        prompt="",
+    )
+
     evaluation_prompt = BasicThoughtPromptFormat(
         head="Evaluate the reasoning step for the given question:\n{}\n\n",
         content="We have, thus far, obtained a reasoning chain containing reasoning steps and their respective evaluation scores below:\n{}\n\n For the above reasoning steps within {}, we obtain a new next reasoning step: {}\n\n",
@@ -84,6 +94,16 @@ class ThoughtStructurePrompt:
     def organize_next_thought_prompt(self, chain_nodes: List[base.BasicNode], **kwargs):
         """Generating the prompt for next thought."""
         root_prompt = str(chain_nodes[0].thought)
+
+        # The chain only contain the first step
+        if len(chain_nodes) == 1:
+            generation_prompt = BasicThoughtPromptFormat(
+                **self.first_step_generation_prompt
+            )
+            generation_prompt.head = generation_prompt.head.format(root_prompt)
+
+            return generation_prompt
+
         chain_prompt = self.organize_chain_prompt(
             chain_nodes[1:], with_flag=True, with_evaluation_score=False
         )
