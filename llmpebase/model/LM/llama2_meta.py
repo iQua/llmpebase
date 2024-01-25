@@ -52,9 +52,7 @@ class LLaMARequest(llama_base.LlamaRequest):
 
         # Compute the resources
         self.compute_costs(input_messages=input_dialogs, responses=responses)
-        print(input_dialogs)
-        print(responses)
-        print(Ok)
+
         return responses
 
     def create_format_input(self, user_prompt, **kwargs) -> Dialog:
@@ -78,7 +76,10 @@ class LLaMARequest(llama_base.LlamaRequest):
 
     def read_response_contents(self, responses: list):
         """Extracting main contents from the obtained responses."""
-        return responses
+        contents = []
+        for res in responses:
+            contents.extend(res["generation"]["content"])
+        return contents
 
     def compute_costs(self, input_messages: dict, responses: list):
         """Count costs made by the requests."""
