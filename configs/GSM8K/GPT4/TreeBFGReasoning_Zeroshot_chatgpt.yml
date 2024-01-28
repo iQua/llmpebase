@@ -1,9 +1,9 @@
 data:
  
-  data_name: MATH
+  data_name: GSM8K
   data_path: data
 
-  # One may need to download the MATH dataset
+  # One may need to download the GSM8k dataset
   download_url: null
 
   extractor:

@@ -153,8 +153,10 @@ class Pipeline:
 
     def execute(self):
         """Execute the pipeline to obtain the results."""
-
+        upper = 100
         for idx, sample in enumerate(self.testset):
+            if idx > upper:
+                break
             # Skip existing records when the resume is enabled
             if idx < self.latest_index:
                 continue

@@ -3,7 +3,7 @@ data:
   data_name: MATH
   data_path: data
 
-  # One may need to download the GSM8k dataset
+  # One may need to download the MATH dataset
   download_url: null
 
   extractor:
@@ -19,8 +19,10 @@ environment:
   seed: 15
   
 model:
-
-  model_name: gpt-4 # "gpt-3.5-turbo","gpt-4" # gpt-3.5-turbo-1106
+  # gpt-3.5-turbo = gpt-3.5-turbo-0613, gpt-3.5-turbo-16k = gpt-3.5-turbo-16k-0613,
+  # gpt-3.5-turbo-1106, 
+  # gpt-4 = gpt-4-0613, gpt-4-32k = gpt-4-32k-0613 # 
+  model_name: gpt-4
   model_type: gpt
 
   prompt_type: zeroshot

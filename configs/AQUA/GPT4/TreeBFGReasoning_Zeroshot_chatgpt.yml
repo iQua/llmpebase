@@ -1,9 +1,9 @@
 data:
  
-  data_name: MATH
+  data_name: AQUA
   data_path: data
 
-  # One may need to download the MATH dataset
+  # One may need to download the AQUA dataset
   download_url: null
 
   extractor:
