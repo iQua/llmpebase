@@ -46,14 +46,7 @@ model:
     min_thought_similarity: null # 0.95
     max_score_difference: 0.1 # 0.1
 
-    model_name: gpt-4 # "gpt-3.5-turbo","gpt-4"
-    model_type: gpt
-    generation_settings:
-      temperature: 0.7
-      max_tokens: 1000
-      # n here is n_completions_per_prompt
-      n: 1
-      stop: null 
+ 
 
 
   pretrained_models_path: experiments/pretrained_models
