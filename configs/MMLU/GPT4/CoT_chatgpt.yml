@@ -1,0 +1,64 @@
+data:
+
+  data_name: MMLU
+  data_path: data
+
+  download_url: http://people.eecs.berkeley.edu/~hendrycks/data.tar 
+
+  extractor:
+    purpose: groundtruth
+    style: re
+
+environment:
+
+  # The name of the project
+  project_name: LLMPE 
+  
+  # Fix the see for reproducible
+  seed: 15
+
+  
+  
+model:
+  # gpt-3.5-turbo = gpt-3.5-turbo-0613, gpt-3.5-turbo-16k = gpt-3.5-turbo-16k-0613,
+  # gpt-3.5-turbo-1106, 
+  # gpt-4 = gpt-4-0613, gpt-4-32k = gpt-4-32k-0613 # 
+  model_name: gpt-4
+  model_type: gpt
+
+  prompt_type: cot
+  cot_filepath: ./examples/Prompts/MMLU/mmlu-cot-claude.json
+
+  num_reasoning: 2
+  
+  authorization_path: ./.env
+  
+  generation_settings:
+    temperature: 0.7
+    max_tokens: 1000
+    # n here is n_completions_per_prompt
+    n: 1
+    stop: null 
+
+  pretrained_models_path: experiments/pretrained_models
+
+trainer:
+
+logging:
+  # path where to save, empty for no saving
+  experiment_path: experiments
+  checkpoint_path: experiments/checkpoints
+  result_path: experiments/results
+  logging_path: experiments/loggings
+  visualization_path: experiments/visualizations
+
+evaluation:
+
+  # basic, llm
+  style: basic
+
+  extractor:
+    purpose: result
+    style: llm
+
+
