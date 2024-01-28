@@ -142,7 +142,8 @@ class DataSource(base.DataSource):
         file = glob.glob(pattern, recursive=True)[0]
 
         # Create the link to the current data folder
-        os.symlink(file, self.data_meta_catalog["split_path"][phase])
+        if not os.path.exists(self.data_meta_catalog["split_path"][phase]):
+            os.symlink(file, self.data_meta_catalog["split_path"][phase])
 
     def create_meta_catalog(self):
         """Configure the dataset."""
