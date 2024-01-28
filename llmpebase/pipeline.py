@@ -153,7 +153,7 @@ class Pipeline:
 
     def execute(self):
         """Execute the pipeline to obtain the results."""
-        upper = 100
+        upper = 30
         for idx, sample in enumerate(self.testset):
             if idx > upper:
                 break
