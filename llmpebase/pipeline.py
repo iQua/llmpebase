@@ -10,6 +10,7 @@ from typing import Union
 import logging
 
 import torch
+import numpy as np
 
 from llmpebase.model.LM.base import BaseLlmRequest
 from llmpebase.model.prompting.base import BasePrompting
@@ -68,7 +69,7 @@ class Pipeline:
         # The latest sample's index should be used by the pipeline
         # to perform reasoning
         # This is used for the resume
-        self.latest_index = 0
+        self.existing_indexes = 0
 
         # The train, test, and val datasets
         self.trainset = None
@@ -121,11 +122,11 @@ class Pipeline:
 
         # Resume the pipeline
         if self.resume:
-            self.latest_index = self.resume_pipeline()
+            self.existing_indexes = self.resume_pipeline()
             logging.info(
-                "[Pipeline %d] Resume from the sample index %d.",
+                "[Pipeline %d] Resume from #sample %d.",
                 self.pipeline_id,
-                self.latest_index,
+                len(self.existing_indexes),
             )
 
     def load_data(self):
@@ -147,18 +148,21 @@ class Pipeline:
         """
         # Get where the current results are recorded
         exist_indexes = self.recorder.get_indexes()
-        if len(exist_indexes) == 0:
-            return 0
-        return exist_indexes[-1]
+
+        return exist_indexes
 
     def execute(self):
         """Execute the pipeline to obtain the results."""
-        upper = 30
+        upper = 50
+        total = len(self.testset)
+        selected_indexes = np.random.randint(0, total, size=upper)
+        if len(selected_indexes) <= len(self.existing_indexes):
+            return
         for idx, sample in enumerate(self.testset):
-            if idx > upper:
-                break
+            if idx not in selected_indexes:
+                continue
             # Skip existing records when the resume is enabled
-            if idx < self.latest_index:
+            if idx in self.existing_indexes:
                 continue
             prompt_sample, groundtruth = self.data_prompter.create_prompt_sample(
                 sample, self.trainset, self.model_config
