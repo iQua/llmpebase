@@ -5,7 +5,10 @@ data:
 
   # One may need to download the TheoremQA dataset
   download_url: null
- 
+
+  extractor:
+    purpose: groundtruth
+    style: re
   
 environment:
 

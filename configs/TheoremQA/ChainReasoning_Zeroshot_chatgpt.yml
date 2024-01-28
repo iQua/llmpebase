@@ -5,7 +5,10 @@ data:
 
   # One may need to download the GSM8k dataset
   download_url: null
- 
+
+  extractor:
+    purpose: groundtruth
+    style: re
   
 environment:
 

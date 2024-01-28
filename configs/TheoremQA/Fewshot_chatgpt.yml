@@ -5,7 +5,10 @@ data:
 
   # One may need to download the GSM8k dataset
   download_url: https://github.com/wenhuchen/TheoremQA/archive/refs/heads/main.zip
- 
+
+  extractor:
+    purpose: groundtruth
+    style: re
   
 environment:
 

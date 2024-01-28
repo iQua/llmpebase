@@ -1,11 +1,14 @@
 data:
  
-  data_name: TheoremQA
+  data_name: MATH
   data_path: data
 
-  # One may need to download the TheoremQA dataset
+  # One may need to download the MATH dataset
   download_url: null
- 
+
+  extractor:
+    purpose: groundtruth
+    style: re
   
 environment:
 
