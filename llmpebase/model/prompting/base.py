@@ -214,3 +214,9 @@ class BaseZeroShotCoTPrompting(BasePrompting):
         prompt_sample.answer.content = self.answer_content
 
         return prompt_sample, sample["groundtruth"]
+
+
+class BaseZeroShotPrompting(BaseZeroShotCoTPrompting):
+    """A base zero-shot prompting."""
+
+    answer_content: str = "Answer: "
