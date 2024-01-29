@@ -5,31 +5,31 @@ Implementations of Zero-shot prompting
 from llmpebase.model.prompting import base
 
 
-class TheoremQAZeroShotPrompting(base.BaseZeroShotPrompting):
+class TheoremQAZeroShotCoTPrompting(base.BaseZeroShotCoTPrompting):
     """The zeroshot CoT prompt of TheoremQA."""
 
     solution_flag: str = "The final solution is"
 
 
-class MMLUZeroShotPrompting(base.BaseZeroShotPrompting):
+class MMLUZeroShotCoTPrompting(base.BaseZeroShotCoTPrompting):
     """The zeroshot CoT prompt of MMLU."""
 
     solution_flag: str = "The final choice is"
 
 
-class CSQAZeroShotPrompting(base.BaseZeroShotPrompting):
+class CSQAZeroShotCoTPrompting(base.BaseZeroShotCoTPrompting):
     """The zeroshot CoT prompt of CommonsenseQA."""
 
     solution_flag: str = "The final choice is"
 
 
-class AQUAZeroShotPrompting(base.BaseZeroShotPrompting):
+class AQUAZeroShotCoTPrompting(base.BaseZeroShotCoTPrompting):
     """The zeroshot CoT prompt of AQUA-RAT."""
 
     solution_flag: str = "The final choice is"
 
 
-class GameOf24ZeroShotPrompting(base.BaseZeroShotPrompting):
+class GameOf24ZeroShotCoTPrompting(base.BaseZeroShotCoTPrompting):
     """The zeroshot prompt of GameOf24."""
 
     solution_flag: str = "The solution equation is:"

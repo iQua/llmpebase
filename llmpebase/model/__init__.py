@@ -22,46 +22,46 @@ prompts_factory = {
     "mmlu": {
         "fewshot": fewshot.MMLUFewShotPrompting,
         "cot": cot.MMLUCoTPrompting,
-        "zeroshot": zeroshot.MMLUZeroShotPrompting,
+        "zeroshot_cot": zeroshot.MMLUZeroShotCoTPrompting,
     },
     "gsm8k": {
         "fewshot": base.BasePrompting,
         "cot": cot.GSM8KCoTPrompting,
-        "zeroshot": base.BaseZeroShotPrompting,
+        "zeroshot_cot": base.BaseZeroShotCoTPrompting,
     },
     "gameof24": {
         "fewshot": "Not provided",
         "cot": "Not provided",
-        "zeroshot": zeroshot.GameOf24ZeroShotPrompting,
+        "zeroshot_cot": zeroshot.GameOf24ZeroShotCoTPrompting,
     },
     "math": {
         "fewshot": fewshot.ProblemFewShotPrompting,
         "cot": cot.MATHCoTPrompting,
-        "zeroshot": base.BaseZeroShotPrompting,
+        "zeroshot_cot": base.BaseZeroShotCoTPrompting,
     },
     "bbh": {
         "fewshot": fewshot.ProblemFewShotPrompting,
         "cot": cot.BBHCoTPrompting,
-        "zeroshot": base.BaseZeroShotPrompting,
+        "zeroshot_cot": base.BaseZeroShotCoTPrompting,
     },
     "theoremqa": {
         "fewshot": fewshot.TheoremQAFewShotPrompting,
         "cot": cot.TheoremQACoTPrompting,
-        "zeroshot": zeroshot.TheoremQAZeroShotPrompting,
+        "zeroshot_cot": zeroshot.TheoremQAZeroShotCoTPrompting,
     },
     "csqa": {
-        "zeroshot": zeroshot.CSQAZeroShotPrompting,
+        "zeroshot_cot": zeroshot.CSQAZeroShotCoTPrompting,
     },
     "aqua": {
         "fewshot": fewshot.AQUAFewShotPrompting,
-        "zeroshot": zeroshot.AQUAZeroShotPrompting,
+        "zeroshot_cot": zeroshot.AQUAZeroShotCoTPrompting,
         # CoT of AQUA is the same as the fewshot as the
         # 'rationale' is provided by the dataset
         "cot": fewshot.AQUAFewShotPrompting,
     },
     "svamp": {
         "fewshot": fewshot.ProblemFewShotPrompting,
-        "zeroshot": base.BaseZeroShotPrompting,
+        "zeroshot_cot": base.BaseZeroShotCoTPrompting,
     },
 }
 
