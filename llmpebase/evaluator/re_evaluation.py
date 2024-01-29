@@ -54,5 +54,5 @@ class GeneralEvaluator(base.BaseEvaluator):
         try:
             result = do_conversion(result) == do_conversion(groundtruth)
         except ValueError:
-            result = "None"
+            result = None
         return result
