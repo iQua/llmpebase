@@ -1,5 +1,5 @@
 """
-Implementations of Zero-shot prompting
+Implementations of Zero-shot CoT prompting
 """
 
 from llmpebase.model.prompting import base

@@ -6,7 +6,7 @@ import logging
 from llmpebase.model.LM import gpts, llama2_hf, llama2_meta
 from llmpebase.model.prompting import (
     base,
-    zeroshot,
+    zeroshot_cot,
     cot,
     fewshot,
 )
@@ -22,7 +22,7 @@ prompts_factory = {
     "mmlu": {
         "fewshot": fewshot.MMLUFewShotPrompting,
         "cot": cot.MMLUCoTPrompting,
-        "zeroshot_cot": zeroshot.MMLUZeroShotCoTPrompting,
+        "zeroshot_cot": zeroshot_cot.MMLUZeroShotCoTPrompting,
     },
     "gsm8k": {
         "fewshot": base.BasePrompting,
@@ -32,7 +32,7 @@ prompts_factory = {
     "gameof24": {
         "fewshot": "Not provided",
         "cot": "Not provided",
-        "zeroshot_cot": zeroshot.GameOf24ZeroShotCoTPrompting,
+        "zeroshot_cot": zeroshot_cot.GameOf24ZeroShotCoTPrompting,
     },
     "math": {
         "fewshot": fewshot.ProblemFewShotPrompting,
@@ -47,14 +47,14 @@ prompts_factory = {
     "theoremqa": {
         "fewshot": fewshot.TheoremQAFewShotPrompting,
         "cot": cot.TheoremQACoTPrompting,
-        "zeroshot_cot": zeroshot.TheoremQAZeroShotCoTPrompting,
+        "zeroshot_cot": zeroshot_cot.TheoremQAZeroShotCoTPrompting,
     },
     "csqa": {
-        "zeroshot_cot": zeroshot.CSQAZeroShotCoTPrompting,
+        "zeroshot_cot": zeroshot_cot.CSQAZeroShotCoTPrompting,
     },
     "aqua": {
         "fewshot": fewshot.AQUAFewShotPrompting,
-        "zeroshot_cot": zeroshot.AQUAZeroShotCoTPrompting,
+        "zeroshot_cot": zeroshot_cot.AQUAZeroShotCoTPrompting,
         # CoT of AQUA is the same as the fewshot as the
         # 'rationale' is provided by the dataset
         "cot": fewshot.AQUAFewShotPrompting,
