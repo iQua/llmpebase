@@ -36,12 +36,12 @@ model:
 
   thought_structure:
     growth_type: lwg
-    num_next_steps: 3
+    num_next_steps: 5
     # Note that the length computation includes the root node
     # Set the length to be longer to reach the final solution
     # and the chain growth in the thought structure will be stopped 
     # when reach the solution is reached in the node.
-    max_length: 6
+    max_length: 20
     max_stops: 1
  
     min_thought_similarity: null # 0.95
