@@ -50,4 +50,9 @@ class GeneralEvaluator(base.BaseEvaluator):
     it will cover as many conditions as possible."""
 
     def measure(self, result: str, groundtruth: str):
-        return do_conversion(result) == do_conversion(groundtruth)
+        result = False
+        try:
+            result = do_conversion(result) == do_conversion(groundtruth)
+        except ValueError:
+            result = None
+        return result

@@ -1,0 +1,78 @@
+data:
+ 
+  data_name: SVAMP
+  data_path: data
+
+  # One may need to download the SVAMP dataset
+  download_url: null
+ 
+  
+environment:
+
+  # The name of the project
+  project_name: LLMPE 
+  
+  # Fix the see for reproducible
+  seed: 15
+  
+model:
+
+  model_name: gpt-4 # "gpt-3.5-turbo","gpt-4"
+  model_type: gpt
+
+  prompt_type: zeroshot_cot 
+
+  authorization_path: ./.env
+
+  generation_settings:
+    temperature: 0.7
+    max_tokens: 1000
+    # n here is n_completions_per_prompt
+    n: 1
+    stop: null 
+
+  thought_structure:
+    growth_type: lwg
+    num_next_steps: 5
+    # Note that the length computation includes the root node
+    # Set the length to be longer to reach the final solution
+    # and the chain growth in the thought structure will be stopped 
+    # when reach the solution is reached in the node.
+    max_length: 20
+    max_stops: 1
+ 
+    min_thought_similarity: null # 0.95
+    max_score_difference: 0.1 # 0.1
+
+ 
+
+
+  pretrained_models_path: experiments/pretrained_models
+
+
+trainer:
+
+
+logging:
+  # path where to save, empty for no saving
+  experiment_path: experiments
+  checkpoint_path: experiments/checkpoints
+  result_path: experiments/results
+  logging_path: experiments/loggings
+  visualization_path: experiments/visualizations
+
+evaluation:
+  
+  # basic, llm
+  style: basic
+
+  extractor:
+    purpose: result
+    # re, llm
+    style: llm
+
+   
+
+
+
+

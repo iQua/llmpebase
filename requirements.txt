@@ -9,3 +9,6 @@ pyarrow
 networkx
 pydot
 datasets
+matplotlib
+pydot
+graphviz

@@ -284,8 +284,9 @@ class MATHGtReExtractor(base.BaseReExtractor):
         )
 
         groundtruths = extract_format_equations(conclusion, target_format="\\boxed")
-
-        groundtruth = groundtruths[-1]
+        groundtruth = conclusion
+        if groundtruths is not None:
+            groundtruth = groundtruths[-1]
 
         return answer, conclusion, groundtruth
 
@@ -348,7 +349,7 @@ class TheoremGtReExtractor(base.BaseReExtractor):
     """A base extractor to extract the groundtruth from the response."""
 
     def forward(self, answer: str, **kwargs):
-        """Extract the groundtruth from samples of the GSM8K dataset."""
+        """Extract the groundtruth from samples of the TheoremQA dataset."""
 
         conclusion = extract_sentences(answer)[-1]
         return None, conclusion, None
@@ -358,7 +359,7 @@ class TheoremRespReExtractor(base.BaseReExtractor):
     """A base extractor to extract the result from the response."""
 
     def forward(self, answer: str, **kwargs) -> List[str]:
-        """Extract the result from the response for the GSM8K dataset."""
+        """Extract the result from the response for the TheoremQA dataset."""
 
         # To obtain the target solution
         conclusion = extract_solution(answer, solution_flag=kwargs["solution_flag"])

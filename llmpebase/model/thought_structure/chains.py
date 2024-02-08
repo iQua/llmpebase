@@ -3,8 +3,6 @@ An implementation of the chain thought structure in which thoughts of
 one reasoning process are organized as a chain.
 """
 
-import torch
-
 from llmpebase.model.thought_structure import base
 
 

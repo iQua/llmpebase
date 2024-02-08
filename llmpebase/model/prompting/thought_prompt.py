@@ -12,21 +12,31 @@ from llmpebase.model.prompting.prompt_generic import BasicThoughtPromptFormat
 class ThoughtStructurePrompt:
     """A base class to organize the prompt of the thought structure."""
 
-    thought_flag: str = "-----------------------------------"
+    thought_flag: str = "-" * 20
     step_head: str = "Reasoning Step {}: "
 
-    generation_system_prompt: str = """You are an expert at solving mathematical problems by performing step-by-step reasoning with each response containing only one reasoning step at a time. Each time, you generate one step as the subsequent reasoning step of the given reasoning steps so that the new reasoning chain approaches the solution of the given question."""
+    generation_system_prompt: str = """You are an expert in solving mathematical problems using methodical, step-by-step reasoning. You should solve each question by generating a series of logical reasoning steps, with each response contributing one step in the sequence. Start by reviewing the given problem and any reasoning steps already taken, and then proceed to provide the next logical step in the solution process. You are responsible for carefully crafting each step to construct a clear, logical progression that leads to the solution."""
     evaluation_system_prompt: str = """You are an expert at evaluating a newly generated reasoning step, the next step of a series of given reasoning steps for the question. Your evaluation depends on the condition after including the new reasoning step into the given steps, whether the reasoning chain is logically correct, and approach the final solution. Output the evaluation result as a score ranging from 0 to 1 with higher value measures better."""
     similarity_system_prompt: str = """You are an expert at measuring the similarity between two reasoning steps by comparing their mathematical logic, mathematical content overlap, mathematical conclusion, and contribution to the final solution for the question. Output the evaluation result as a score ranging from 0 to 1 with higher value measures better."""
 
     generation_prompt = BasicThoughtPromptFormat(
-        head="{}Let's focus on generating one next possible reasoning step for the reasoning steps below.\n",
+        head="{}Let's focus on carefully generating the next possible reasoning step for reasoning steps below.\n",
         content="\n{}\n\n",
-        target="For reasoning steps within {}, the next reasoning step with the specific mathematical analysis should be: ",
+        target="For reasoning steps within {}, please generate their best next step containing analysis and the corresponding mathematical expression.",
         notice="",
         tail="",
         prompt="",
     )
+
+    first_step_generation_prompt = BasicThoughtPromptFormat(
+        head="{}Let's focus on carefully generating the first reasoning step.\n",
+        content="",
+        target="Generate a small and well-crafted first step, i.e., step 1, containing analysis and the corresponding mathematical expression as the start of reasoning.",
+        notice="",
+        tail="",
+        prompt="",
+    )
+
     evaluation_prompt = BasicThoughtPromptFormat(
         head="Evaluate the reasoning step for the given question:\n{}\n\n",
         content="We have, thus far, obtained a reasoning chain containing reasoning steps and their respective evaluation scores below:\n{}\n\n For the above reasoning steps within {}, we obtain a new next reasoning step: {}\n\n",
@@ -51,7 +61,7 @@ class ThoughtStructurePrompt:
         with_step_idx: int = False,
         with_flag: int = True,
         with_evaluation_score: bool = True,
-    ):
+    ) -> str:
         """Organize thoughts chain into the prompt.
 
         :param chain_nodes: A list of thought nodes in the chain.
@@ -70,7 +80,7 @@ class ThoughtStructurePrompt:
                 score = f"Evaluation Score: {thought_node.thought_score}"
 
             intermediate_steps.append(
-                f"""\t{step_head}{thought_node.thought}. {score}"""
+                f"""\t{step_head}{thought_node.thought} {score}"""
             )
 
         intermediate_steps = "\n".join(intermediate_steps)
@@ -81,9 +91,19 @@ class ThoughtStructurePrompt:
 
         return reasoning_chain_prompt
 
-    def organize_next_thought_prompt(self, chain_nodes: List[base.BasicNode]):
+    def organize_next_thought_prompt(self, chain_nodes: List[base.BasicNode], **kwargs):
         """Generating the prompt for next thought."""
         root_prompt = str(chain_nodes[0].thought)
+
+        # The chain only contain the first step
+        if len(chain_nodes) == 1:
+            generation_prompt = BasicThoughtPromptFormat(
+                **self.first_step_generation_prompt
+            )
+            generation_prompt.head = generation_prompt.head.format(root_prompt)
+
+            return generation_prompt
+
         chain_prompt = self.organize_chain_prompt(
             chain_nodes[1:], with_flag=True, with_evaluation_score=False
         )

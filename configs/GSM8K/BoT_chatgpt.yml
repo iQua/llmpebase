@@ -24,10 +24,12 @@ model:
   model_name: gpt-4 # "gpt-3.5-turbo","gpt-4"
   model_type: gpt
 
-  prompt_type: zeroshot
+  prompt_type: zeroshot_cot 
 
   authorization_env_path: ./.env
 
+  num_reasoning: 1
+  
   num_trees: 1
   n_iteration: 3
   aggregation_type: best_first

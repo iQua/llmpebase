@@ -27,10 +27,12 @@ class LlmThoughtModel:
         self.prompter = ThoughtStructurePrompt() if prompter is None else prompter
 
     def generate_thoughts(
-        self, thought_chain: List[base.BasicNode], num_thoughts: int = 1
+        self, thought_chain: List[base.BasicNode], num_thoughts: int = 1, **kwargs
     ):
         """Generate the thoughts based on the thought chain."""
-        prompt = self.prompter.organize_next_thought_prompt(chain_nodes=thought_chain)
+        prompt = self.prompter.organize_next_thought_prompt(
+            chain_nodes=thought_chain, **kwargs
+        )
 
         responses = self.llm_model.forward(
             user_prompt=str(prompt),

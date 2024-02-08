@@ -61,8 +61,17 @@ class BasicNode(BasicThoughtStep):
     position_types: Tuple[str] = None
     growth_types: Tuple[str] = None
 
+    # The auxiliary information for the node
+    # This aims to store any additional information
+    # so that there is no need to create a new Node class
+    auxiliary: dict = None
+
     def set_position(self, position: str = "Intermediate"):
-        """Set the node position."""
+        """Set the node position.
+
+        Note that by default, the node is set to tbe Un-growable when
+        the position is Sink.
+        """
 
         assert position in self.position_types
         # Only make adjustment when the position
@@ -71,7 +80,7 @@ class BasicNode(BasicThoughtStep):
             self.position = position
             self.node_name = f"{position} Node"
             # By default, Stop is unable to grow.
-            self.growth = "Un-growable" if position == "Stop" else "Growable"
+            self.growth = "Un-growable" if position == "Sink" else "Growable"
 
             logging.info(
                 "Set the node %s to be %s and %s",
@@ -96,8 +105,11 @@ class BasicEdge(FieldFrozenContainer):
 
     edge_id: str
 
-    src_node_id: int = None
-    dst_node_id: int = None
+    src_node_id: str = None
+    dst_node_id: str = None
+    edge_type: str = None
     reasoning_prompt: str = None
     evaluation_prompt: str = None
     edge_score: float = None
+
+    auxiliary: dict = None

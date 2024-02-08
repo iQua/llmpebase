@@ -19,9 +19,9 @@ loss the most. It can result in deeper, more asymmetric trees.
 import logging
 
 import networkx as nx
+from networkx.algorithms.dag import dag_longest_path
 
 from llmpebase.model.thought_structure import base
-from networkx.algorithms.dag import dag_longest_path
 
 
 class DFGTreeThoughtStructure(base.BaseThoughtStructure):
@@ -44,8 +44,7 @@ class DFGTreeThoughtStructure(base.BaseThoughtStructure):
 
 class BFGTreeThoughtStructure(base.BaseThoughtStructure):
     """
-    A tree thought structure in which the tree is grown in a leaf-wise manner or
-    best first manner.
+    A tree thought structure in which the tree is grown in a Breadth-First Growth manner.
     """
 
     def get_grow_node(self):
@@ -87,7 +86,11 @@ class LWGTreeThoughtStructure(base.BaseThoughtStructure):
             return None
         # Leaf-wise growth strategy will stop grow when getting the final solution.
         if any(
-            [self.node_pool[node_id].position == "Stop" for node_id in self.graph.nodes]
+            [
+                self.node_pool[node_id].position == "Sink"
+                and self.node_pool[node_id].growth == "Un-growable"
+                for node_id in self.graph.nodes
+            ]
         ):
             return None
         # Visit the thought value of node in the current level

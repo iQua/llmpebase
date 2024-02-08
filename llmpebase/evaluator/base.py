@@ -24,6 +24,8 @@ class BaseEvaluator:
         for res, gt in zip(results, groundtruths):
             res = self.measure(res, gt)
             measurements["matches"].append(res)
+
+            res = 0 if res is None else res
             measurements["num_correct"] += int(res)
 
         return measurements

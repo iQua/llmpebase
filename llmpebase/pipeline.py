@@ -7,21 +7,23 @@ components of the `llmpebase`.
 """
 
 from typing import Union
+import logging
 
 import torch
+import numpy as np
 
 from llmpebase.model.LM.base import BaseLlmRequest
+from llmpebase.model.prompting.base import BasePrompting
 from llmpebase.dataset.base import BaseDataset
 from llmpebase.extractor.base import BaseReExtractor, BaseLlmExtractor
-from llmpebase.model.prompting.base import BasePrompting
 from llmpebase.evaluator.base import BaseEvaluator, BaseLLMEvaluator
+
 from llmpebase.model import define_prompt, define_model
 from llmpebase.dataset import define_dataset
 from llmpebase.extractor import get as get_extractor
 from llmpebase.evaluator import get as get_evaluator
 
 from llmpebase.utils import recorder
-
 from llmpebase.config import Config
 
 
@@ -62,6 +64,13 @@ class Pipeline:
         # ID of the pipeline
         self.pipeline_id: int = 0
 
+        # The flag to resume the pipeline
+        self.resume = True
+        # The latest sample's index should be used by the pipeline
+        # to perform reasoning
+        # This is used for the resume
+        self.existing_indexes = 0
+
         # The train, test, and val datasets
         self.trainset = None
         self.testset = None
@@ -78,6 +87,8 @@ class Pipeline:
         """Configuration of the pipeline."""
         eval_config = Config.items_to_dict(Config().evaluation._asdict())
         logging_config = Config().logging
+
+        self.resume = eval_config["do_resume"] if "do_resume" in eval_config else True
 
         if self.data_prompter is None:
             self.data_prompter = define_prompt(
@@ -109,6 +120,15 @@ class Pipeline:
                 record_name="llm_records",
             )
 
+        # Resume the pipeline
+        if self.resume:
+            self.existing_indexes = self.resume_pipeline()
+            logging.info(
+                "[Pipeline %d] Resume from #sample %d.",
+                self.pipeline_id,
+                len(self.existing_indexes),
+            )
+
     def load_data(self):
         """Load the datasets for the pipeline."""
 
@@ -120,10 +140,30 @@ class Pipeline:
         if self.testset is None:
             self.testset = self.dataset.get_test_set()
 
+    def resume_pipeline(self):
+        """
+        Resume the pipeline by avoiding performing on the same samples.
+
+        The index of sample is able to used directly as no shuffle will be performed.
+        """
+        # Get where the current results are recorded
+        exist_indexes = self.recorder.get_indexes()
+
+        return exist_indexes
+
     def execute(self):
         """Execute the pipeline to obtain the results."""
-
+        upper = 50
+        total = len(self.testset)
+        selected_indexes = np.random.randint(0, total, size=upper)
+        if len(selected_indexes) <= len(self.existing_indexes):
+            return
         for idx, sample in enumerate(self.testset):
+            if idx not in selected_indexes:
+                continue
+            # Skip existing records when the resume is enabled
+            if idx in self.existing_indexes:
+                continue
             prompt_sample, groundtruth = self.data_prompter.create_prompt_sample(
                 sample, self.trainset, self.model_config
             )
