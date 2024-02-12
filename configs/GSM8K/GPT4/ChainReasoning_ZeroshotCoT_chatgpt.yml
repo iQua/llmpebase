@@ -46,10 +46,7 @@ model:
     max_stops: 1
     min_thought_similarity: null # 0.95
     max_score_difference: null # 0.1
-
-
-
-
+    
   pretrained_models_path: experiments/pretrained_models
 
 

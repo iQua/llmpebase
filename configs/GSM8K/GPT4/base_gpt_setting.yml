@@ -1,0 +1,21 @@
+
+
+# The basic settings for the GPT model
+
+# gpt-3.5-turbo = gpt-3.5-turbo-0613, gpt-3.5-turbo-16k = gpt-3.5-turbo-16k-0613,
+# gpt-3.5-turbo-1106, 
+# gpt-4 = gpt-4-0613, gpt-4-32k = gpt-4-32k-0613 # 
+model_name: gpt-4
+model_type: gpt
+authorization_path: ./.env
+
+prompt_type: zeroshot_cot 
+
+generation_settings:
+  temperature: 0.7
+  max_tokens: 1000
+  # n here is n_completions_per_prompt
+  n: 1
+  stop: null 
+
+pretrained_models_path: experiments/pretrained_models

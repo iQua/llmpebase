@@ -1,0 +1,10 @@
+  
+# The basic settings for the evaluation
+
+# basic, llm
+style: basic
+
+extractor:
+  purpose: result
+  # re, llm
+  style: llm
