@@ -5,6 +5,7 @@ sequence that serves as an intermediate step toward problem solving. Thus,
 we call it 'thoughtstep' to show that it is a thought that serves as a step
 in the reasoning chain where a chain is presented as a path of the structure.
 """
+
 import os
 import json
 import glob
@@ -104,7 +105,8 @@ class BaseThoughtStructure:
         identity: str,
         step_idx: int,
         thought: Union[str, BasicSamplePrompt],
-        thought_score: float = 1.0,
+        evaluation_score: float = 1.0,
+        evaluation_content: str = "",
         step_name: str = "Reasoning Step",
         node_name: str = "Intermediate Node",
         position: str = "Intermediate",
@@ -119,7 +121,8 @@ class BaseThoughtStructure:
             identity=identity,
             step_idx=step_idx,
             thought=thought,
-            thought_score=thought_score,
+            evaluation_score=evaluation_score,
+            evaluation_content=evaluation_content,
             step_name=step_name,
             node_name=node_name,
             position=position,
@@ -161,7 +164,7 @@ class BaseThoughtStructure:
     def construct_root(
         self,
         thought: BasicSamplePrompt = None,
-        thought_score: float = None,
+        evaluation_score: float = None,
         **kwargs,
     ):
         """Set the root of the structure.
@@ -176,7 +179,7 @@ class BaseThoughtStructure:
             identity=identity,
             step_idx=0,
             thought=thought,
-            thought_score=thought_score,
+            evaluation_score=evaluation_score,
             step_name="Initial Step",
             node_name="Root Node",
             position="Root",
@@ -267,7 +270,7 @@ class BaseThoughtStructure:
         self,
         thought: str,
         prev_node_id: str,
-        thought_score: float,
+        thought_evaluation: Tuple[str, float],
         thought_similarities: dict,
     ) -> List[str]:
         """
@@ -298,7 +301,8 @@ class BaseThoughtStructure:
             )
             # Get the difference between the evaluation score of the visited node
             # and the input thought score
-            evaluation_diff = abs(node.thought_score - thought_score)
+            thought_score = thought_evaluation[1]
+            evaluation_diff = abs(node.evaluation_score - thought_score)
 
             if (
                 thought != node_thought
@@ -314,7 +318,7 @@ class BaseThoughtStructure:
         self,
         thought: str,
         prev_node_id: str,
-        thought_score: float = 1.0,
+        thought_evaluation: Tuple = ("", 1.0),
         edge_weight: float = 1.0,
         **kwargs,
     ) -> int:
@@ -331,7 +335,8 @@ class BaseThoughtStructure:
             identity=node_id,
             step_idx=step_idx,
             thought=thought,
-            thought_score=thought_score,
+            evaluation_score=thought_evaluation[1],
+            evaluation_content=thought_evaluation[0],
             node_name=f"Intermediate Node {node_id}",
             step_name=f"Reasoning step {step_idx}",
             position="Intermediate",
@@ -406,7 +411,7 @@ class BaseThoughtStructure:
     def add_thought(
         self,
         thought: str,
-        thought_score: float,
+        thought_evaluation: Tuple[str, float],
         prev_node_id: str,
         to_node_ids: List[str],
         similarities: Dict[str, float],
@@ -421,8 +426,9 @@ class BaseThoughtStructure:
         # If there is no identical thought, add the thought to the structure
         # as a new node
         if len(to_node_ids) == 0:
-            node_id = self.add_node(thought, prev_node_id, thought_score, **kwargs)
+            node_id = self.add_node(thought, prev_node_id, thought_evaluation, **kwargs)
         else:
+            thought_score = thought_evaluation[1]
             node_id = self.extend_node(
                 thought,
                 thought_score,
@@ -438,7 +444,7 @@ class BaseThoughtStructure:
         self,
         prev_node_id: str,
         thoughts: List[str],
-        thought_scores: List[float],
+        thought_evaluations: List[Tuple[str, float]],
         thought_similarities: List[dict],
         **kwargs,
     ):
@@ -447,7 +453,7 @@ class BaseThoughtStructure:
         :param prev_node_id: The node id, which produces the thoughts as the next
          steps.
         :param thoughts: The thoughts to be added.
-        :param thought_scores: The evaluation scores of thoughts.
+        :param thought_evaluations: The evaluations of thoughts.
         :param thought_similarities: The similarity scores in which each item is a list
          containing the similarity scores between the corresponding thought and all existing
          thoughts in nodes of the structure.
@@ -457,8 +463,8 @@ class BaseThoughtStructure:
             if "similarity_prompts" in kwargs
             else [None] * len(thoughts)
         )
-        for idx, (thought, score, similarities) in enumerate(
-            zip(thoughts, thought_scores, thought_similarities)
+        for idx, (thought, evaluation, similarities) in enumerate(
+            zip(thoughts, thought_evaluations, thought_similarities)
         ):
             # Judge whether the prev_node is full
             # if true, there is no need to add more thoughts either
@@ -477,7 +483,7 @@ class BaseThoughtStructure:
                 similar_node_ids = self.search_identical_thought(
                     thought,
                     prev_node_id=prev_node_id,
-                    thought_score=score,
+                    thought_evaluation=evaluation,
                     thought_similarities=similarities,
                 )
             # Add the thought to the structure either as a new node
@@ -485,7 +491,7 @@ class BaseThoughtStructure:
             # measurement
             self.add_thought(
                 thought=thought,
-                thought_score=score,
+                thought_evaluation=evaluation,
                 prev_node_id=prev_node_id,
                 to_node_ids=similar_node_ids,
                 similarities=similarities,
@@ -514,15 +520,15 @@ class BaseThoughtStructure:
 
     def evaluate_thoughts(self, thought_path: List[BasicNode], thoughts: List[str]):
         """Evaluate the thoughts for the node_id."""
-        scores = [None] * len(thoughts)
+        evaluations = [None] * len(thoughts)
         eval_prompt = [None] * len(thoughts)
         # Whether the evaluate of thoughts needs to be compared
         if self.max_score_diff is not None:
-            scores, eval_prompt = self.thought_model.evaluate_thoughts(
+            evaluations, eval_prompt = self.thought_model.evaluate_thoughts(
                 thoughts, thought_chain=thought_path
             )
 
-        return scores, eval_prompt
+        return evaluations, eval_prompt
 
     def build_structure(
         self,
@@ -545,7 +551,7 @@ class BaseThoughtStructure:
             # Generate the next thoughts
             thoughts, gen_prompt = self.generate_next_thoughts(thought_path)
             # Evaluate the thoughts
-            scores, eval_prompt = self.evaluate_thoughts(thought_path, thoughts)
+            evaluations, eval_prompt = self.evaluate_thoughts(thought_path, thoughts)
             # Measure the similarity between new thoughts and existing thoughts in the
             # structure
             similarities, sim_prompts = self.compute_thought_similarity(
@@ -556,7 +562,7 @@ class BaseThoughtStructure:
             self.grow_structure(
                 prev_node_id=grow_node.identity,
                 thoughts=thoughts,
-                thought_scores=scores,
+                thought_evaluations=evaluations,
                 thought_similarities=similarities,
                 reasoning_prompt=gen_prompt,
                 evaluation_prompt=eval_prompt,
@@ -600,7 +606,7 @@ class BaseThoughtStructure:
     def get_path_scores(self, path: List[BasicNode]) -> List[Tuple[float, None]]:
         """Get the scores of nodes in the path."""
         # Skip the thought score of the root node as it will be None
-        return [node.thought_score for node in path[1:]]
+        return [node.evaluation_score for node in path[1:]]
 
     def get_grow_node(self) -> BasicNode:
         """Get which node to be grown."""

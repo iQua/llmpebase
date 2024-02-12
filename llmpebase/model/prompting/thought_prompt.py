@@ -13,19 +13,18 @@ class ThoughtStructurePrompt:
     """A base class to organize the prompt of the thought structure."""
 
     thought_flag: str = "-" * 20
+    evaluation_score_flag: str = "Evaluation Score: "
+
     step_head: str = "Reasoning Step {}: "
 
-    generation_system_prompt: str = """You are an expert in solving mathematical problems using methodical, step-by-step reasoning. You should solve each question by generating a series of logical reasoning steps, with each response contributing one step in the sequence. Start by reviewing the given problem and any reasoning steps already taken, and then proceed to provide the next logical step in the solution process. You are responsible for carefully crafting each step to construct a clear, logical progression that leads to the solution."""
-    evaluation_system_prompt: str = """You are an expert at evaluating a newly generated reasoning step, the next step of a series of given reasoning steps for the question. Your evaluation depends on the condition after including the new reasoning step into the given steps, whether the reasoning chain is logically correct, and approach the final solution. Output the evaluation result as a score ranging from 0 to 1 with higher value measures better."""
-    similarity_system_prompt: str = """You are an expert at measuring the similarity between two reasoning steps by comparing their mathematical logic, mathematical content overlap, mathematical conclusion, and contribution to the final solution for the question. Output the evaluation result as a score ranging from 0 to 1 with higher value measures better."""
-
-    generation_prompt = BasicThoughtPromptFormat(
-        head="{}Let's focus on carefully generating the next possible reasoning step for reasoning steps below.\n",
-        content="\n{}\n\n",
-        target="For reasoning steps within {}, please generate their best next step containing analysis and the corresponding mathematical expression.",
-        notice="",
-        tail="",
-        prompt="",
+    generation_system_prompt: str = (
+        """You are an expert in solving mathematical problems using methodical, step-by-step reasoning. You should solve each question by generating a series of logical reasoning steps, with each response contributing one step in the sequence. Start by reviewing the given problem and any reasoning steps already taken, and then proceed to provide the next logical step in the solution process. You are responsible for carefully crafting each step to construct a clear, logical progression that leads to the solution."""
+    )
+    evaluation_system_prompt: str = (
+        """Your expertise lies in critically evaluating the latest step in a reasoning process toward problem solving. Your analysis focuses on assessing the latest step's validity, logical coherence, and progression after considering a series of reasoning steps. Your role involves identifying any logical fallacies or weaknesses in the latest step. Please conclude the verification with an evaluation score ranging from 0 to 1, in which the higher value means the better reasoning step."""
+    )
+    similarity_system_prompt: str = (
+        """You are an expert at measuring the similarity between two reasoning steps by comparing their mathematical logic, mathematical content overlap, mathematical conclusion, and contribution to the final solution for the question. Output the evaluation result as a score ranging from 0 to 1 with higher value measures better."""
     )
 
     first_step_generation_prompt = BasicThoughtPromptFormat(
@@ -37,12 +36,30 @@ class ThoughtStructurePrompt:
         prompt="",
     )
 
+    generation_prompt = BasicThoughtPromptFormat(
+        head="{}Let's focus on carefully generating the next possible reasoning step for reasoning steps below.\n",
+        content="\n{}\n\n",
+        target="For reasoning steps within {}, please generate their best next step containing analysis and the corresponding mathematical expression.",
+        notice="",
+        tail="",
+        prompt="",
+    )
+
+    first_evaluation_prompt = BasicThoughtPromptFormat(
+        head="Evaluate the first reasoning step for the given question:\n{}\n\n",
+        content="The latest reasoning step is: \n{}\n\n",
+        target="Evaluate this first step by assessing the validity, logical coherence, and progression and identifying any logical fallacies or weaknesses. Conclude the verification with a score ranging from 0 to 1, where a higher value means a better reasoning step, while 0 represents an critical error.\n",
+        notice=f"Present the score after '{evaluation_score_flag}' for readability.\n",
+        tail="",
+        prompt="",
+    )
+
     evaluation_prompt = BasicThoughtPromptFormat(
-        head="Evaluate the reasoning step for the given question:\n{}\n\n",
-        content="We have, thus far, obtained a reasoning chain containing reasoning steps and their respective evaluation scores below:\n{}\n\n For the above reasoning steps within {}, we obtain a new next reasoning step: {}\n\n",
-        target="Score this next step by measuring its logic flow, correctness, and benefit to reach or approach a final solution for the given question. The evaluate score ranges from 0 to 1, where a higher score means better reasoning steps.\n",
-        notice="Only output the score itself.\n",
-        tail="Evaluate score:",
+        head="Evaluate the latest reasoning step for the given question:\n{}\n\n",
+        content="Toward addressing the question, we have, thus far, obtained a series of reasoning steps: \n {}\n\n The latest reasoning step is: \n{}\n\n",
+        target="Evaluate the latest step by assessing the validity, logical coherence, and progression and identifying any logical fallacies or weaknesses. Conclude the verification with a score ranging from 0 to 1, where a higher value means a better reasoning step, while 0 represents an critical error.\n",
+        notice=f"Present the score after '{evaluation_score_flag}' for readability.\n",
+        tail="",
         prompt="",
     )
 
@@ -76,8 +93,8 @@ class ThoughtStructurePrompt:
             if with_step_idx:
                 step_head = self.step_head.format(idx + 1)
             score = ""
-            if thought_node.thought_score is not None and with_evaluation_score:
-                score = f"Evaluation Score: {thought_node.thought_score}"
+            if thought_node.evaluation_score is not None and with_evaluation_score:
+                score = f"Evaluation Score: {thought_node.evaluation_score}"
 
             intermediate_steps.append(
                 f"""\t{step_head}{thought_node.thought} {score}"""
@@ -124,14 +141,19 @@ class ThoughtStructurePrompt:
         # Convert the root prompt to be the evaluation prompt
         question = root_prompt.question.content
 
-        chain_prompt = self.organize_chain_prompt(chain_nodes[1:], with_flag=True)
+        if len(chain_nodes) == 1:
+            eval_prompt = BasicThoughtPromptFormat(**self.first_evaluation_prompt)
+            eval_prompt.head = eval_prompt.head.format(question)
+            eval_prompt.content = eval_prompt.content.format(thought)
+            return eval_prompt
 
         eval_prompt = BasicThoughtPromptFormat(**self.evaluation_prompt)
+        chain_prompt = self.organize_chain_prompt(
+            chain_nodes[1:], with_flag=True, with_evaluation_score=False
+        )
 
         eval_prompt.head = eval_prompt.head.format(question)
-        eval_prompt.content = eval_prompt.content.format(
-            chain_prompt, self.thought_flag, thought
-        )
+        eval_prompt.content = eval_prompt.content.format(chain_prompt, thought)
 
         return eval_prompt
 

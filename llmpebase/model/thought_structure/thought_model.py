@@ -1,6 +1,7 @@
 """
 A model to perform the thought generation.
 """
+
 import re
 from typing import List
 
@@ -9,6 +10,7 @@ import torch
 from llmpebase.model import define_model
 from llmpebase.model.prompting.thought_prompt import ThoughtStructurePrompt
 from llmpebase.model.thought_structure import base
+from llmpebase.extractor.re_extraction import extract_solution
 
 
 class LlmThoughtModel:
@@ -63,10 +65,16 @@ class LlmThoughtModel:
 
             content = self.llm_model.read_response_contents(responses)[0]
 
-            scores = re.findall(r"\b\d+(?:\.\d+)?\b", content)
+            score_content = extract_solution(
+                content, self.prompter.evaluation_score_flag
+            )
+
+            scores = re.findall(r"\b\d+(?:\.\d+)?\b", score_content)
             score = 1.0 if len(scores) == 0 else float(scores[0])
 
-            evaluations.append(score)
+            content = content.split(self.prompter.evaluation_score_flag)[0]
+
+            evaluations.append((content, score))
 
         return evaluations, prompt
 

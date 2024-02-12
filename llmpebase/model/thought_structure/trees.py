@@ -16,6 +16,7 @@ Used in LightGBM, this method focuses on expanding the leaf that will reduce the
 loss the most. It can result in deeper, more asymmetric trees.
 
 """
+
 import logging
 
 import networkx as nx
@@ -103,10 +104,10 @@ class LWGTreeThoughtStructure(base.BaseThoughtStructure):
             if node.growth == "Growable":
                 if (
                     node.identity == self.root.identity
-                    or node.thought_score > max_value
+                    or node.evaluation_score > max_value
                 ):
                     max_node = node
-                    max_value = node.thought_score
+                    max_value = node.evaluation_score
         if max_node is not None:
             logging.info(
                 "Node %s has the largest value %s.", max_node.identity, max_value

@@ -1,6 +1,7 @@
 """
 Generic components for thought structure.
 """
+
 import logging
 from typing import Union, Tuple, List
 from dataclasses import dataclass
@@ -21,7 +22,8 @@ class BasicThoughtStep(FieldFrozenContainer):
 
     step_idx: int
     thought: Union[str, BasicSamplePrompt] = None
-    thought_score: float = None
+    evaluation_score: float = None
+    evaluation_content: str = None
     step_name: str = None
 
     similar_thoughts: List[str] = None
