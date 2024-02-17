@@ -4,6 +4,7 @@ The datasource interface for the Algebra Question Answering with Rationales
 The detailed information is shown in 
 https://huggingface.co/datasets/aqua_rat
 """
+
 import os
 
 import glob
@@ -30,29 +31,33 @@ class AQUADataset(base.BaseDataset):
             split=self.phase,
             trust_remote_code=True,
         )
-        n_itmes = len(phase_data)
+        n_items = len(phase_data)
         collected_items = [
             BaseQASampleInfo(
                 sample_id=i + 1,
+                sample_field="Math",
                 sample_problem="Algebra",
+                sample_dataset="AQUA-RAT",
                 sample_filepath=self.phase_data_path,
             )
-            for i in range(n_itmes)
+            for i in range(n_items)
         ]
 
         return DatasetCatalog(
             data_phase=self.phase,
+            problem_fields=["Math"],
+            problem_categories={"Math": ["Algebra"]},
+            category_samples={"Math": {"Algebra": list(range(n_items))}},
             data_samples=collected_items,
-            category_samples={"Algebra": list(range(n_itmes))},
-            problem_category=["Algebra"],
             data_statistics=DatasetStatistics(
-                num_samples=n_itmes,
-                category_info={"Algebra": {"num_samples": n_itmes}},
+                num_samples=n_items,
+                category_info={"Math": {"Algebra": {"num_samples": n_items}}},
             ),
         )
 
     def get_sample(self, idx):
-        sample_problem = self.data_catalog.data_samples[idx]["sample_problem"]
+        sample_info = self.data_catalog.data_samples[idx]
+
         phase_data = load_dataset(
             self.data_meta_catalog["huggingface_dataname"],
             split=self.phase,
@@ -75,7 +80,10 @@ class AQUADataset(base.BaseDataset):
             answer=answer,
             conclusion=conclusion,
             groundtruth=groundtruth,
-            auxiliary={"rationale": rationale, "sample_problem": sample_problem},
+            auxiliary={
+                "rationale": rationale,
+                "sample_info": sample_info,
+            },
         )
 
 

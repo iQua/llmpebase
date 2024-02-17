@@ -172,7 +172,7 @@ class Config:
             Config.environment = Config.namedtuple_from_dict(config["environment"])
             Config.data = Config.namedtuple_from_dict(config["data"])
             Config.model = Config.namedtuple_from_dict(config["model"])
-            Config.trainer = Config.namedtuple_from_dict(config["trainer"])
+            Config.train = Config.namedtuple_from_dict(config["train"])
             Config.evaluation = Config.namedtuple_from_dict(config["evaluation"])
             Config.logging = Config.namedtuple_from_dict(config["logging"])
 
@@ -197,7 +197,6 @@ class Config:
             project_path = Config.params["base_path"]
 
             # Get the name of the model
-            print(Config().model)
             Config.params["model_name"] = Config().model.model_name
 
             # Get the name of the data
@@ -452,14 +451,14 @@ class Config:
         """Convert the current run-time configuration to a dict."""
 
         config_data = dict()
-        config_data["trainer"] = Config.trainer._asdict()
+        config_data["train"] = Config.train._asdict()
         config_data["environment"] = Config.environment._asdict()
         config_data["data"] = Config.data._asdict()
         config_data["model"] = Config.model._asdict()
         config_data["logging"] = Config.logging._asdict()
         config_data["evaluation"] = Config.evaluation._asdict()
         for term in [
-            "trainer",
+            "train",
             "environment",
             "data",
             "model",

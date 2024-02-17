@@ -1,6 +1,7 @@
 """
 Basic components used in the dataset.
 """
+
 from typing import List, Optional, Dict, Any, Union
 from dataclasses import dataclass
 
@@ -46,7 +47,9 @@ class BaseQASampleInfo(FieldFrozenContainer):
     """
 
     sample_id: Optional[str] = None
+    sample_field: Optional[str] = None
     sample_problem: Optional[str] = None
+    sample_dataset: Optional[str] = None
     sample_filepath: Optional[str] = None
 
     auxiliary: Optional[Dict] = None
@@ -78,7 +81,8 @@ class DatasetCatalog(FieldFrozenContainer):
     """
 
     data_phase: str
-    problem_category: List[Union[str, dict]] = None
+    problem_fields: List[str] = None
+    problem_categories: List[str] = None
     data_samples: Optional[List[BaseQASampleInfo]] = None
     category_samples: Optional[Dict[str, List[int]]] = None
     data_statistics: Optional[DatasetStatistics] = None
