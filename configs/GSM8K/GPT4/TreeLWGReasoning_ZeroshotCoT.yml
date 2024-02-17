@@ -19,10 +19,8 @@ environment:
   seed: 15
   
 model:
-  # gpt-3.5-turbo = gpt-3.5-turbo-0613, gpt-3.5-turbo-16k = gpt-3.5-turbo-16k-0613,
-  # gpt-3.5-turbo-1106, 
-  # gpt-4 = gpt-4-0613, gpt-4-32k = gpt-4-32k-0613 # 
-  model_name: gpt-4
+
+  model_name: gpt-4 # "gpt-3.5-turbo","gpt-4"
   model_type: gpt
 
   prompt_type: zeroshot_cot 
@@ -37,7 +35,8 @@ model:
     stop: null 
 
   thought_structure:
-    num_next_steps: 1
+    growth_type: lwg
+    num_next_steps: 5
     # Note that the length computation includes the root node
     # Set the length to be longer to reach the final solution
     # and the chain growth in the thought structure will be stopped 
@@ -45,12 +44,15 @@ model:
     max_length: 20
     max_stops: 1
     min_thought_similarity: null # 0.95
-    max_score_difference: null # 0.1
-    
+    max_score_difference: 0.1 # 0.1
+
+ 
+
+
   pretrained_models_path: experiments/pretrained_models
 
 
-trainer:
+train:
 
 
 logging:

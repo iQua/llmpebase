@@ -1,0 +1,24 @@
+data:
+  !include ../base_data_setting.yml
+  
+environment:
+  !include ../base_env_setting.yml
+  
+model:
+  !minclude base_gpt_setting.yml;;chain_structure_sv_setting.yml
+
+
+train:
+
+  batch_size: 10
+
+logging:
+  !include ../base_log_setting.yml
+
+evaluation:
+  !include ../base_eval_setting.yml
+   
+
+
+
+

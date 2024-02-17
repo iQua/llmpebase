@@ -50,7 +50,7 @@ model:
   pretrained_models_path: experiments/pretrained_models
 
 
-trainer:
+train:
 
 
 logging:

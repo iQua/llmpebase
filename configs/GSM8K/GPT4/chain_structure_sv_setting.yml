@@ -1,6 +1,5 @@
 
-# The basic chain structure with step-wise verification
-
+# The basic settings for the thought structure
 thought_structure:
     num_next_steps: 1
     # Note that the length computation includes the root node

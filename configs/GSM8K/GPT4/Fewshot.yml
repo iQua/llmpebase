@@ -23,13 +23,14 @@ model:
   model_name: gpt-4 # "gpt-3.5-turbo","gpt-4"
   model_type: gpt
 
-  prompt_type: zeroshot_cot 
-  
+  prompt_type: fewshot
+  n_shots: 5
+
   authorization_path: ./.env
 
   generation_settings:
     temperature: 0.7
-    max_tokens: 1000
+    max_tokens: 500
     # n here is n_completions_per_prompt
     n: 1
     stop: null 
@@ -37,7 +38,7 @@ model:
   pretrained_models_path: experiments/pretrained_models
 
 
-trainer:
+train:
 
 
 logging:
@@ -55,6 +56,7 @@ evaluation:
 
   extractor:
     purpose: result
+    # re, llm
     style: llm
 
    
