@@ -10,7 +10,6 @@ from typing import Union
 import logging
 
 import torch
-import numpy as np
 
 from llmpebase.model.LM.base import BaseLlmRequest
 from llmpebase.model.prompting.base import BasePrompting
@@ -82,11 +81,11 @@ class Pipeline:
         # Get the configuration
         self.model_config = Config.items_to_dict(Config().model._asdict())
         self.data_config = Config.items_to_dict(Config().data._asdict())
+        self.log_config = Config.items_to_dict(Config().logging._asdict())
 
     def setup(self):
         """Configuration of the pipeline."""
         eval_config = Config.items_to_dict(Config().evaluation._asdict())
-        logging_config = Config().logging
 
         self.resume = eval_config["do_resume"] if "do_resume" in eval_config else True
 
@@ -116,7 +115,7 @@ class Pipeline:
             self.recorder = recorder.BaseRecorder(
                 output_filename="outputs",
                 sample_filename="samples",
-                record_path=logging_config.result_path,
+                record_path=self.log_config["result_path"],
                 record_name="llm_records",
             )
 
@@ -153,17 +152,8 @@ class Pipeline:
 
     def execute(self):
         """Execute the pipeline to obtain the results."""
-        upper = 50
-        total = len(self.testset)
-        selected_indexes = np.random.randint(0, total, size=upper)
-        if len(selected_indexes) <= len(self.existing_indexes):
-            return
+
         for idx, sample in enumerate(self.testset):
-            if idx not in selected_indexes:
-                continue
-            # Skip existing records when the resume is enabled
-            if idx in self.existing_indexes:
-                continue
             prompt_sample, groundtruth = self.data_prompter.create_prompt_sample(
                 sample, self.trainset, self.model_config
             )
@@ -177,7 +167,7 @@ class Pipeline:
                 self.extractor.forward(
                     content,
                     solution_flag=self.data_prompter.solution_flag,
-                    problem_name=sample["auxiliary"]["sample_problem"],
+                    problem_name=sample["auxiliary"]["sample_info"]["sample_problem"],
                     question=sample["question"],
                 )
                 for content in contents
