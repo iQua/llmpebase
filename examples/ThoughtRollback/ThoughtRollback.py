@@ -26,7 +26,7 @@ def _main():
         llm_model=llm_model, model_config=model_config, prompter=prompter
     )
 
-    chain_reasoner = reasoner.ThoughtRollbackReasoner(
+    tr_reasoner = reasoner.ThoughtRollbackReasoner(
         thought_model=llm_thought,
         model_config=model_config,
         logging_config=logging_config,
@@ -34,7 +34,7 @@ def _main():
     )
 
     pipeline = Pipeline(
-        reasoner=chain_reasoner,
+        reasoner=tr_reasoner,
     )
     pipeline.setup()
     pipeline.load_data()
