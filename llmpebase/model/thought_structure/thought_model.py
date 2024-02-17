@@ -3,12 +3,17 @@ A model to perform the thought generation.
 """
 
 import re
-from typing import List
+from typing import List, Tuple
 
 import torch
 
 from llmpebase.model import define_model
 from llmpebase.model.prompting.thought_prompt import ThoughtStructurePrompt
+from llmpebase.model.thought_structure.structure_generic import (
+    BasicEvaluation,
+    BasicSimilarity,
+    BasicReasoning,
+)
 from llmpebase.model.thought_structure import base
 from llmpebase.extractor.re_extraction import extract_solution
 
@@ -30,7 +35,7 @@ class LlmThoughtModel:
 
     def generate_thoughts(
         self, thought_chain: List[base.BasicNode], num_thoughts: int = 1, **kwargs
-    ):
+    ) -> Tuple[List[str], List[BasicReasoning]]:
         """Generate the thoughts based on the thought chain."""
         prompt = self.prompter.organize_next_thought_prompt(
             chain_nodes=thought_chain, **kwargs
@@ -43,47 +48,66 @@ class LlmThoughtModel:
         )
         thoughts = self.llm_model.read_response_contents(responses)
 
-        return thoughts, prompt
+        reasoning = [
+            BasicReasoning(reasoning_prompt=prompt, reasoning_output=thought)
+            for thought in thoughts
+        ]
+
+        return thoughts, reasoning
 
     def evaluate_thoughts(
         self,
         thoughts: List[str],
         thought_chain: List[base.BasicNode],
-    ):
+        n_request: int = 1,
+    ) -> List[BasicEvaluation]:
         """Evaluate the thoughts based on the thought chain."""
         evaluations = []
         for thought in thoughts:
             prompt = self.prompter.organize_evaluation_prompt(
                 thought=thought, chain_nodes=thought_chain
             )
-
             responses = self.llm_model.forward(
                 user_prompt=str(prompt),
-                per_request_responses=1,
+                per_request_responses=n_request,
                 sys_prompt=self.prompter.generation_system_prompt,
             )
 
-            content = self.llm_model.read_response_contents(responses)[0]
+            responses = self.llm_model.read_response_contents(responses)
 
-            score_content = extract_solution(
-                content, self.prompter.evaluation_score_flag
+            eval_flag = self.prompter.evaluation_score_flag
+            score_contents = [
+                extract_solution(response, eval_flag) for response in responses
+            ]
+            scores = [
+                re.findall(r"\b\d+(?:\.\d+)?\b", score_content)
+                for score_content in score_contents
+            ]
+            scores = [0.5 if len(score) == 0 else float(score[0]) for score in scores]
+
+            contents = [
+                response.split(self.prompter.evaluation_score_flag)[0]
+                for response in responses
+            ]
+
+            evaluations.append(
+                BasicEvaluation(
+                    evaluation_prompt=prompt,
+                    evaluation_scores=scores,
+                    evaluation_contents=contents,
+                    evaluation_outputs=responses,
+                )
             )
 
-            scores = re.findall(r"\b\d+(?:\.\d+)?\b", score_content)
-            score = 1.0 if len(scores) == 0 else float(scores[0])
-
-            content = content.split(self.prompter.evaluation_score_flag)[0]
-
-            evaluations.append((content, score))
-
-        return evaluations, prompt
+        return evaluations
 
     def measure_thought_similarity(
         self,
         thought_a: str,
         thought_b: str,
         thought_chain: List[base.BasicNode],
-    ):
+        n_request: int = 1,
+    ) -> BasicSimilarity:
         """Measure the similarity between two thoughts."""
 
         prompt = self.prompter.organize_similarity_prompt(
@@ -94,11 +118,29 @@ class LlmThoughtModel:
 
         responses = self.llm_model.forward(
             user_prompt=str(prompt),
-            per_request_responses=1,
+            per_request_responses=n_request,
             sys_prompt=self.prompter.similarity_system_prompt,
         )
 
-        content = self.llm_model.read_response_contents(responses)[0]
-        scores = re.findall(r"\b\d+(?:\.\d+)?\b", content)
+        responses = self.llm_model.read_response_contents(responses)
+        similarity_flag = self.prompter.similarity_score_flag
+        score_contents = [
+            extract_solution(response, similarity_flag) for response in responses
+        ]
+        scores = [
+            re.findall(r"\b\d+(?:\.\d+)?\b", score_content)
+            for score_content in score_contents
+        ]
+        scores = [0.5 if len(score) == 0 else float(score[0]) for score in scores]
 
-        return 0 if len(scores) == 0 else float(scores[0]), prompt
+        contents = [
+            response.split(self.prompter.similarity_score_flag)[0]
+            for response in responses
+        ]
+
+        return BasicSimilarity(
+            similarity_prompt=prompt,
+            similarity_scores=scores,
+            similarity_contents=contents,
+            similarity_outputs=responses,
+        )

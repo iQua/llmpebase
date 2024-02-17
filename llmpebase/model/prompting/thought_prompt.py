@@ -14,6 +14,7 @@ class ThoughtStructurePrompt:
 
     thought_flag: str = "-" * 20
     evaluation_score_flag: str = "Evaluation Score: "
+    similarity_score_flag: str = "Similarity Score: "
 
     step_head: str = "Reasoning Step {}: "
 
@@ -67,8 +68,8 @@ class ThoughtStructurePrompt:
         head="Evaluate the similarity between two reasoning steps generated for addressing the given question: \n{}\n\n",
         content="Below are two reasoning steps to be compared:\n\nA. {}\n\nB. {}\n\n",
         target="Score similarity by measuring their consistency in logic, words, and results. The similarity score ranges from 0 to 1, where a higher score means higher similarity.\n ",
-        notice="Only output the score itself.\n",
-        tail="Similarity score:",
+        notice=f"Present the score after '{similarity_score_flag}' for readability.\n",
+        tail="",
         prompt="",
     )
 
@@ -108,7 +109,9 @@ class ThoughtStructurePrompt:
 
         return reasoning_chain_prompt
 
-    def organize_next_thought_prompt(self, chain_nodes: List[base.BasicNode], **kwargs):
+    def organize_next_thought_prompt(
+        self, chain_nodes: List[base.BasicNode], **kwargs
+    ) -> BasicThoughtPromptFormat:
         """Generating the prompt for next thought."""
         root_prompt = str(chain_nodes[0].thought)
 
@@ -134,7 +137,7 @@ class ThoughtStructurePrompt:
 
     def organize_evaluation_prompt(
         self, thought: str, chain_nodes: List[base.BasicNode]
-    ):
+    ) -> BasicThoughtPromptFormat:
         """Organizing the prompt for thought evaluation."""
 
         root_prompt = chain_nodes[0].thought

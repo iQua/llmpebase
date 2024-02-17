@@ -1,6 +1,7 @@
 """
 Basic implementations of fewshot, cot, and zeroshot prompting.
 """
+
 import json
 import random
 from typing import List, Union
@@ -147,7 +148,7 @@ class BasePrompting:
 
         return (
             self.create_test_prompt(
-                problem_name=sample["auxiliary"]["sample_problem"],
+                problem_name=sample["auxiliary"]["sample_info"]["sample_problem"],
                 demonstrations=samples,
                 test_sample=sample,
             ),
@@ -181,7 +182,7 @@ class BaseCoTPrompting(BasePrompting):
 
     def create_prompt_sample(self, sample, dataset, config):
         """Create one prompt sample."""
-        problem_name = sample["auxiliary"]["sample_problem"]
+        problem_name = sample["auxiliary"]["sample_info"]["sample_problem"]
         cot_samples = self.get_cot_prompt(problem_name)
         prompt_sample = self.create_test_prompt(
             problem_name=problem_name, demonstrations=cot_samples, test_sample=sample
@@ -206,7 +207,7 @@ class BaseZeroShotCoTPrompting(BasePrompting):
     def create_prompt_sample(self, sample, dataset, config):
         """Create one prompt sample."""
         prompt_sample = self.create_test_prompt(
-            problem_name=sample["auxiliary"]["sample_problem"],
+            problem_name=sample["auxiliary"]["sample_info"]["sample_problem"],
             demonstrations=None,
             test_sample=sample,
         )
