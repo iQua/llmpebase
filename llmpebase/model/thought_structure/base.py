@@ -103,6 +103,7 @@ class BaseThoughtStructure:
         )
 
         self.save_path = logging_config["result_path"]
+        self.base_save_foldername = "thought_structure"
         self.save_foldername = "thought_structure"
 
     def create_node(
@@ -169,7 +170,8 @@ class BaseThoughtStructure:
         evaluation: BasicEvaluation = None,
         **kwargs,
     ):
-        """Set the root of the structure.
+        """
+        Set the root of the structure.
 
         Only by creating the structure's root node can it be grown until it is built.
         Generally, the task prompt and the request containing the question and
@@ -671,6 +673,10 @@ class BaseThoughtStructure:
         self.edge_pool: Dict[str, BasicEdge] = None
         self.graph.clear()
         self.node_id_tracker = -1
+
+    def set_save_foldername(self, foldername: str):
+        """Set the foldername for the visualization."""
+        self.save_foldername = foldername
 
     def create_save_folder(self, foldername: str = None, location: str = None) -> str:
         """Create the save path for the thought structure."""

@@ -48,18 +48,18 @@ class ThoughtStructurePrompt:
 
     first_evaluation_prompt = BasicThoughtPromptFormat(
         head="Evaluate the first reasoning step for the given question:\n{}\n\n",
-        content="The latest reasoning step is: \n{}\n\n",
+        content="The first reasoning step (Step 1) is: \n{}\n\n",
         target="Evaluate this first step by assessing the validity, logical coherence, and progression and identifying any logical fallacies or weaknesses. Conclude the verification with a score ranging from 0 to 1, where a higher value means a better reasoning step, while 0 represents an critical error.\n",
-        notice=f"Present the score after '{evaluation_score_flag}' for readability.\n",
+        notice=f"Present the score after '{evaluation_score_flag}' for readability.",
         tail="",
         prompt="",
     )
 
     evaluation_prompt = BasicThoughtPromptFormat(
-        head="Evaluate the latest reasoning step for the given question:\n{}\n\n",
-        content="Toward addressing the question, we have, thus far, obtained a series of reasoning steps: \n {}\n\n The latest reasoning step is: \n{}\n\n",
-        target="Evaluate the latest step by assessing the validity, logical coherence, and progression and identifying any logical fallacies or weaknesses. Conclude the verification with a score ranging from 0 to 1, where a higher value means a better reasoning step, while 0 represents an critical error.\n",
-        notice=f"Present the score after '{evaluation_score_flag}' for readability.\n",
+        head="Evaluate the reasoning step {} for the given question:\n{}\n\n",
+        content="Toward addressing the question, we have, thus far, obtained a series of reasoning steps: \n {}\n\n The reasoning Step {} is: \n{}\n\n",
+        target="Evaluate the Step {} by assessing the validity, logical coherence, and progression and identifying any logical fallacies or weaknesses. Conclude the verification with a score ranging from 0 to 1, where a higher value means a better reasoning step, while lower value represents an critical error.\n",
+        notice=f"Present the score after '{evaluation_score_flag}' for readability.",
         tail="",
         prompt="",
     )
@@ -154,9 +154,15 @@ class ThoughtStructurePrompt:
         chain_prompt = self.organize_chain_prompt(
             chain_nodes[1:], with_flag=True, with_evaluation_score=False
         )
+        # +1 here to include the new thought, i.e., the latest reasoning step
+        # to evaluate
+        step_idx = len(chain_nodes[1:]) + 1
 
-        eval_prompt.head = eval_prompt.head.format(question)
-        eval_prompt.content = eval_prompt.content.format(chain_prompt, thought)
+        eval_prompt.head = eval_prompt.head.format(step_idx, question)
+        eval_prompt.content = eval_prompt.content.format(
+            chain_prompt, step_idx, thought
+        )
+        eval_prompt.target = eval_prompt.target.format(step_idx)
 
         return eval_prompt
 

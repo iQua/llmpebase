@@ -80,13 +80,17 @@ class StructuredThoughtReasoner:
         return solution_strs
 
     def forward(
-        self, prompt_sample: BasicSamplePrompt, sample_idx: int = 0
+        self, prompt_sample: BasicSamplePrompt, sample_name: str = "0-0"
     ) -> List[str]:
         """Forward the reasoning in the chain structure."""
-        # Create the visualization path
-        structure_folder = f"thought_structure_{sample_idx}"
-        self.visualizer.visualization_foldername = structure_folder
-        self.structure.save_foldername = structure_folder
+        # Set the save path and folder for visualization and thought structure
+        self.visualizer.set_save_foldername(
+            f"{self.visualizer.base_save_foldername}-{sample_name}"
+        )
+        self.structure.set_save_foldername(
+            foldername=f"{self.structure.base_save_foldername}-{sample_name}"
+        )
+
         # Place the task prompt in the root so that all subsequent thought chains
         # include the task prompt
         self.structure.construct_root(thought=prompt_sample, thought_score=None)
@@ -98,10 +102,12 @@ class StructuredThoughtReasoner:
         # Get the solutions from the structure
         solution_strs = self.get_solution_paths()
 
-        # Clean the structure after the reasoning
-        self.structure.reset_structure()
-
         return solution_strs
+
+    def reset_reasoning(self):
+        """Reset the reasoning process."""
+        # Reset the thought structure
+        self.structure.reset_structure()
 
     def get_cost_statistics(self, **kwargs):
         """Get the cost statistics by using Llm."""

@@ -35,4 +35,5 @@ class SolutionExtractor:
                 src_node_id=root_node.identity, dst_node_id=node.identity
             )
             solution_chains.append(thought_chain)
+
         return solution_chains
