@@ -5,12 +5,12 @@ environment:
   !include ../base_env_setting.yml
   
 model:
-  !minclude base_gpt_setting.yml;;chain_structure_sv_setting.yml
+  !minclude base_gpt_setting.yml;;chain_structure_sv_setting.yml;;SnowBall_memorization.yml
 
 
 train:
 
-  batch_size: 10
+  batch_size: 2
 
 logging:
   !include ../base_log_setting.yml
