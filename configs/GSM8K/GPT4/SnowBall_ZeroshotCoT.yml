@@ -10,7 +10,7 @@ model:
 
 train:
 
-  batch_size: 2
+  epochs: 5
 
 logging:
   !include ../base_log_setting.yml

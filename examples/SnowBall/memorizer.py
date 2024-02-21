@@ -8,6 +8,10 @@ Main: Without human annotations, we cannot know which reasoning steps are correc
 1. When the reasoning is incorrect, some verifications may report incorrect reasoning steps. But we do not know whether these verifications are trustworthy because the real incorrect reasoning step may exist in other steps whose verifications are correct.
 
 2. When the reasoning is incorrect, verifications all report correct reasoning steps. We know that these verifications are not trustworthy. But we do not know which reasoning steps are incorrect and thus the corresponding verifications, which should report mistakes, are unknown.
+
+There are two styles of experiences are:
+ - Reasoning
+ - Verification
 """
 
 import os
@@ -15,9 +19,10 @@ import json
 from typing import List, Tuple, Dict
 from collections import defaultdict
 
-import reasoner
+import pandas as pd
 
 from experience_db import LLMExperienceDBManager
+from experience_generic import BaseExperience
 
 from llmpebase.model.thought_structure import base
 from llmpebase.dataset.data_generic import BaseQASample
@@ -27,8 +32,7 @@ class ExperienceLearner:
     """
     A base class to learn experiences from the reasoning result.
 
-    Current reasoner is built upon the thought structure, making the learner
-    enable to get reasoning steps and verification from it.
+    The learner mainly aims to .
     """
 
     def __init__(self, model_config: dict) -> None:
@@ -47,10 +51,11 @@ class ExperienceLearner:
         ]
 
         reasoning_path = "\n".join(reasoning_steps)
-
+        mode = ""
         if comparison:
             # Collect positive reasoning.
-            return reasoning_path, "Positive"
+            experience = reasoning_path
+            mode = "Positive"
         else:
             # Collect the negative reasoning.
             # When the reasoning is incorrect, we assume that all verifications are
@@ -62,10 +67,15 @@ class ExperienceLearner:
                 if score <= self.neg_eval_threshold
             ]
             incorrect_steps = ",".join(incorrect_steps)
-            incorrect_path = (
-                f"{reasoning_path}\n\nIncorrect steps are: {incorrect_steps}"
-            )
-            return incorrect_path, "Negative"
+            experience = f"{reasoning_path}\n\nIncorrect steps are: {incorrect_steps}"
+            mode = "Negative"
+
+        return BaseExperience(
+            experience=experience,
+            style="Reasoning",
+            mode=mode,
+            priority_score=0,
+        )
 
     def extract_verification_experience(
         self, reasoning_chain: List[base.BasicNode], comparison: bool
@@ -95,27 +105,44 @@ class ExperienceLearner:
         verify_correct = all(
             [score > self.neg_eval_threshold for score in evaluation_scores]
         )
-        verify_wrong = any(
-            [score <= self.neg_eval_threshold for score in evaluation_scores]
+
+        mode = ""
+        if comparison and verify_correct:
+            mode = "Positive"
+        elif comparison and not verify_correct:
+            mode = "Negative"
+        elif not comparison and not verify_correct:
+            mode = "Positive"
+        elif not comparison and verify_correct:
+            mode = "Negative"
+
+        return BaseExperience(
+            experience=experience,
+            style="Verification",
+            mode=mode,
+            priority_score=0,
         )
-        if comparison:
-            if verify_correct:
-                # Collect positive verifications once step-wise verifications all report correct reasoning.
-                return experience, "Positive"
-            else:
-                # Collect negative verifications once step-wise verifications report incorrect reasoning.
-                return experience, "Negative"
-        else:
-            if verify_wrong:
-                # Collect the positive verification one step-wise verification reports incorrect reasoning.
-                return experience, "Positive"
-            else:
-                # Collect the negative verification once step-wise verifications all report correct reasoning.
-                return experience, "Negative"
+
+    def remove_duplicate_experience(
+        self, experiences: List[BaseExperience]
+    ) -> List[BaseExperience]:
+        """
+        Remove the duplicate experiences.
+
+        This is the most basic way to remove the duplicate experiences. Further
+        improvement can be made.
+        For example, one can introduce the LLM model to measure the similarity to facilitate the removal.
+        """
+        # Convert the list of dictionaries into a pandas DataFrame
+        exp_df = pd.DataFrame(experiences)
+        # Remove duplicates based on the 'experience' column
+        unique_exps = exp_df.drop_duplicates(subset=["experience"]).to_dict("records")
+
+        return [BaseExperience(**exp) for exp in unique_exps]
 
     def collect_experiences(
-        self, defined_reasoner: reasoner.ChainThoughtReasoner, comparisons: List[bool]
-    ) -> Tuple[Dict[str, List[str]], Dict[str, List[str]]]:
+        self, solution_chains: List[List[base.BasicNode]], comparisons: List[bool]
+    ) -> Dict[str, List[BaseExperience]]:
         """
         Get the correct reasoning steps.
 
@@ -123,24 +150,30 @@ class ExperienceLearner:
         :param comparisons: The comparison results of the solutions of reasoning steps.
         """
         # Initialize the reasoning experience
-        reasoning_experiences = {"Positive": [], "Negative": []}
-        verification_experiences = {"Positive": [], "Negative": []}
-        # Get all solution chains
-        # As the thought structure is a chain, we only get a single chain
-        solution_chains = defined_reasoner.solution_extractor.extract_solution_chains(
-            defined_reasoner.structure
-        )
+        reasoning_experiences = []
+        verification_experiences = []
+
         # Collect experience from each chain
         for idx, chain in enumerate(solution_chains):
+            chain_cmp = comparisons[idx]
             # Extract the reasoning experience
-            experience = self.extract_reasoning_experience(chain, comparisons[idx])
-            reasoning_experiences[experience[-1]].append(experience[0])
+            experience = self.extract_reasoning_experience(chain, chain_cmp)
+            reasoning_experiences.append(experience)
 
             # Extract the verification experience
-            experience = self.extract_verification_experience(chain, comparisons[idx])
-            verification_experiences[experience[-1]].append(experience[0])
+            experience = self.extract_verification_experience(chain, chain_cmp)
+            verification_experiences.append(experience)
 
-        return reasoning_experiences, verification_experiences
+        # Remove the duplicate experiences
+        reasoning_experiences = self.remove_duplicate_experience(reasoning_experiences)
+        verification_experiences = self.remove_duplicate_experience(
+            verification_experiences
+        )
+
+        return {
+            "Reasoning": reasoning_experiences,
+            "Verification": verification_experiences,
+        }
 
 
 class LLMMemorizer:
@@ -181,106 +214,73 @@ class LLMMemorizer:
             else LLMExperienceDBManager(model_config)
         )
 
-        # Experience holder to hold experiences
-        self.experience_holder = list()
-
-    def accumulate_experiences(
-        self,
-        defined_reasoner: reasoner.ChainThoughtReasoner,
-        comparisons: List[bool],
-    ):
-        # Collect experiences for this sample
-        reasoning_experiences, verification_experiences = (
-            self.experience_learner.collect_experiences(defined_reasoner, comparisons)
-        )
-        self.experience_holder.append(
-            {
-                "Reasoning": reasoning_experiences,
-                "Verification": verification_experiences,
-            }
-        )
-
-    def compute_batch_accuracy(self, batch_comparisons: List[List[bool]]):
-        """Compute the accuracy of the batch comparisons."""
-        # Compute the accuracy
-        n_correct = sum([sum(comparisons) for comparisons in batch_comparisons])
-        n_total = sum([len(comparisons) for comparisons in batch_comparisons])
-        accuracy = float(n_correct / n_total)
-
-        return accuracy
-
-    def create_memory_group_folder(self, field: str, category: str):
-        """Create the memory group."""
+    def create_memory_group(self, field: str, category: str):
+        """
+        Create the memory group by making new folder and recording
+        the information to the file.
+        """
         # Create the folder
         folder_path = f"{field}/{category}"
         group_path = os.path.join(self.memory_root_path, folder_path)
         os.makedirs(group_path, exist_ok=True)
         # Add the information to the memory group info
         if os.path.exists(self.memory_info_path):
-            with open(self.memory_info_path, "r") as f:
+            with open(self.memory_info_path, "r", encoding="utf-8") as f:
                 self.memory_info = json.load(f)
         if field not in self.memory_info or category not in self.memory_info[field]:
             self.memory_info[field][category] = {
                 "Reasoning": {"Positive": 0, "Negative": 0},
                 "Verification": {"Positive": 0, "Negative": 0},
             }
+        with open(self.memory_info_path, "w", encoding="utf-8") as f:
+            json.dump(self.memory_info, f)
 
         return group_path
 
+    def compute_accuracy(self, experiences: Dict[str, List[str]]):
+        """Compute the accuracy of the experiences."""
+        # Compute the priority of the experiences
+        n_correct_reasoning = len(experiences["Reasoning"]["Positive"])
+        n_wrong_reasoning = len(experiences["Reasoning"]["Negative"])
+        n_reasoning_total = n_correct_reasoning + n_wrong_reasoning
+        n_correct_verify = len(experiences["Verification"]["Positive"])
+        n_wrong_verify = len(experiences["Verification"]["Negative"])
+        n_verify_total = n_correct_verify + n_wrong_verify
+        return {
+            "Reasoning": n_correct_reasoning / n_reasoning_total,
+            "Verification": n_correct_verify / n_verify_total,
+        }
+
     def memory(
-        self, batch_samples: List[BaseQASample], batch_comparisons: List[List[bool]]
+        self,
+        sample: BaseQASample,
+        solution_chains: List[List[base.BasicNode]],
+        comparisons: List[bool],
     ):
         """Forward the batch samples and comparisons to memory experiences."""
+        experiences = self.experience_learner.collect_experiences(
+            solution_chains=solution_chains, comparisons=comparisons
+        )
+        # Create the memory group once there is no one
+        sample_info = sample["auxiliary"]["sample_info"]
+        field = sample_info["sample_field"]
+        category = sample_info["sample_problem"]
+        path = self.create_memory_group(field, category)
 
-        # Create the memory groups once there is no one
-        group_paths = []
-        for sample in batch_samples:
-            sample_info = sample["auxiliary"]["sample_info"]
-            field = sample_info["sample_field"]
-            category = sample_info["sample_problem"]
-            path = self.create_memory_group_folder(field, category)
-            group_paths.append(path)
-
-        # Insert questions to the vector database of txtai
-        self.db_manager.record_questions(batch_samples)
+        # # Insert questions to the vector database of txtai
+        q_db_counts = self.db_manager.record_questions(location=path, samples=[sample])
 
         # Insert the experiences into the database
-        self.db_manager.record_experiences(
-            locations=group_paths,
-            batch_samples=batch_samples,
-            batch_experiences=self.experience_holder,
+        # Get the counts of the experiences
+        db_counts = self.db_manager.record_experiences(
+            location=path, sample=sample, experiences=experiences
         )
 
-        # Update the experience priority
+        # Update the question information
+        self.memory_info[field][category].update(q_db_counts)
+        # Update the experience information
+        self.memory_info[field][category].update(db_counts)
 
-        # Clean the current experience holder
-        self.experience_holder = {"Reasoning": [], "Verification": []}
-
-    def recall_experiences(
-        self,
-        sample_info: dict,
-        question: str,
-        experience_type: str = "positive",
-        experience_mode: str = "reasoning",
-        n_shots: int = 1,
-    ):
-        """Recall n_shots experiences based on the information of the sample."""
-        # Get the field and category of the sample
-        sample_field = sample_info["sample_field"]
-        sample_problem = sample_info["sample_field"]
-
-        # Get the database containing clusters of the group
-        group_folder = self.group_creator.get_group_folder(
-            root_path=self.memory_root_path,
-            field=sample_field,
-            category=sample_problem,
-        )
-        # Get the database of the corresponding experience
-        experience_db = self.db_manager.search_question_cluster(
-            question=question,
-            group_folder=group_folder,
-            experience_type=experience_type,
-            experience_mode=experience_mode,
-        )
-
-        # Get the cluster that the question belongs to
+        # Record the memory info into file
+        with open(self.memory_info_path, "w", encoding="utf-8") as f:
+            json.dump(self.memory_info, f)

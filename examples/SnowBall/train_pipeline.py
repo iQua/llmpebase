@@ -29,28 +29,19 @@ class ExperienceAccumulationPipeline(Pipeline):
 
     def execute(self):
         """Execute the pipeline to obtain the results."""
-        batch_size = self.train_config["batch_size"]
-        train_dataloader = DataLoader(
-            self.trainset,
-            batch_size=batch_size,
-            shuffle=False,
-            collate_fn=lambda batch: batch,
-        )
-        # Iterative get samples for training
-        # One batch of samples is a list in which each item
-        # is a tuple of (sample, (prompt_sample, groundtruth))
-        # Perform the reasoning for training of SnowBall
-        global_idx = 0
-        for batch_samples in train_dataloader:
-            batch_comparisons = []
-            for sample in batch_samples:
+        n_epochs = self.train_config["epochs"]
+        for epoch in range(1, n_epochs + 1):
+            for idx, sample in enumerate(self.trainset):
+                sample_info = sample["auxiliary"]["sample_info"]
+                sample_id = sample_info["sample_id"]
+                record_name = f"{epoch}-{idx}-ID<{sample_id}>"
+                if record_name in self.exist_records:
+                    continue
                 prompt_sample, groundtruth = self.data_prompter.create_prompt_sample(
-                    sample, None, None
+                    sample=sample,
+                    dataset=self.trainset,
+                    config=self.model_config,
                 )
-
-                sample_id = sample["auxiliary"]["sample_info"]["sample_id"]
-
-                record_name = f"{global_idx}-ID<{sample_id}>"
                 contents = self.reasoner.forward(
                     prompt_sample=prompt_sample,
                     sample_name=record_name,
@@ -59,9 +50,7 @@ class ExperienceAccumulationPipeline(Pipeline):
                     self.extractor.forward(
                         content,
                         solution_flag=self.data_prompter.solution_flag,
-                        problem_name=sample["auxiliary"]["sample_info"][
-                            "sample_problem"
-                        ],
+                        problem_name=sample_info["sample_problem"],
                         question=sample["question"],
                     )
                     for content in contents
@@ -69,12 +58,6 @@ class ExperienceAccumulationPipeline(Pipeline):
                 groundtruths = [groundtruth] * len(results)
                 measurements = self.evaluator.forward(results, groundtruths)
                 comparisons = measurements["matches"]
-
-                batch_comparisons.append(comparisons)
-
-                self.memorizer.accumulate_experiences(
-                    sample, defined_reasoner=self.reasoner, comparisons=comparisons
-                )
 
                 output = {
                     "request_prompt": str(prompt_sample),
@@ -91,6 +74,14 @@ class ExperienceAccumulationPipeline(Pipeline):
                     sample_name=record_name,
                 )
 
-                global_idx += 1
+                # Memory the experiences
+                self.memorizer.memory(
+                    sample=sample,
+                    solution_chains=self.reasoner.solution_extractor.extract_solution_chains(
+                        self.reasoner.structure
+                    ),
+                    comparisons=comparisons,
+                )
+
                 # Reset the reasoning after processing current sample
                 self.reasoner.reset_reasoning()

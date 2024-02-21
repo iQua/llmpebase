@@ -143,7 +143,8 @@ class Pipeline:
         """Execute the pipeline to obtain the results."""
 
         for idx, sample in enumerate(self.testset):
-            sample_id = sample["auxiliary"]["sample_info"]["sample_id"]
+            sample_info = sample["auxiliary"]["sample_info"]
+            sample_id = sample_info["sample_id"]
             record_name = f"{idx}-ID<{sample_id}>"
             if record_name in self.exist_records:
                 continue
@@ -158,7 +159,7 @@ class Pipeline:
                 self.extractor.forward(
                     content,
                     solution_flag=self.data_prompter.solution_flag,
-                    problem_name=sample["auxiliary"]["sample_info"]["sample_problem"],
+                    problem_name=sample_info["sample_problem"],
                     question=sample["question"],
                 )
                 for content in contents
