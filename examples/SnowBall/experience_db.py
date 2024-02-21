@@ -163,7 +163,7 @@ class BaseDBWorker:
 
     def count_tables(
         self,
-        by_columns: List[str] = ["mode"],
+        by_columns: List[str],
     ):
         """Count the number of rows in the table."""
 
@@ -309,7 +309,7 @@ class LLMExperienceDBManager:
 
         database.update_rows(db_questions, "Questions")
         # Count the current rows
-        return database.count_tables(["db_identity"])
+        return database.count_tables(["dataset"])
 
     def record_experiences(
         self,
@@ -392,10 +392,3 @@ class LLMExperienceDBManager:
         category = info["sample_problem"]
         sample_id = info["sample_id"]
         return f"{dataset}-{field}-{category}-{sample_id}"
-
-    def get_db_statistics(self, location: str):
-        """Get the statistics of the database."""
-        database = self.get_experience_database(
-            location=location, db_name="ExperienceDB.db"
-        )
-        return database.count_tables()
