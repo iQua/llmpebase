@@ -52,16 +52,14 @@ class StructuredThoughtReasoner:
         """Define the thought structure to be used."""
         raise NotImplementedError
 
-    def get_solution_paths(self):
+    def get_solution_paths(self, structure: BaseThoughtStructure = None) -> List[str]:
         """Extract the reasoning paths from the thought structure as the
         solutions."""
 
         # Get the chain and save it
-        solution_chains = self.solution_extractor.extract_solution_chains(
-            self.structure
-        )
+        solution_chains = self.solution_extractor.extract_solution_chains(structure)
         for idx, chain in enumerate(solution_chains):
-            self.structure.save_thought_path(
+            structure.save_thought_path(
                 chain,
                 filename=f"{idx}-th_solution_chain_{chain[0].identity}->{chain[-1].identity}",
             )
@@ -82,7 +80,7 @@ class StructuredThoughtReasoner:
     def forward(
         self, prompt_sample: BasicSamplePrompt, sample_name: str = "0-0"
     ) -> List[str]:
-        """Forward the reasoning in the chain structure."""
+        """Forward the reasoning in the thought structure."""
         # Set the save path and folder for visualization and thought structure
         self.visualizer.set_save_foldername(
             f"{self.visualizer.base_save_foldername}-{sample_name}"
@@ -100,7 +98,7 @@ class StructuredThoughtReasoner:
         self.structure.save_structure()
 
         # Get the solutions from the structure
-        solution_strs = self.get_solution_paths()
+        solution_strs = self.get_solution_paths(structure=self.structure)
 
         return solution_strs
 
