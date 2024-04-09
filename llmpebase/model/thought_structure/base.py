@@ -46,6 +46,12 @@ class BaseThoughtStructure:
         assert hasattr(self.thought_model, "measure_thought_similarity")
         # The visualizer to visualize the thought structure
         self.visualizer = visualizer
+        # The growth type of the thought structure
+        # The default growth type is the chain-generic
+        # where chain means the structure is grown in a chain manner
+        # while the dfg means the structure is grown in Depth-First Growth
+        self.growth_type = "chain-dfg"
+
         # Tracker of the node id starting from 0
         # thus, root of the thought structure should be 0
         self.node_id_tracker = -1
@@ -69,8 +75,8 @@ class BaseThoughtStructure:
         # The edge pool to store all customized edges in the structure
         self.edge_pool: Dict[str, BasicEdge] = None
 
-        self.position_types = ("Root", "Intermediate", "Sink")
-        self.growth_types = ("Growable", "Un-growable")
+        self.position_states = ("Root", "Intermediate", "Sink")
+        self.growth_states = ("Growable", "Un-growable")
 
         # Get the configuration
         config = model_config["thought_structure"]
@@ -134,8 +140,8 @@ class BaseThoughtStructure:
             node_name=node_name,
             position=position,
             growth=growth,
-            position_types=self.position_types,
-            growth_types=self.growth_types,
+            position_states=self.position_states,
+            growth_states=self.growth_states,
             auxiliary=auxiliary,
         )
 
@@ -261,7 +267,8 @@ class BaseThoughtStructure:
                         node.thought,
                         thought_chain=grow_path,
                     )
-                similarities[idx][node.identity] = similarity
+                    similarities[idx][node.identity] = similarity
+
         return similarities
 
     def search_identical_thought(
@@ -501,8 +508,9 @@ class BaseThoughtStructure:
         for node_id in self.graph.nodes:
             self.set_node_status(node_id)
 
-        # Set the status of edges in the graph
+        # Save the structure after each growth
         self.save_structure()
+        self.save_state()
 
     def generate_next_thoughts(self, thought_path: List[BasicNode]):
         """Generate the next thoughts for the node_id."""
@@ -722,6 +730,32 @@ class BaseThoughtStructure:
             file_path = f"{save_path}/{filename}.json"
             with open(file_path, "w", encoding="utf-8") as file:
                 json.dump(edge_data, file)
+
+    def save_state(self, foldername: str = None, location: str = None):
+        """Save the state of the structure."""
+        save_path = self.create_save_folder(foldername, location)
+
+        # Get how many nodes
+        n_nodes = len(self.graph.nodes)
+        # Get how many paths
+        n_paths = len(self.get_sink_nodes())
+        # Get the config of the llm used
+        llm_config = self.thought_model.llm_model.generation_config
+
+        filename = "structure_state"
+        file_path = f"{save_path}/{filename}.json"
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(
+                {
+                    "growth_type": self.growth_type,
+                    "n_nodes": n_nodes,
+                    "n_paths": n_paths,
+                    "llm_config": llm_config,
+                },
+                file,
+            )
+
+        return file_path
 
     @staticmethod
     def resume_structure(location: str = None):
