@@ -14,7 +14,6 @@ certain depth is expanded before the tree grows deeper.
 3. Leaf-Wise (Best-First) Growth (LWG):
 Used in LightGBM, this method focuses on expanding the leaf that will reduce the 
 loss the most. It can result in deeper, more asymmetric trees.
-
 """
 
 import logging
@@ -30,6 +29,21 @@ class DFGTreeThoughtStructure(base.BaseThoughtStructure):
     A tree thought structure in which the tree is grown in a depth-wise manner
     or depth-first manner.
     """
+
+    def __init__(
+        self,
+        thought_model,
+        model_config,
+        logging_config,
+        visualizer,
+    ):
+        super().__init__(
+            thought_model=thought_model,
+            model_config=model_config,
+            logging_config=logging_config,
+            visualizer=visualizer,
+        )
+        self.growth_type = "tree-dgf"
 
     def get_grow_node(self):
         """Get the node to be grown next in the tree."""
@@ -47,6 +61,21 @@ class BFGTreeThoughtStructure(base.BaseThoughtStructure):
     """
     A tree thought structure in which the tree is grown in a Breadth-First Growth manner.
     """
+
+    def __init__(
+        self,
+        thought_model,
+        model_config,
+        logging_config,
+        visualizer,
+    ):
+        super().__init__(
+            thought_model=thought_model,
+            model_config=model_config,
+            logging_config=logging_config,
+            visualizer=visualizer,
+        )
+        self.growth_type = "tree-bfg"
 
     def get_grow_node(self):
         """Grow the thought structure in the tree version."""
@@ -71,6 +100,21 @@ class LWGTreeThoughtStructure(base.BaseThoughtStructure):
     A tree thought structure in which the tree is grown in a leaf-wise manner or
     best first manner.
     """
+
+    def __init__(
+        self,
+        thought_model,
+        model_config,
+        logging_config,
+        visualizer,
+    ):
+        super().__init__(
+            thought_model=thought_model,
+            model_config=model_config,
+            logging_config=logging_config,
+            visualizer=visualizer,
+        )
+        self.growth_type = "tree-lwg"
 
     def get_grow_node(self):
         """Grow the thought structure in the tree version."""

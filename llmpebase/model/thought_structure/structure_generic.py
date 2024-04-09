@@ -7,9 +7,9 @@ from typing import Union, Tuple, List
 from dataclasses import dataclass
 
 from llmpebase.model.prompting.base import BasicSamplePrompt
+from llmpebase.prompt.generic import BasicThoughtPromptFormat
 
 from transformers.utils import ModelOutput as FieldFrozenContainer
-from llmpebase.model.prompting.prompt_generic import BasicThoughtPromptFormat
 
 
 @dataclass
@@ -108,7 +108,7 @@ class BasicThoughtStep(FieldFrozenContainer):
         if self.similar_thoughts is None:
             self.similar_thoughts = []
             self.similar_thought_scores = []
-            self.similar_thought_similarity = []
+            self.similar_thought_similarities = []
 
         self.similar_thoughts.append(thought)
         self.similar_thought_scores.append(thought_score)
@@ -128,8 +128,8 @@ class BasicNode(BasicThoughtStep):
     node_name: str = None
     position: str = None
     growth: str = None
-    position_types: Tuple[str] = None
-    growth_types: Tuple[str] = None
+    position_states: Tuple[str] = None
+    growth_states: Tuple[str] = None
 
     # The auxiliary information for the node
     # This aims to store any additional information
@@ -143,7 +143,7 @@ class BasicNode(BasicThoughtStep):
         the position is Sink.
         """
 
-        assert position in self.position_types
+        assert position in self.position_states
         # Only make adjustment when the position
         # is different from the current one.
         if position != self.position:

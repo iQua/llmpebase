@@ -8,7 +8,7 @@ from typing import List, Tuple
 import torch
 
 from llmpebase.model import define_model
-from llmpebase.model.prompting.thought_prompt import ThoughtStructurePrompt
+from llmpebase.model.prompting.thought_prompter import ThoughtStructurePrompter
 from llmpebase.model.thought_structure.structure_generic import (
     BasicEvaluation,
     BasicSimilarity,
@@ -25,13 +25,13 @@ class LlmThoughtModel:
         self,
         llm_model: torch.nn.Module = None,
         model_config: dict = None,
-        prompter: ThoughtStructurePrompt = None,
+        prompter: ThoughtStructurePrompter = None,
     ):
         super().__init__()
         if llm_model is None:
             llm_model = define_model(model_config)
         self.llm_model = llm_model
-        self.prompter = ThoughtStructurePrompt() if prompter is None else prompter
+        self.prompter = ThoughtStructurePrompter() if prompter is None else prompter
 
     def generate_thoughts(
         self, thought_chain: List[base.BasicNode], num_thoughts: int = 1, **kwargs
@@ -75,10 +75,11 @@ class LlmThoughtModel:
 
             responses = self.llm_model.read_response_contents(responses)
 
-            eval_flag = self.prompter.evaluation_score_flag
+            eval_flag = self.prompter.evaluation_prompts.score_flag
             score_contents = [
                 extract_solution(response, eval_flag) for response in responses
             ]
+
             scores = [
                 re.findall(r"\b\d+(?:\.\d+)?\b", score_content)
                 for score_content in score_contents
@@ -86,7 +87,7 @@ class LlmThoughtModel:
             scores = [0.5 if len(score) == 0 else float(score[0]) for score in scores]
 
             contents = [
-                response.split(self.prompter.evaluation_score_flag)[0]
+                response.split(self.prompter.evaluation_prompts.score_flag)[0]
                 for response in responses
             ]
 
@@ -123,7 +124,7 @@ class LlmThoughtModel:
         )
 
         responses = self.llm_model.read_response_contents(responses)
-        similarity_flag = self.prompter.similarity_score_flag
+        similarity_flag = self.prompter.similarity_prompts.score_flag
         score_contents = [
             extract_solution(response, similarity_flag) for response in responses
         ]
@@ -134,7 +135,7 @@ class LlmThoughtModel:
         scores = [0.5 if len(score) == 0 else float(score[0]) for score in scores]
 
         contents = [
-            response.split(self.prompter.similarity_score_flag)[0]
+            response.split(self.prompter.similarity_prompts.score_flag)[0]
             for response in responses
         ]
 
