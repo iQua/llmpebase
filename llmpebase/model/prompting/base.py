@@ -8,7 +8,7 @@ from typing import List, Union
 from dataclasses import asdict
 
 
-from llmpebase.model.prompting.prompt_generic import (
+from llmpebase.prompt.generic import (
     BasicPromptFormat,
     BasicAnswerPromptFormat,
     BasicSamplePrompt,

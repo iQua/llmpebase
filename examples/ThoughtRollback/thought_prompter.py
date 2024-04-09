@@ -7,10 +7,10 @@ from typing import List
 
 import data_prompts
 
-from llmpebase.model.prompting import thought_prompt
+from llmpebase.model.prompting import thought_prompter
 
 from llmpebase.model.thought_structure import base
-from llmpebase.model.prompting.prompt_generic import (
+from llmpebase.prompt.generic import (
     BasicSamplePrompt,
     BasicPromptFormat,
     BasicAnswerPromptFormat,
@@ -18,7 +18,7 @@ from llmpebase.model.prompting.prompt_generic import (
 )
 
 
-class TRStructurePrompt(thought_prompt.ThoughtStructurePrompt):
+class TRStructurePrompt(thought_prompter.ThoughtStructurePrompter):
     """A prompt to support the rollback in thought structure with the Thought Rollback."""
 
     # The flag to indicate the block of the experience
@@ -42,7 +42,9 @@ class TRStructurePrompt(thought_prompt.ThoughtStructurePrompt):
     )
 
     # To include the experience in the system prompt
-    generation_system_prompt: str = """You possess expertise in solving mathematical problems through a systematic, step-by-step reasoning process during which you are dedicated to preventing repeating any errors analyzed in experiences. Your objective is to address the question using a series of reasoning steps delivered in multiple responses, with each response containing one reasoning step. It is crucial to avoid repeating errors mentioned in the given experiences. Begin by reading the provided reasoning steps and then proceed to generate the most appropriate next step in the response, ensuring that the logical progression steadily leads towards a solution."""
+    generation_system_prompt: str = (
+        """You possess expertise in solving mathematical problems through a systematic, step-by-step reasoning process during which you are dedicated to preventing repeating any errors analyzed in experiences. Your objective is to address the question using a series of reasoning steps delivered in multiple responses, with each response containing one reasoning step. It is crucial to avoid repeating errors mentioned in the given experiences. Begin by reading the provided reasoning steps and then proceed to generate the most appropriate next step in the response, ensuring that the logical progression steadily leads towards a solution."""
+    )
 
     rollback_solution_flag = "Bad step index:"
     intermediate_analysis_prompt_format = data_prompts.rollback_prompt_formats[
@@ -155,7 +157,9 @@ class TRStructurePrompt(thought_prompt.ThoughtStructurePrompt):
             chain_nodes[1:], with_flag=True, with_evaluation_score=False
         )
 
-        generation_prompt = BasicThoughtPromptFormat(**self.generation_prompt)
+        generation_prompt = BasicThoughtPromptFormat(
+            **self.generation_prompts.generation_prompt
+        )
         generation_prompt.head = generation_prompt.head.format(root_prompt_str)
         generation_prompt.content = generation_prompt.content.format(chain_prompt)
         generation_prompt.target = generation_prompt.target.format(self.thought_flag)

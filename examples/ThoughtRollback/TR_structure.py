@@ -226,8 +226,8 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
                 edge_type="Rollback",
                 src_node_id=node.identity,
                 dst_node_id=rollback_node.identity,
-                reasoning_prompt=self.thought_model.prompter.rollback_controller_prompt,
-                evaluation_prompt=self.thought_model.prompter.rollback_analysis_prompt,
+                reasoning=self.thought_model.prompter.rollback_controller_prompt,
+                evaluation=self.thought_model.prompter.rollback_analysis_prompt,
                 edge_score=1.0,
                 auxiliary={
                     "AnalysisSteps": self.thought_model.prompter.organize_chain_prompt(

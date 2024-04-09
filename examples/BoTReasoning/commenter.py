@@ -39,8 +39,8 @@ class BoTCommenter:
         # Forward the generation model to get responses
         responses = self.llm_model.forward(
             user_prompt=str(feedback_prompt),
-            per_request_responses=3,
-            sys_prompt=self.prompter.system_prompt,
+            per_request_responses=1,
+            sys_prompt=self.prompter.system_prompts.comment_prompt,
         )
         response_contents = self.llm_model.read_response_contents(responses)
         # Extract the longest response as the feedback

@@ -70,10 +70,10 @@ def get(data_name, config: dict, **kwargs):
 
     if data_name in extractors:
         logging.info(
-            "Get %s extractor for %s to extract %s",
+            "Get %s-based %s extractor for %s",
             style,
-            data_name,
             purpose,
+            data_name,
         )
         return extractors[data_name][style]
 
