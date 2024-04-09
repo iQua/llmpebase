@@ -43,7 +43,7 @@ model:
     # when reach the solution is reached in the node.
     max_length: 20
     max_stops: 1
- 5
+ 
     min_thought_similarity: null # 0.95
     max_score_difference: 0.1 # 0.1
 

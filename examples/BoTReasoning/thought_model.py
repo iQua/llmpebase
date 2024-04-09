@@ -2,11 +2,10 @@
 The thought model of the BoT to build the thought structure.    
 """
 
-
 import torch
 
 from llmpebase.model.prompting.base import BasicSamplePrompt
-from llmpebase.model.prompting.thought_prompt import ThoughtStructurePrompt
+from llmpebase.model.prompting.thought_prompter import ThoughtStructurePrompter
 from llmpebase.model.thought_structure import thought_model
 
 
@@ -20,7 +19,7 @@ class BoTThoughtModel(thought_model.LlmThoughtModel):
         self,
         llm_model: torch.nn.Module = None,
         model_config: dict = None,
-        prompter: ThoughtStructurePrompt = None,
+        prompter: ThoughtStructurePrompter = None,
     ):
         super().__init__(llm_model, model_config, prompter)
         # A container to collect experiences

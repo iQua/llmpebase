@@ -1,7 +1,4 @@
-# include basic settings for the models and the learning process
 
-
-# dataset settings for the original dataset and the corresponding multimodal data processor
 data:
 
   data_name: GameOf24
@@ -26,26 +23,35 @@ model:
 
   prompt_type: zeroshot_cot 
 
-  authorization_env_path: ./.env
+  authorization_path: ./.env
 
-  num_trees: 15
-  n_iteration: 10
   aggregation_type: best_first
-  
+  n_iteration: 10
+
   generation_settings:
     temperature: 0.7
     max_tokens: 500
     stop: null 
     top_p: 0.7
 
-  tree_settings:
-    n_child_nodes: 2
-    max_leaves: 20
-    max_depth: 3
-    min_leaf_thought_score: 0.1
-    max_leaf_thought_score: 1.0
-    min_thoughts_similarity: 0.9
-    max_thoughts_score_diff: 0.1
+  bot_settings:
+    num_trees: 15
+
+    growth_types: 
+      - dfg
+      - bfg
+      - lwg
+
+    # Used to build the heterogenous trees
+    temperature_pool: [0.1, 0.3, 0.5, 0.7, 0.9]
+    top_p_pool: [0.1, 0.3, 0.5, 0.7, 0.9]
+
+    thought_structure:
+      num_next_steps: 2
+      max_length: 4
+      max_stops: 8
+      min_thought_similarity: null
+      max_score_difference: 0.1
 
   pretrained_models_path: experiments/pretrained_models
 
@@ -59,12 +65,20 @@ logging:
   logging_path: experiments/loggings
   visualization_path: experiments/visualizations
 
+  thought_structure:
+    layout: dot # dot, fdp, circo, neato, osage, sfdp, twopi
+
+
 evaluation:
+  
+  # basic, llm
+  style: basic
 
+  extractor:
+    purpose: result
+    # re, llm
+    style: llm
 
-  # set the hyper parameters for performance
-  performance:
-   
 
 
 

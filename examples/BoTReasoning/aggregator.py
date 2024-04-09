@@ -7,7 +7,7 @@ are merged into a new one. There are two strategies:
 
 from typing import List, Dict
 
-from llmpebase.model.thought_structure.tree_thoughts import ThoughtNode
+from llmpebase.model.thought_structure.structure_generic import BasicNode
 
 
 class ReasoningChainAggregator:
@@ -20,7 +20,7 @@ class ReasoningChainAggregator:
         assert self.aggregation_type in ["best_first", "greedy"]
 
     @staticmethod
-    def best_first_aggregation(chains: Dict[int, List[ThoughtNode]]):
+    def best_first_aggregation(chains: Dict[int, List[BasicNode]]):
         """Aggregate the reasoning chains by selecting the best chain."""
         # Get the id of each chain
         chain_ids = list(chains.keys())
@@ -36,7 +36,7 @@ class ReasoningChainAggregator:
         return chains[best_id]
 
     @staticmethod
-    def greedy_aggregation(chains: Dict[int, List[ThoughtNode]]):
+    def greedy_aggregation(chains: Dict[int, List[BasicNode]]):
         """Aggregate the reasoning chains by visting the chains from the root to the leaf."""
         chain_ids = list(chains.keys())
         # Get the root of the chains as they start from the same
@@ -60,7 +60,7 @@ class ReasoningChainAggregator:
         aggregated_chain = greedy_search(1, aggregated_chain)
         return aggregated_chain
 
-    def perform_aggregation(self, chains: Dict[int, List[ThoughtNode]]):
+    def perform_aggregation(self, chains: Dict[int, List[BasicNode]]):
         """Perform the aggregation for the update chains."""
         if self.aggregation_type == "best_first":
             return self.best_first_aggregation(chains)
