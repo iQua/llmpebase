@@ -21,7 +21,7 @@ class ThoughtGenerationPrompts:
     first_step_prompt = BasicThoughtPromptFormat(
         head="{}Let's focus on carefully and directly generating the first reasoning step.\n",
         content="",
-        target="Generate a small and well-crafted first step as the start of reasoning, i.e., Step 1.",
+        target="Please generate a small and well-crafted first step as the start of reasoning, i.e., Step 1.",
         notice="",
         tail="",
         prompt="",
@@ -30,7 +30,7 @@ class ThoughtGenerationPrompts:
     next_step_prompt = BasicThoughtPromptFormat(
         head="{}Let's focus on carefully and directly generating the next possible reasoning step for reasoning steps below.\n",
         content="\n{}\n\n",
-        target="For reasoning steps between {} and {}, please generate the best next step, i.e., Step {}.",
+        target="For reasoning steps between {} and {}, please directly generate the best next step, i.e., Step {}.",
         notice="",
         tail="",
         prompt="",

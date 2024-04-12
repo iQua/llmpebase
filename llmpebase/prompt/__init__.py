@@ -86,8 +86,8 @@ def get_thought_prompts(data_config: dict):
     return thought_prompts[dataset_name]
 
 
-def get_chain_comment_prompts(data_config: dict):
+def get_chain_comment_prompts(comment_type: str, data_config: dict):
     """Get the chain comment prompts for the dataset."""
     dataset_name = data_config["data_name"].lower()
     logging.info("Get chain comment prompts for %s.", dataset_name)
-    return chain_comment_prompts[dataset_name]
+    return chain_comment_prompts[dataset_name][comment_type]
