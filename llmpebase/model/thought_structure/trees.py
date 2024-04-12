@@ -50,6 +50,10 @@ class DFGTreeThoughtStructure(base.BaseThoughtStructure):
         # Collect existing nodes with Depth First Search (DFS) algorithm
         dfs_nodes = nx.dfs_preorder_nodes(self.graph, source=self.root.identity)
         node = None
+
+        if self.early_stop():
+            return node
+
         for node_id in dfs_nodes:
             if self.node_pool[node_id].growth == "Growable":
                 node = self.node_pool[node_id]
@@ -88,6 +92,10 @@ class BFGTreeThoughtStructure(base.BaseThoughtStructure):
             for successor in successors
         ]
         node = None
+
+        if self.early_stop():
+            return node
+
         for node_id in bfs_nodes:
             if self.node_pool[node_id].growth == "Growable":
                 node = self.node_pool[node_id]
@@ -125,6 +133,9 @@ class LWGTreeThoughtStructure(base.BaseThoughtStructure):
         # Get the current depth of the tree
         longest_path = dag_longest_path(self.graph)
         num_depth = len(longest_path)
+
+        if self.early_stop():
+            return None
 
         # When the depth reaches the maximum, stop growing
         if num_depth >= self.max_length:

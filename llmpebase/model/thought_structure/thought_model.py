@@ -23,15 +23,15 @@ class LlmThoughtModel:
 
     def __init__(
         self,
+        prompter: ThoughtStructurePrompter,
+        model_config: dict,
         llm_model: torch.nn.Module = None,
-        model_config: dict = None,
-        prompter: ThoughtStructurePrompter = None,
     ):
         super().__init__()
         if llm_model is None:
             llm_model = define_model(model_config)
         self.llm_model = llm_model
-        self.prompter = ThoughtStructurePrompter() if prompter is None else prompter
+        self.prompter = prompter
 
     def generate_thoughts(
         self, thought_chain: List[base.BasicNode], num_thoughts: int = 1, **kwargs

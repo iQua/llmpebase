@@ -27,7 +27,7 @@ class ChainOutcomeCommentPrompts:
     # first {} is the chain_start_flag,
     # second {} is the chain_end_flag
     feedback_prompt = BasicThoughtPromptFormat(
-        head="Comment on the given reasoning chain for addressing the question of {}.\n\n{}\nReasoning chain:\n{}\n{}\n{}\n\n\n",
+        head="Comment on the given reasoning chain for addressing the question.\n\n{}\nReasoning chain:\n{}\n{}\n{}\n\n\n",
         content="Please review the reasoning steps between {} and {} and thus summarize the analysis for each step, especially the one with errors.\n",
         target="\n",
         notice="",

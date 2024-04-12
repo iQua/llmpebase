@@ -611,7 +611,7 @@ class BaseThoughtStructure:
         node = None
 
         # When the current graph has enough solutions, stop growing
-        if len(self.get_sink_nodes()) >= self.max_stops:
+        if self.early_stop():
             return node
 
         for node_id in self.graph.nodes:
@@ -673,6 +673,13 @@ class BaseThoughtStructure:
     def is_node_sink(self, node_id: str):
         """Check whether the node is growable."""
         return self.node_pool[node_id].position == "Sink"
+
+    def early_stop(self):
+        """Stop the growth of the structure."""
+        # Stop the growth when the structure has enough solutions
+        if len(self.get_sink_nodes()) >= self.max_stops:
+            return True
+        return False
 
     def reset_structure(self):
         """Reset the tee."""

@@ -17,11 +17,11 @@ class BoTThoughtModel(thought_model.LlmThoughtModel):
 
     def __init__(
         self,
+        prompter: ThoughtStructurePrompter,
+        model_config: dict,
         llm_model: torch.nn.Module = None,
-        model_config: dict = None,
-        prompter: ThoughtStructurePrompter = None,
     ):
-        super().__init__(llm_model, model_config, prompter)
+        super().__init__(prompter, model_config, llm_model)
         # A container to collect experiences
         self.experience_container = []
 
