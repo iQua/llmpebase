@@ -1,0 +1,98 @@
+
+data:
+
+  data_name: GSM8K
+  data_path: data
+
+  # One may need to download the GSM8k dataset
+  download_url: null
+
+  extractor:
+    purpose: groundtruth
+    style: re
+    
+environment:
+
+  # The name of the project
+  project_name: LLMPE 
+  
+  # Fix the see for reproducible
+  seed: 15
+  
+model:
+
+  model_name: gpt-4 # "gpt-3.5-turbo","gpt-4"
+  model_type: gpt
+
+  prompt_type: zeroshot_cot 
+
+  authorization_path: ./.env
+
+  # This is the very initial generation setting
+  # to be used to define the llm model
+  generation_settings:
+    temperature: 0.7
+    max_tokens: 500
+    stop: null 
+    top_p: 0.7
+
+  bot_settings:
+    aggregation_type: best_first
+
+    n_iteration: 10
+    num_trees: 5
+
+    growth_types: 
+      - dfg
+      - bfg
+      - lwg
+
+    # Used to build the heterogenous trees
+    temperature_pool: [0.1, 0.3, 0.5, 0.7, 0.9]
+    top_p_pool: [0.1, 0.3, 0.5, 0.7, 0.9]
+
+    thought_structure:
+      num_next_steps: 2
+      max_length: 6
+      max_stops: 8
+      min_thought_similarity: null
+      max_score_difference: 0.1
+
+    commenter:
+      comment_type: outcome
+      generation_settings:
+        temperature: 0.3
+        max_tokens: 500
+        stop: null 
+        top_p: 0.8
+
+  pretrained_models_path: experiments/pretrained_models
+
+train:
+
+logging:
+  # path where to save, empty for no saving
+  experiment_path: experiments
+  checkpoint_path: experiments/checkpoints
+  result_path: experiments/results
+  logging_path: experiments/loggings
+  visualization_path: experiments/visualizations
+
+  thought_structure:
+    layout: dot # dot, fdp, circo, neato, osage, sfdp, twopi
+
+
+evaluation:
+  
+  # basic, llm
+  style: basic
+
+  extractor:
+    purpose: result
+    # re, llm
+    style: llm
+
+
+
+
+

@@ -1,13 +1,16 @@
 
 data:
 
-  data_name: GameOf24
+  data_name: SVAMP
   data_path: data
 
   # One may need to download the GSM8k dataset
-  download_url: null # mainly for website
+  download_url: null
 
-  
+  extractor:
+    purpose: groundtruth
+    style: re
+    
 environment:
 
   # The name of the project
@@ -50,7 +53,7 @@ model:
 
     thought_structure:
       num_next_steps: 2
-      max_length: 4
+      max_length: 20
       max_stops: 8
       min_thought_similarity: null
       max_score_difference: 0.1

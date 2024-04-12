@@ -1,25 +1,32 @@
 
 # Boosting of Thought (BoT) algorithm
 
-The structure of our proposed Boosting of Thoughts (BoT) under `examples/BoostingOfThought/` is 
+The structure of our proposed Boosting of Thoughts (BoT) under `examples/BoTReasoning/` is 
 
     .
-    ├── BoT_reasoner                     # Reasoner relying on experiences
-    ├── BoT_commenter                    # Perform Thought Chain Analysis
-    ├── BoT_aggregator                   # Perform Thought Structures Aggregation
-    ├── BoT_core                         # The core reasoning process with Iterative Refinement of BoT
-    ├── BoT                              # Main function to run experiments
+    ├── BoTReasoning                     # Main Reasoning Pipeline
+    ├── reasoner                         # Perform Reasoning for each sample
+    ├── thought_model                    # Model for the Thought Operation
+    ├── thought_prompter                 # Prompter for the Thought Operation
+    ├── commenter                        # Model for the Comment Operation
+    ├── comment_prompter                 # Prompter for the Comment Operation
+    ├── aggregator                       # Aggregator for the solution ensemble
+
 
 ## Boosting of Thoughts (BoT) algorithm
 
-To apply the proposed BoT algorithm on the Game of 24, which is the most difficult task mentioned in the submission, one only needs to run the following command.
+Following the commends below to run the BoT algorithm on different datasets:
 
 ```console
-python examples/BoostingOfThought/BoT.py -c configs/GameOf24/BoT_chatgpt.yml -b ICLR
-python examples/BoostingOfThought/BoT.py -c configs/GameOf24/BoTSingle_chatgpt.yml -b ICLR
+python examples/BoTReasoning/BoTReasoning.py -c configs/GameOf24/GPT4/BoT_ZeroshotCoT.yml -b ICLR
+
+python examples/BoTReasoning/BoTReasoning.py -c configs/GSM8K/GPT4/BoT_ZeroshotCoT.yml -b ICLR
+
+python examples/BoTReasoning/BoTReasoning.py -c configs/SVAMP/GPT4/BoT_ZeroshotCoT.yml -b ICLR
+
+python examples/BoTReasoning/BoTReasoning.py -c configs/AQUA/GPT4/BoT_ZeroshotCoT.yml -b ICLR
+
+python examples/BoTReasoning/BoTReasoning.py -c configs/MATH/GPT4/BoT_ZeroshotCoT.yml -b ICLR
+
+python examples/BoTReasoning/BoTReasoning.py -c configs/TheoremQA/GPT4/BoT_ZeroshotCoT.yml -b ICLR
 ```
-
-The configuration file `BoTSingle_chatgpt.yml` is used to perform the ablation study of BoT by using one single tree and a single reasoning process. This BoT variant can be compared with the tree of thoughts [1], which performs the reasoning by building thoughts in a tree structure.
-
-
-[1]. Tree of Thoughts: Deliberate Problem Solving with Large Language Models, 2023.
