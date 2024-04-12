@@ -6,6 +6,8 @@ from llmpebase.model.prompting.base import BasicSamplePrompt
 from llmpebase.prompt.generic import BasicThoughtPromptFormat
 from llmpebase.prompt import BaseSystemPrompts, ChainOutcomeCommentPrompts
 
+from llmpebase.prompt.format_prompt import format_prompt
+
 
 class BoTCommentPrompter:
     """
@@ -30,14 +32,18 @@ class BoTCommentPrompter:
         feedback_prompt = BasicThoughtPromptFormat(
             **self.comment_prompts.feedback_prompt
         )
+        chain_start_flag = self.comment_prompts.chain_start_flag
+        chain_end_flag = self.comment_prompts.chain_end_flag
         feedback_prompt.head = feedback_prompt.head.format(
             prompt_sample.question,
-            self.comment_prompts.chain_start_flag,
+            chain_start_flag,
             reasoning_chain_prompt,
-            self.comment_prompts.chain_end_flag,
+            chain_end_flag,
         )
-        feedback_prompt.head = feedback_prompt.content.format(
-            self.comment_prompts.chain_start_flag, self.comment_prompts.chain_end_flag
-        )
+        # Format the head of the feedback prompt
+        feedback_prompt.head = format_prompt(feedback_prompt.head)
 
+        feedback_prompt.content = feedback_prompt.content.format(
+            chain_start_flag, chain_end_flag
+        )
         return feedback_prompt

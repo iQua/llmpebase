@@ -32,8 +32,12 @@ class BoTReasoner(StructuredThoughtReasoner):
         super().__init__(thought_model, model_config, logging_config, visualizer)
 
         # Get the basic iteration and aggregation type
-        self.aggregation_type = model_config["aggregation_type"]
-        self.num_iterations = model_config["n_iteration"]
+        self.num_iterations = self.bot_config["n_iteration"]
+
+        # Define the aggregator for the reasoning chains aggregation
+        self.aggregator = aggregator.ReasoningChainAggregator(
+            logging_config, model_config
+        )
 
         # Get the commenter
         self.comment_model = comment_model
@@ -77,11 +81,10 @@ class BoTReasoner(StructuredThoughtReasoner):
 
             # Place the task prompt in the root so that all subsequent thought chains include the task prompt
             # Change the root prompt by adding the experience
-            prompt_sample = self.thought_model.add_experience(prompt_sample)
+            experienced_prompt_sample = self.thought_model.add_experience(prompt_sample)
 
             # Reasoning with base tree structures with the prompt enhanced with the experience in the root
-            base_tree_chains = []
-            base_tree_llm_configs = {}
+            base_tree_chains = {}
             for tree_idx, base_tree in self.structure:
 
                 # Set the save path
@@ -102,48 +105,49 @@ class BoTReasoner(StructuredThoughtReasoner):
                     {"temperature": temperature, "top_p": top_p}
                 )
                 # Perform the reasoning with the base tree
-                base_tree.construct_root(thought=prompt_sample, thought_score=None)
+                base_tree.construct_root(
+                    thought=experienced_prompt_sample, thought_score=None
+                )
                 # Grow the thought structure
                 base_tree.build_structure()
 
                 # Save the graph into the disk
                 base_tree.save_structure()
 
-                # Get the chain and save it
-                solution_chain = self.solution_extractor.extract_solution_chains(
-                    base_tree
-                )
-
-                base_tree_chains.append((tree_idx, solution_chain))
-
-                # Get the solutions from the structure
-                solution_strs = self.get_solution_paths(structure=base_tree)
-
-                # Save the configs
-                base_tree_llm_configs.update(
-                    {
-                        tree_idx: {
-                            "growth_type": base_tree.growth_type,
-                            "temperature": temperature,
-                            "top_p": top_p,
-                        }
-                    }
+                # Get the solution chain of the tree
+                base_tree_chains[tree_idx] = (
+                    self.solution_extractor.extract_solution_chains(base_tree)
                 )
 
             # Perform the aggregation of the solutions
-            aggregated_chain = (
-                aggregator.ReasoningChainAggregator.best_first_aggregation(
-                    dict(base_tree_chains)
-                )
+            aggregated_chain = self.aggregator.perform_aggregation(
+                structure_chains=base_tree_chains
             )
-            solution_str = aggregated_chain
+            # Save the aggregation state
+            self.aggregator.save_state(
+                location=f"{self.visualizer.base_save_foldername}-{sample_name}/{iteration_folder}",
+                file_name="aggregator-state",
+            )
+
+            # Convert the chain to a solution str
+            solution_str = self.thought_model.prompter.organize_chain_prompt(
+                chain_nodes=aggregated_chain[1:],
+                with_step_idx=False,
+                with_flag=False,
+                with_evaluation_score=False,
+            )
+
             # Comment on the chain
             feedback = self.comment_model.comment_reasoning_chain(
                 prompt_sample, solution_str
             )
+            self.comment_model.save_state(
+                location=f"{self.visualizer.base_save_foldername}-{sample_name}/{iteration_folder}",
+                file_name="commenter-state",
+            )
 
-            # Add the feedback to the memory
-            self.thought_model.memory_experience(feedback)
+            # Add the solution and its feedback to the memory
+            self.thought_model.memorize_experience(solution_str, feedback)
 
             # Clean the structure after the reasoning
             for _, base_tree in self.structure:
@@ -158,3 +162,10 @@ class BoTReasoner(StructuredThoughtReasoner):
         # Reset the cost statistics for the llm model
         self.thought_model.llm_model.reset_cost_statistics()
         return data
+
+    def reset_reasoning(self):
+        """Reset the reasoning process."""
+        # Reset the thought structure
+        # Clean the structure after the reasoning
+        for _, base_tree in self.structure:
+            base_tree.reset_structure()

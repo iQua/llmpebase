@@ -30,7 +30,10 @@ def _main():
     # Define the prompts for the thought structure
     system_prompts = get_system_prompts(data_config)
     thought_prompts = get_thought_prompts(data_config)
-    chain_comment_prompts = get_chain_comment_prompts(data_config)
+    chain_comment_prompts = get_chain_comment_prompts(
+        comment_type=model_config["bot_settings"]["commenter"]["comment_type"],
+        data_config=data_config,
+    )
 
     # Define the thought model
     bot_thought_prompter = thought_prompter.BoTThoughtPrompter(
@@ -41,11 +44,17 @@ def _main():
     )
 
     # Define the comment model
+    # Note that as the llm model is shared between thought model and the
+    # comment model, one may need to adjust the generation config
+    # of the comment model.
     bot_comment_prompter = commenter.BoTCommentPrompter(
         system_prompts=system_prompts, comment_prompts=chain_comment_prompts
     )
     comment_model = commenter.BoTCommenter(
-        llm_model=llm_model, model_config=model_config, prompter=bot_comment_prompter
+        llm_model=llm_model,
+        model_config=model_config,
+        logging_config=logging_config,
+        prompter=bot_comment_prompter,
     )
 
     bot = reasoner.BoTReasoner(

@@ -25,9 +25,8 @@ model:
 
   authorization_path: ./.env
 
-  aggregation_type: best_first
-  n_iteration: 10
-
+  # This is the very initial generation setting
+  # to be used to define the llm model
   generation_settings:
     temperature: 0.7
     max_tokens: 500
@@ -35,7 +34,10 @@ model:
     top_p: 0.7
 
   bot_settings:
-    num_trees: 15
+    aggregation_type: best_first
+
+    n_iteration: 10
+    num_trees: 1
 
     growth_types: 
       - dfg
@@ -52,6 +54,14 @@ model:
       max_stops: 8
       min_thought_similarity: null
       max_score_difference: 0.1
+
+    commenter:
+      comment_type: outcome
+      generation_settings:
+        temperature: 0.3
+        max_tokens: 500
+        stop: null 
+        top_p: 0.8
 
   pretrained_models_path: experiments/pretrained_models
 
