@@ -37,7 +37,7 @@ model:
     aggregation_type: best_first
 
     n_iteration: 10
-    num_trees: 1
+    num_trees: 5
 
     growth_types: 
       - dfg

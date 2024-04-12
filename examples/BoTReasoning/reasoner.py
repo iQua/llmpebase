@@ -74,6 +74,9 @@ class BoTReasoner(StructuredThoughtReasoner):
     ) -> List[str]:
         """Forward the reasoning in the chain structure."""
 
+        # First clean the old experiences
+        self.thought_model.clean_experience()
+
         for iter_idx in range(self.num_iterations):
 
             # Create the visualization path

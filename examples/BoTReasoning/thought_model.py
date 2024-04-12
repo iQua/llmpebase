@@ -39,3 +39,7 @@ class BoTThoughtModel(thought_model.LlmThoughtModel):
         return self.prompter.organize_root_prompt(
             prompt_sample=prompt_sample, experiences=self.experience_container
         )
+
+    def clean_experience(self):
+        """Clean the experience container."""
+        self.experience_container = []
