@@ -1,0 +1,8 @@
+
+# The basic settings for the environment
+
+# The name of the project
+project_name: LLMPE 
+
+# Fix the see for reproducible
+seed: 15

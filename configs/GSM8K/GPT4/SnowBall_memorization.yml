@@ -1,0 +1,7 @@
+
+experience_memorization:
+    # question db embedding model
+    question_db_embedding_model: sentence-transformers/all-MiniLM-L6-v2
+    # The lower threshold for the evaluation of the experience
+    # Step with the score less than this value will be regarded as negative
+    negative_evaluation_threshold: 0.6

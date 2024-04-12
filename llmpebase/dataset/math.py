@@ -3,6 +3,7 @@ The datasource inference for the MATH dataset.
 The detailed information of it is shown in 
 https://people.eecs.berkeley.edu/~hendrycks/MATH.tar
 """
+
 import os
 import json
 import glob
@@ -16,6 +17,7 @@ from llmpebase.dataset.data_generic import (
     BaseQASampleInfo,
     MATHDatasetStatistics,
 )
+from llmpebase.utils import tools
 
 
 class AddableDict(dict):
@@ -41,13 +43,15 @@ def count_category(category_path: str) -> tuple:
         # Load the data file
         with open(filepath, "r", encoding="utf-8") as json_file:
             data = json.load(json_file)
-            category_name = data["type"]
+            category_name = tools.format_term(data["type"])
             level = data["level"]
 
         collect_items.append(
             BaseQASampleInfo(
                 sample_id=file_id,
+                sample_field="Math",
                 sample_problem=category_name,
+                sample_dataset="MATH",
                 sample_filepath=filepath,
             )
         )
@@ -97,10 +101,11 @@ class MATHDataset(base.BaseDataset):
             data_phase=self.phase,
             data_samples=collect_items,
             category_samples=category_samples,
-            problem_category=list(category_info.keys()),
+            problem_fields=["Math"],
+            problem_categories={"Math": list(category_info.keys())},
             data_statistics=MATHDatasetStatistics(
                 num_samples=len(collect_items),
-                category_info=category_info,
+                category_info={"Math": category_info},
                 difficulty_count=difficulty_count,
             ),
         )
@@ -108,7 +113,6 @@ class MATHDataset(base.BaseDataset):
     def get_sample(self, idx: int):
         """Get one sample from the file."""
         sample_info = self.data_catalog.data_samples[idx]
-        sample_problem = sample_info["sample_problem"]
 
         sample_filepath = sample_info["sample_filepath"]
 
@@ -128,7 +132,7 @@ class MATHDataset(base.BaseDataset):
             auxiliary={
                 "level": data["level"],
                 "category": data["type"],
-                "sample_problem": sample_problem,
+                "sample_info": sample_info,
             },
         )
 

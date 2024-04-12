@@ -33,20 +33,22 @@ class BaseRecorder:
 
         os.makedirs(self.record_dir_path, exist_ok=True)
 
-    def get_indexes(self):
+    def get_recorded_names(self):
         """Get the indexes of the records."""
-        pattern = f"{self.record_dir_path}/{self.output_filename}_[0-9]*.json"
+        pattern = f"{self.record_dir_path}/{self.output_filename}_*.json"
 
         # Use glob to find files matching the pattern
         exist_records = glob.glob(pattern)
 
-        exist_indexes = [
-            int(record.split("_")[-1].split(".")[0]) for record in exist_records
+        record_names = [
+            record.split("_")[-1].split(".json")[0] for record in exist_records
         ]
-        # Order the indexes
-        exist_indexes.sort()
 
-        return exist_indexes
+        # Order the indexes
+        record_names.sort()
+
+        # We did not include the latest record as it may not be completed
+        return record_names[:-1]
 
     def get_filename(self, filename, idx: int):
         """Organize the record filename according to the indexes."""
@@ -54,25 +56,25 @@ class BaseRecorder:
         return f"{filename}_{idx}.json"
 
     def save_one_record(
-        self, sample: BaseQASample, output: dict, statistic: dict, sample_idx: int
+        self, sample: BaseQASample, output: dict, statistic: dict, sample_name: str
     ):
         """Save one record to the disk."""
         with open(
-            f"{self.record_dir_path}/{self.get_filename(self.output_filename, sample_idx)}",
+            f"{self.record_dir_path}/{self.get_filename(self.output_filename, sample_name)}",
             "w",
             encoding="utf-8",
         ) as file:
             json.dump(output, file)
 
         with open(
-            f"{self.record_dir_path}/{self.get_filename(self.sample_filename, sample_idx)}",
+            f"{self.record_dir_path}/{self.get_filename(self.sample_filename, sample_name)}",
             "w",
             encoding="utf-8",
         ) as file:
             json.dump(sample, file)
 
         with open(
-            f"{self.record_dir_path}/{self.get_filename(self.statistic_filename, sample_idx)}",
+            f"{self.record_dir_path}/{self.get_filename(self.statistic_filename, sample_name)}",
             "w",
             encoding="utf-8",
         ) as file:

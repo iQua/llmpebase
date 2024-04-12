@@ -10,7 +10,6 @@ from typing import Union
 import logging
 
 import torch
-import numpy as np
 
 from llmpebase.model.LM.base import BaseLlmRequest
 from llmpebase.model.prompting.base import BasePrompting
@@ -69,7 +68,7 @@ class Pipeline:
         # The latest sample's index should be used by the pipeline
         # to perform reasoning
         # This is used for the resume
-        self.existing_indexes = 0
+        self.exist_records = []
 
         # The train, test, and val datasets
         self.trainset = None
@@ -82,11 +81,11 @@ class Pipeline:
         # Get the configuration
         self.model_config = Config.items_to_dict(Config().model._asdict())
         self.data_config = Config.items_to_dict(Config().data._asdict())
+        self.log_config = Config.items_to_dict(Config().logging._asdict())
 
     def setup(self):
         """Configuration of the pipeline."""
         eval_config = Config.items_to_dict(Config().evaluation._asdict())
-        logging_config = Config().logging
 
         self.resume = eval_config["do_resume"] if "do_resume" in eval_config else True
 
@@ -116,17 +115,17 @@ class Pipeline:
             self.recorder = recorder.BaseRecorder(
                 output_filename="outputs",
                 sample_filename="samples",
-                record_path=logging_config.result_path,
+                record_path=self.log_config["result_path"],
                 record_name="llm_records",
             )
 
         # Resume the pipeline
         if self.resume:
-            self.existing_indexes = self.resume_pipeline()
+            self.exist_records = self.recorder.get_recorded_names()
             logging.info(
                 "[Pipeline %d] Resume from #sample %d.",
                 self.pipeline_id,
-                len(self.existing_indexes),
+                len(self.exist_records),
             )
 
     def load_data(self):
@@ -140,44 +139,27 @@ class Pipeline:
         if self.testset is None:
             self.testset = self.dataset.get_test_set()
 
-    def resume_pipeline(self):
-        """
-        Resume the pipeline by avoiding performing on the same samples.
-
-        The index of sample is able to used directly as no shuffle will be performed.
-        """
-        # Get where the current results are recorded
-        exist_indexes = self.recorder.get_indexes()
-
-        return exist_indexes
-
     def execute(self):
         """Execute the pipeline to obtain the results."""
-        upper = 50
-        total = len(self.testset)
-        selected_indexes = np.random.randint(0, total, size=upper)
-        if len(selected_indexes) <= len(self.existing_indexes):
-            return
+
         for idx, sample in enumerate(self.testset):
-            if idx not in selected_indexes:
-                continue
-            # Skip existing records when the resume is enabled
-            if idx in self.existing_indexes:
+            sample_info = sample["auxiliary"]["sample_info"]
+            sample_id = sample_info["sample_id"]
+            record_name = f"{idx}-ID<{sample_id}>"
+            if record_name in self.exist_records:
                 continue
             prompt_sample, groundtruth = self.data_prompter.create_prompt_sample(
                 sample, self.trainset, self.model_config
             )
 
-            contents = self.reasoner.forward(
-                prompt_sample=prompt_sample, sample_idx=idx
-            )
+            contents = self.reasoner.forward(prompt_sample, sample_name=record_name)
             assert isinstance(contents, list)
 
             results = [
                 self.extractor.forward(
                     content,
                     solution_flag=self.data_prompter.solution_flag,
-                    problem_name=sample["auxiliary"]["sample_problem"],
+                    problem_name=sample_info["sample_problem"],
                     question=sample["question"],
                 )
                 for content in contents
@@ -196,5 +178,7 @@ class Pipeline:
                 sample=sample,
                 output=output,
                 statistic=self.reasoner.get_cost_statistics(latest=True),
-                sample_idx=idx,
+                sample_name=record_name,
             )
+            # Reset the reasoning after processing current sample
+            self.reasoner.reset_reasoning()

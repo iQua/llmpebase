@@ -1,6 +1,7 @@
 """
 An interface of models and prompts
 """
+
 import logging
 
 from llmpebase.model.LM import gpts, llama2_hf, llama2_meta
@@ -11,6 +12,7 @@ from llmpebase.model.prompting import (
     zeroshot_cot,
     zeroshot,
 )
+
 
 llms_factory = {
     "gpt": gpts.GPTAPIRequest,

@@ -2,9 +2,12 @@
 An interface to postprocess the response from LLM. Its major responsibility is to 
 extract the target result from the response.
 """
+
 import logging
 
 from llmpebase.extractor.base import BaseLlmExtractor
+from llmpebase.extractor.re_extraction import *
+
 
 from llmpebase.extractor.re_extraction import (
     GSM8KGtReExtractor,
@@ -67,10 +70,10 @@ def get(data_name, config: dict, **kwargs):
 
     if data_name in extractors:
         logging.info(
-            "Get %s extractor for %s to extract %s",
+            "Get %s-based %s extractor for %s",
             style,
-            data_name,
             purpose,
+            data_name,
         )
         return extractors[data_name][style]
 

@@ -15,7 +15,7 @@ class ProblemFewShotPrompting(base.BasePrompting):
 
         n_shots = config["n_shots"]
 
-        problem_name = sample["auxiliary"]["sample_problem"]
+        problem_name = sample["auxiliary"]["sample_info"]["sample_problem"]
         if "problem_subfield" in sample["auxiliary"]:
             problem_name = sample["auxiliary"]["problem_subfield"]
 

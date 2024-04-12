@@ -1,6 +1,7 @@
 """
 Reading runtime parameters from a configuration file.
 """
+
 import sys
 import time
 import argparse
@@ -43,14 +44,20 @@ class Config:
     _instance = None
 
     @staticmethod
+    def construct_join(loader: Loader, node: yaml.Node) -> Any:
+        """Support os.path.join at node."""
+        seq = loader.construct_sequence(node)
+        return "/".join([str(i) for i in seq])
+
+    @staticmethod
     def construct_include(loader: Loader, node: yaml.Node) -> Any:
         """Include file referenced at node."""
-
         filename = os.path.abspath(
             os.path.join(loader.root_path, loader.construct_scalar(node))
         )
         extension = os.path.splitext(filename)[1].lstrip(".")
 
+        extension = os.path.splitext(filename)[1].lstrip(".")
         with open(filename, "r", encoding="utf-8") as config_file:
             if extension in ("yaml", "yml"):
                 return yaml.load(config_file, Loader)
@@ -60,10 +67,36 @@ class Config:
                 return "".join(config_file.readlines())
 
     @staticmethod
-    def construct_join(loader: Loader, node: yaml.Node) -> Any:
-        """Support os.path.join at node."""
-        seq = loader.construct_sequence(node)
-        return "/".join([str(i) for i in seq])
+    def construct_merge_include(loader: Loader, node: yaml.Node) -> Any:
+        """
+        Include multiple files referenced at node with tag `!minclude`.
+
+        For merging multiple files under one include, the format of should be
+        <>;;<>;;
+        where <> will be the path of one config file while `;;` is used to
+        separate the files
+        Lead to: !minclude: <>;;<>;;
+        """
+        # load the files as a whole
+        to_be_include = loader.construct_scalar(node)
+        include_files = to_be_include.split(";;")
+
+        merged_content = {}
+        for file in include_files:
+            filepath = os.path.abspath(os.path.join(loader.root_path, file))
+
+            extension = os.path.splitext(filepath)[1].lstrip(".")
+            file_content = {}
+            with open(filepath, "r", encoding="utf-8") as config_file:
+                if extension in ("yaml", "yml"):
+                    file_content = yaml.load(config_file, Loader)
+                elif extension in ("json",):
+                    file_content = json.load(config_file)
+                else:
+                    file_content = "".join(config_file.readlines())
+            merged_content.update(file_content)
+
+        return merged_content
 
     def __new__(cls):
         if cls._instance is None:
@@ -124,7 +157,9 @@ class Config:
             else:
                 filename = args.config
 
+            # add the tag to support the !include
             yaml.add_constructor("!include", Config.construct_include, Loader)
+            yaml.add_constructor("!minclude", Config.construct_merge_include, Loader)
             yaml.add_constructor("!join", Config.construct_join, Loader)
 
             if os.path.isfile(filename):
@@ -137,7 +172,7 @@ class Config:
             Config.environment = Config.namedtuple_from_dict(config["environment"])
             Config.data = Config.namedtuple_from_dict(config["data"])
             Config.model = Config.namedtuple_from_dict(config["model"])
-            Config.trainer = Config.namedtuple_from_dict(config["trainer"])
+            Config.train = Config.namedtuple_from_dict(config["train"])
             Config.evaluation = Config.namedtuple_from_dict(config["evaluation"])
             Config.logging = Config.namedtuple_from_dict(config["logging"])
 
@@ -416,14 +451,14 @@ class Config:
         """Convert the current run-time configuration to a dict."""
 
         config_data = dict()
-        config_data["trainer"] = Config.trainer._asdict()
+        config_data["train"] = Config.train._asdict()
         config_data["environment"] = Config.environment._asdict()
         config_data["data"] = Config.data._asdict()
         config_data["model"] = Config.model._asdict()
         config_data["logging"] = Config.logging._asdict()
         config_data["evaluation"] = Config.evaluation._asdict()
         for term in [
-            "trainer",
+            "train",
             "environment",
             "data",
             "model",

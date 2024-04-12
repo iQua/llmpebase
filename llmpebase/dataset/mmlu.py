@@ -3,6 +3,7 @@ The datasource inference for the MMLU dataset.
 The detailed information of it is shown in 
 https://huggingface.co/datasets/cais/mmlu
 """
+
 import os
 from collections import defaultdict
 import glob
@@ -74,7 +75,7 @@ class MMLUDataset(base.BaseDataset):
             data_phase=self.phase,
             data_samples=collected_items,
             category_samples=category_samples,
-            problem_category=list(category_count.keys()),
+            problem_categories=list(category_count.keys()),
             data_statistics=DatasetStatistics(
                 num_samples=len(collected_items), category_info=category_count
             ),

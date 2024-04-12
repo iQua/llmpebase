@@ -1,6 +1,7 @@
 """ 
 The datasource inference for the Game of 24 dataset.
 """
+
 import os
 import time
 from typing import List
@@ -31,21 +32,29 @@ class GameOf24Dataset(base.BaseDataset):
         collected_items = [
             BaseQASampleInfo(
                 sample_id=data_frame["Rank"].iloc[i].item(),
+                sample_field="Math",
                 sample_problem="Algebra",
+                sample_dataset="GameOf24",
                 sample_filepath=self.phase_data_path,
             )
             for i in range(n_items)
         ]
         return DatasetCatalog(
             data_phase=self.phase,
+            problem_fields=["Math"],
+            problem_categories={"Math": ["Algebra"]},
             data_samples=collected_items,
-            data_statistics=DatasetStatistics(num_samples=n_items),
+            category_samples={"Math": {"Algebra": list(range(n_items))}},
+            data_statistics=DatasetStatistics(
+                num_samples=n_items,
+                category_info={"Math": {"Algebra": {"num_samples": n_items}}},
+            ),
         )
 
     def get_sample(self, idx):
         """Get one sample."""
-        sample_path = self.data_catalog.data_samples[idx]["sample_filepath"]
-        sample_problem = self.data_catalog.data_samples[idx]["sample_problem"]
+        sample_info = self.data_catalog.data_samples[idx]
+        sample_path = sample_info["sample_filepath"]
         data_frame = pd.read_csv(sample_path)
         return BaseQASample(
             question=data_frame["Puzzles"].iloc[idx],
@@ -57,7 +66,7 @@ class GameOf24Dataset(base.BaseDataset):
                 "AMT": data_frame["AMT (s)"].iloc[idx],
                 "1_sigma_Mean": data_frame["1-sigma Mean (s)"].iloc[idx],
                 "1_sigma_STD": data_frame["1-sigma STD (s)"].iloc[idx],
-                "sample_problem": sample_problem,
+                "sample_info": sample_info,
             },
         )
 

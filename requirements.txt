@@ -12,3 +12,5 @@ datasets
 matplotlib
 pydot
 graphviz
+tenacity
+txtai

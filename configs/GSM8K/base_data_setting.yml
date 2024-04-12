@@ -1,0 +1,13 @@
+
+# The basic settings of the dataset
+ 
+data_name: GSM8K
+data_path: data
+
+# One may need to download the GSM8k dataset
+download_url: null
+
+extractor:
+  purpose: groundtruth
+  style: re
+

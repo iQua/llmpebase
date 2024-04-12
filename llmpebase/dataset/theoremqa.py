@@ -6,6 +6,7 @@ https://github.com/wenhuchen/TheoremQA
 Currently, we do not support the multimodal samples, i.e.,
 no image is incorporated with the question.
 """
+
 import os
 import json
 from collections import defaultdict
@@ -56,7 +57,9 @@ class TheoremQADataset(base.BaseDataset):
             collect_items.append(
                 BaseQASampleInfo(
                     sample_id=idx,
-                    sample_problem=field,
+                    sample_field=field,
+                    sample_problem=subfield,
+                    sample_dataset="TheoremQA",
                     sample_filepath=self.phase_data_path,
                     auxiliary={
                         # The theorem used in the answer
@@ -65,7 +68,6 @@ class TheoremQADataset(base.BaseDataset):
                         "explain_path": explain_path,
                         # Visual path
                         "visual_path": image_path,
-                        "problem_subfield": subfield,
                     },
                 )
             )
@@ -83,9 +85,10 @@ class TheoremQADataset(base.BaseDataset):
 
         return DatasetCatalog(
             data_phase=self.phase,
-            data_samples=collect_items,
+            problem_fields=list(category_info.keys()),
+            problem_categories=problem_category,
             category_samples=category_samples,
-            problem_category=problem_category,
+            data_samples=collect_items,
             data_statistics=DatasetStatistics(
                 num_samples=len(collect_items), category_info=category_info
             ),
@@ -112,8 +115,7 @@ class TheoremQADataset(base.BaseDataset):
             groundtruth=sample["Answer"],
             auxiliary={
                 "answer_type": sample["Answer_type"],
-                "sample_problem": sample_info["sample_problem"],
-                "problem_subfield": sample_info["auxiliary"]["problem_subfield"],
+                "sample_info": sample_info,
                 "sample_idx": idx,
             },
         )
@@ -124,8 +126,8 @@ class TheoremQADataset(base.BaseDataset):
         # to which field
         field = [
             category
-            for category in self.data_catalog.problem_category
-            if problem_name in self.data_catalog.problem_category[category]
+            for category in self.data_catalog.problem_categories
+            if problem_name in self.data_catalog.problem_categories[category]
         ][0]
 
         return self.data_catalog.category_samples[field][problem_name]

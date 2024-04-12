@@ -1,6 +1,7 @@
 """
 An implementation to visualize the thought structure.
 """
+
 import os
 from typing import List
 
@@ -77,10 +78,11 @@ class BasicStructureVisualizer:
     """A visualizer to visualize the thought structure."""
 
     def __init__(
-        self, logging_config: str, visualization_foldername: str = "thought_structure"
+        self, logging_config: dict, save_foldername: str = "thought_structure"
     ):
-        self.visualization_path = logging_config["visualization_path"]
-        self.visualization_foldername = visualization_foldername
+        self.save_path = logging_config["visualization_path"]
+        self.base_save_foldername = save_foldername
+        self.save_foldername = save_foldername
 
         self.layout = (
             "dot"
@@ -141,9 +143,11 @@ class BasicStructureVisualizer:
         # Create the labels to be plotted
 
         labels = {
-            node_pool[node_id].identity: "Q"
-            if graph.in_degree(node_id) == 0
-            else f"N-{node_pool[node_id].identity}\n S-{node_pool[node_id].step_idx}"
+            node_pool[node_id].identity: (
+                "Q"
+                if graph.in_degree(node_id) == 0
+                else f"N-{node_pool[node_id].identity}\n S-{node_pool[node_id].step_idx}"
+            )
             for node_id in graph.nodes
         }
 
@@ -226,9 +230,13 @@ class BasicStructureVisualizer:
 
         plt.close("all")
 
+    def set_save_foldername(self, foldername: str):
+        """Set the foldername for the visualization."""
+        self.save_foldername = foldername
+
     def save_fig(self, fig: plt.figure, save_name: str):
         """Save the figure."""
-        save_path = f"{self.visualization_path}/{self.visualization_foldername}"
+        save_path = f"{self.save_path}/{self.save_foldername}"
         os.makedirs(save_path, exist_ok=True)
 
         fig.tight_layout()

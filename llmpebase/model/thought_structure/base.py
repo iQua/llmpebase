@@ -5,6 +5,7 @@ sequence that serves as an intermediate step toward problem solving. Thus,
 we call it 'thoughtstep' to show that it is a thought that serves as a step
 in the reasoning chain where a chain is presented as a path of the structure.
 """
+
 import os
 import json
 import glob
@@ -17,6 +18,11 @@ import networkx as nx
 from llmpebase.model.prompting.base import BasicSamplePrompt
 from llmpebase.model.thought_structure.visualization import BasicStructureVisualizer
 from llmpebase.model.thought_structure.structure_generic import BasicNode, BasicEdge
+from llmpebase.model.thought_structure.structure_generic import (
+    BasicEvaluation,
+    BasicSimilarity,
+    BasicReasoning,
+)
 
 
 class BaseThoughtStructure:
@@ -40,6 +46,12 @@ class BaseThoughtStructure:
         assert hasattr(self.thought_model, "measure_thought_similarity")
         # The visualizer to visualize the thought structure
         self.visualizer = visualizer
+        # The growth type of the thought structure
+        # The default growth type is the chain-generic
+        # where chain means the structure is grown in a chain manner
+        # while the dfg means the structure is grown in Depth-First Growth
+        self.growth_type = "chain-dfg"
+
         # Tracker of the node id starting from 0
         # thus, root of the thought structure should be 0
         self.node_id_tracker = -1
@@ -63,8 +75,8 @@ class BaseThoughtStructure:
         # The edge pool to store all customized edges in the structure
         self.edge_pool: Dict[str, BasicEdge] = None
 
-        self.position_types = ("Root", "Intermediate", "Sink")
-        self.growth_types = ("Growable", "Un-growable")
+        self.position_states = ("Root", "Intermediate", "Sink")
+        self.growth_states = ("Growable", "Un-growable")
 
         # Get the configuration
         config = model_config["thought_structure"]
@@ -97,6 +109,7 @@ class BaseThoughtStructure:
         )
 
         self.save_path = logging_config["result_path"]
+        self.base_save_foldername = "thought_structure"
         self.save_foldername = "thought_structure"
 
     def create_node(
@@ -104,7 +117,7 @@ class BaseThoughtStructure:
         identity: str,
         step_idx: int,
         thought: Union[str, BasicSamplePrompt],
-        thought_score: float = 1.0,
+        evaluation: BasicEvaluation = None,
         step_name: str = "Reasoning Step",
         node_name: str = "Intermediate Node",
         position: str = "Intermediate",
@@ -119,17 +132,16 @@ class BaseThoughtStructure:
             identity=identity,
             step_idx=step_idx,
             thought=thought,
-            thought_score=thought_score,
+            evaluation_content=(
+                evaluation.content() if evaluation is not None else None
+            ),
+            evaluation_score=(evaluation.score() if evaluation is not None else None),
             step_name=step_name,
             node_name=node_name,
             position=position,
             growth=growth,
-            position_types=self.position_types,
-            growth_types=self.growth_types,
-            similar_thoughts=[],
-            similar_thought_scores=[],
-            similar_thought_similarity=[],
-            thought_similarity_prompt=[],
+            position_states=self.position_states,
+            growth_states=self.growth_states,
             auxiliary=auxiliary,
         )
 
@@ -138,8 +150,8 @@ class BaseThoughtStructure:
         src_node_id: str,
         dst_node_id: str,
         edge_type="Reasoning",
-        reasoning_prompt="",
-        evaluation_prompt="",
+        reasoning=BasicReasoning,
+        evaluation=BasicEvaluation,
         edge_score: float = 1.0,
         edge_id=None,
         auxiliary: dict = None,
@@ -150,8 +162,8 @@ class BaseThoughtStructure:
         return BasicEdge(
             src_node_id=src_node_id,
             dst_node_id=dst_node_id,
-            reasoning_prompt=reasoning_prompt,
-            evaluation_prompt=evaluation_prompt,
+            reasoning=reasoning,
+            evaluation=evaluation,
             edge_type=edge_type,
             edge_score=edge_score,
             edge_id=edge_id,
@@ -161,10 +173,11 @@ class BaseThoughtStructure:
     def construct_root(
         self,
         thought: BasicSamplePrompt = None,
-        thought_score: float = None,
+        evaluation: BasicEvaluation = None,
         **kwargs,
     ):
-        """Set the root of the structure.
+        """
+        Set the root of the structure.
 
         Only by creating the structure's root node can it be grown until it is built.
         Generally, the task prompt and the request containing the question and
@@ -176,7 +189,7 @@ class BaseThoughtStructure:
             identity=identity,
             step_idx=0,
             thought=thought,
-            thought_score=thought_score,
+            evaluation=evaluation,
             step_name="Initial Step",
             node_name="Root Node",
             position="Root",
@@ -228,7 +241,7 @@ class BaseThoughtStructure:
         self,
         grow_node: BasicNode,
         thoughts: List[str],
-    ):
+    ) -> Union[List[None], List[Dict[str, BasicSimilarity]]]:
         """
         Measure the similarity between the given thoughts and thoughts in the structure.
 
@@ -236,39 +249,34 @@ class BaseThoughtStructure:
         :param thoughts: The thoughts to be added.
         """
         similarities = [None] * len(thoughts)
-        prompts = [None] * len(thoughts)
         # Once the min_thought_sim is set to None, we do not need to
         # compute them
         if self.min_thought_sim is None:
-            return similarities, prompts
-
+            return similarities
         similarities = [{}] * len(thoughts)
-        prompts = [{}] * len(thoughts)
         grow_path = self.get_node_path(
             src_node_id=self.root.identity, dst_node_id=grow_node.identity
         )
         for idx, thought in enumerate(thoughts):
             for node_id in self.graph.nodes:
-                score = 0.0
-                prompt = ""
                 node = self.root
                 if node_id != self.root.identity:
                     node = self.node_pool[node_id]
-                    score, prompt = self.thought_model.measure_thought_similarity(
+                    similarity = self.thought_model.measure_thought_similarity(
                         thought,
                         node.thought,
                         thought_chain=grow_path,
                     )
-                similarities[idx][node.identity] = score
-                prompts[idx][node.identity] = prompt
-        return similarities, prompts
+                    similarities[idx][node.identity] = similarity
+
+        return similarities
 
     def search_identical_thought(
         self,
         thought: str,
         prev_node_id: str,
-        thought_score: float,
-        thought_similarities: dict,
+        thought_evaluation: BasicEvaluation,
+        thought_similarities: Dict[str, BasicSimilarity] = None,
     ) -> List[str]:
         """
         Search the graph to obtain the identical thought.
@@ -291,18 +299,19 @@ class BaseThoughtStructure:
             node_thought = node.thought
             # Get the similarity score between the visited node and the
             # input thought
-            similarity_score = (
+            similarity = (
                 thought_similarities[node.identity]
                 if node.identity in thought_similarities
                 else 0.0
             )
             # Get the difference between the evaluation score of the visited node
             # and the input thought score
-            evaluation_diff = abs(node.thought_score - thought_score)
+            thought_score = thought_evaluation.score()
+            evaluation_diff = abs(node.evaluation_score - thought_score)
 
             if (
                 thought != node_thought
-                and similarity_score >= self.min_thought_sim
+                and similarity.score() >= self.min_thought_sim
                 and evaluation_diff <= self.max_score_diff
                 and self.is_duplicated_path(node.identity, prev_node_id)
             ):
@@ -314,7 +323,8 @@ class BaseThoughtStructure:
         self,
         thought: str,
         prev_node_id: str,
-        thought_score: float = 1.0,
+        thought_evaluation: BasicEvaluation,
+        thought_inference: BasicReasoning,
         edge_weight: float = 1.0,
         **kwargs,
     ) -> int:
@@ -331,7 +341,7 @@ class BaseThoughtStructure:
             identity=node_id,
             step_idx=step_idx,
             thought=thought,
-            thought_score=thought_score,
+            evaluation=thought_evaluation,
             node_name=f"Intermediate Node {node_id}",
             step_name=f"Reasoning step {step_idx}",
             position="Intermediate",
@@ -344,8 +354,8 @@ class BaseThoughtStructure:
             edge_type="Reasoning",
             src_node_id=prev_node_id,
             dst_node_id=node_id,
-            reasoning_prompt=kwargs["reasoning_prompt"],
-            evaluation_prompt=kwargs["evaluation_prompt"],
+            reasoning=thought_inference,
+            evaluation=thought_evaluation,
             edge_score=edge_weight,
             auxiliary={},
         )
@@ -380,21 +390,14 @@ class BaseThoughtStructure:
         thought: str,
         thought_score: float,
         node_ids: List[str],
-        thought_similarity: Dict[str, float],
-        similarity_prompts: Dict[str, str],
+        thought_similarities: Dict[str, BasicSimilarity],
         **kwargs,
     ):
         """Extend the node by adding similar thoughts to it."""
         node_id = node_ids[0]
-        sim_score = (
-            thought_similarity[node_id] if thought_similarity is not None else None
-        )
-        sim_prompt = (
-            similarity_prompts[node_id] if similarity_prompts is not None else None
-        )
 
         self.node_pool[node_id].backup_though(
-            thought, thought_score, similarity_score=sim_score, prompt=sim_prompt
+            thought, thought_score, thought_similarity=thought_similarities[node_id]
         )
 
         logging.info(
@@ -406,11 +409,11 @@ class BaseThoughtStructure:
     def add_thought(
         self,
         thought: str,
-        thought_score: float,
+        thought_evaluation: BasicEvaluation,
+        thought_inference: BasicReasoning,
         prev_node_id: str,
         to_node_ids: List[str],
-        similarities: Dict[str, float],
-        similarity_prompt: Dict[str, str],
+        thought_similarities: Dict[str, BasicSimilarity],
         **kwargs,
     ):
         """Add the thought to the structure."""
@@ -421,14 +424,16 @@ class BaseThoughtStructure:
         # If there is no identical thought, add the thought to the structure
         # as a new node
         if len(to_node_ids) == 0:
-            node_id = self.add_node(thought, prev_node_id, thought_score, **kwargs)
+            node_id = self.add_node(
+                thought, prev_node_id, thought_evaluation, thought_inference, **kwargs
+            )
         else:
+            thought_score = thought_evaluation.score()
             node_id = self.extend_node(
                 thought,
                 thought_score,
                 node_ids=to_node_ids,
-                thought_similarity=similarities,
-                similarity_prompts=similarity_prompt,
+                thought_similarities=thought_similarities,
                 prev_node_id=prev_node_id,
             )
 
@@ -438,8 +443,9 @@ class BaseThoughtStructure:
         self,
         prev_node_id: str,
         thoughts: List[str],
-        thought_scores: List[float],
-        thought_similarities: List[dict],
+        thought_evaluations: List[BasicEvaluation],
+        thought_inferences: List[BasicReasoning],
+        thought_all_similarities: List[Dict[str, BasicSimilarity]],
         **kwargs,
     ):
         """Grow the structure by adding new thoughts.
@@ -447,18 +453,19 @@ class BaseThoughtStructure:
         :param prev_node_id: The node id, which produces the thoughts as the next
          steps.
         :param thoughts: The thoughts to be added.
-        :param thought_scores: The evaluation scores of thoughts.
+        :param thought_evaluations: The evaluations of thoughts.
         :param thought_similarities: The similarity scores in which each item is a list
-         containing the similarity scores between the corresponding thought and all existing
+         containing the similarity between the corresponding thought and all existing
          thoughts in nodes of the structure.
         """
-        similarity_prompts = (
-            kwargs["similarity_prompts"]
-            if "similarity_prompts" in kwargs
-            else [None] * len(thoughts)
-        )
-        for idx, (thought, score, similarities) in enumerate(
-            zip(thoughts, thought_scores, thought_similarities)
+
+        for idx, (thought, evaluation, inference, similarities) in enumerate(
+            zip(
+                thoughts,
+                thought_evaluations,
+                thought_inferences,
+                thought_all_similarities,
+            )
         ):
             # Judge whether the prev_node is full
             # if true, there is no need to add more thoughts either
@@ -477,7 +484,7 @@ class BaseThoughtStructure:
                 similar_node_ids = self.search_identical_thought(
                     thought,
                     prev_node_id=prev_node_id,
-                    thought_score=score,
+                    thought_evaluation=evaluation,
                     thought_similarities=similarities,
                 )
             # Add the thought to the structure either as a new node
@@ -485,11 +492,11 @@ class BaseThoughtStructure:
             # measurement
             self.add_thought(
                 thought=thought,
-                thought_score=score,
+                thought_evaluation=evaluation,
+                thought_inference=inference,
                 prev_node_id=prev_node_id,
                 to_node_ids=similar_node_ids,
-                similarities=similarities,
-                similarity_prompt=similarity_prompts[idx],
+                thought_similarities=similarities,
                 **kwargs,
             )
 
@@ -501,28 +508,29 @@ class BaseThoughtStructure:
         for node_id in self.graph.nodes:
             self.set_node_status(node_id)
 
-        # Set the status of edges in the graph
+        # Save the structure after each growth
         self.save_structure()
+        self.save_state()
 
     def generate_next_thoughts(self, thought_path: List[BasicNode]):
         """Generate the next thoughts for the node_id."""
         # Generate and then evaluate the next thoughts
-        thoughts, gen_prompt = self.thought_model.generate_thoughts(
+        return self.thought_model.generate_thoughts(
             thought_chain=thought_path, num_thoughts=self.num_next_steps
         )
-        return thoughts, gen_prompt
 
-    def evaluate_thoughts(self, thought_path: List[BasicNode], thoughts: List[str]):
+    def evaluate_thoughts(
+        self, thought_path: List[BasicNode], thoughts: List[str]
+    ) -> List[BasicEvaluation]:
         """Evaluate the thoughts for the node_id."""
-        scores = [None] * len(thoughts)
-        eval_prompt = [None] * len(thoughts)
+        evaluations = [None] * len(thoughts)
         # Whether the evaluate of thoughts needs to be compared
         if self.max_score_diff is not None:
-            scores, eval_prompt = self.thought_model.evaluate_thoughts(
+            evaluations = self.thought_model.evaluate_thoughts(
                 thoughts, thought_chain=thought_path
             )
 
-        return scores, eval_prompt
+        return evaluations
 
     def build_structure(
         self,
@@ -543,24 +551,20 @@ class BaseThoughtStructure:
             thought_path = self.get_node_path(self.root.identity, grow_node.identity)
 
             # Generate the next thoughts
-            thoughts, gen_prompt = self.generate_next_thoughts(thought_path)
+            thoughts, thought_inferences = self.generate_next_thoughts(thought_path)
             # Evaluate the thoughts
-            scores, eval_prompt = self.evaluate_thoughts(thought_path, thoughts)
+            evaluations = self.evaluate_thoughts(thought_path, thoughts)
             # Measure the similarity between new thoughts and existing thoughts in the
             # structure
-            similarities, sim_prompts = self.compute_thought_similarity(
-                grow_node, thoughts
-            )
+            all_similarities = self.compute_thought_similarity(grow_node, thoughts)
 
             # Grow the structure by adding the thoughts
             self.grow_structure(
                 prev_node_id=grow_node.identity,
                 thoughts=thoughts,
-                thought_scores=scores,
-                thought_similarities=similarities,
-                reasoning_prompt=gen_prompt,
-                evaluation_prompt=eval_prompt,
-                similarity_prompts=sim_prompts,
+                thought_evaluations=evaluations,
+                thought_inferences=thought_inferences,
+                thought_all_similarities=all_similarities,
             )
 
             # Draw the graph and save to the disk
@@ -600,14 +604,14 @@ class BaseThoughtStructure:
     def get_path_scores(self, path: List[BasicNode]) -> List[Tuple[float, None]]:
         """Get the scores of nodes in the path."""
         # Skip the thought score of the root node as it will be None
-        return [node.thought_score for node in path[1:]]
+        return [node.evaluation_score for node in path[1:]]
 
     def get_grow_node(self) -> BasicNode:
         """Get which node to be grown."""
         node = None
 
         # When the current graph has enough solutions, stop growing
-        if len(self.get_sink_nodes()) >= self.max_stops:
+        if self.early_stop():
             return node
 
         for node_id in self.graph.nodes:
@@ -670,6 +674,13 @@ class BaseThoughtStructure:
         """Check whether the node is growable."""
         return self.node_pool[node_id].position == "Sink"
 
+    def early_stop(self):
+        """Stop the growth of the structure."""
+        # Stop the growth when the structure has enough solutions
+        if len(self.get_sink_nodes()) >= self.max_stops:
+            return True
+        return False
+
     def reset_structure(self):
         """Reset the tee."""
         self.root: BasicNode = None
@@ -677,6 +688,10 @@ class BaseThoughtStructure:
         self.edge_pool: Dict[str, BasicEdge] = None
         self.graph.clear()
         self.node_id_tracker = -1
+
+    def set_save_foldername(self, foldername: str):
+        """Set the foldername for the visualization."""
+        self.save_foldername = foldername
 
     def create_save_folder(self, foldername: str = None, location: str = None) -> str:
         """Create the save path for the thought structure."""
@@ -722,6 +737,32 @@ class BaseThoughtStructure:
             file_path = f"{save_path}/{filename}.json"
             with open(file_path, "w", encoding="utf-8") as file:
                 json.dump(edge_data, file)
+
+    def save_state(self, foldername: str = None, location: str = None):
+        """Save the state of the structure."""
+        save_path = self.create_save_folder(foldername, location)
+
+        # Get how many nodes
+        n_nodes = len(self.graph.nodes)
+        # Get how many paths
+        n_paths = len(self.get_sink_nodes())
+        # Get the config of the llm used
+        llm_config = self.thought_model.llm_model.generation_config
+
+        filename = "structure_state"
+        file_path = f"{save_path}/{filename}.json"
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(
+                {
+                    "growth_type": self.growth_type,
+                    "n_nodes": n_nodes,
+                    "n_paths": n_paths,
+                    "llm_config": llm_config,
+                },
+                file,
+            )
+
+        return file_path
 
     @staticmethod
     def resume_structure(location: str = None):

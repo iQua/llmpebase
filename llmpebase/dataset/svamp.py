@@ -34,34 +34,38 @@ class SVAMPDataset(base.BaseDataset):
             trust_remote_code=True,
         )
         # Body, Type, Equation, Question, ID, Answer,
-        problem_category = []
+        problem_sub_category = []
         collect_items = []
-        category_samples = defaultdict(list)
-        category_info = defaultdict(dict)
+        sub_category_samples = defaultdict(list)
+        sub_category_info = defaultdict(dict)
         for example in phase_data:
             problem_type = tools.format_term(example["Type"])
-            if problem_type not in problem_category:
-                problem_category.append(problem_type)
+            if problem_type not in problem_sub_category:
+                problem_sub_category.append(problem_type)
 
             collect_items.append(
                 BaseQASampleInfo(
                     sample_id=example["ID"],
-                    sample_problem=problem_type,
+                    sample_field="Math",
+                    sample_problem=f"Algebra/{problem_type}",
+                    sample_dataset="SVAMP",
                     sample_filepath=self.phase_data_path,
                 )
             )
-            category_samples[problem_type].append(len(collect_items) - 1)
-            category_info[problem_type]["num_samples"] = len(
-                category_samples[problem_type]
+            sub_category_samples[problem_type].append(len(collect_items) - 1)
+            sub_category_info[problem_type]["num_samples"] = len(
+                sub_category_samples[problem_type]
             )
 
         return DatasetCatalog(
             data_phase=self.phase,
+            problem_fields=["Math"],
+            problem_categories={"Math": {"Algebra": problem_sub_category}},
+            category_samples=sub_category_samples,
             data_samples=collect_items,
-            category_samples=category_samples,
-            problem_category=problem_category,
             data_statistics=DatasetStatistics(
-                num_samples=len(collect_items), category_info=category_info
+                num_samples=len(collect_items),
+                category_info={"Math": {"Algebra": sub_category_info}},
             ),
         )
 
@@ -75,7 +79,6 @@ class SVAMPDataset(base.BaseDataset):
         phase_sample = phase_data[idx]
 
         sample_info = self.data_catalog.data_samples[idx]
-        sample_problem = sample_info["sample_problem"]
 
         description = phase_sample["Body"]
         target = phase_sample["Question"]
@@ -88,7 +91,7 @@ class SVAMPDataset(base.BaseDataset):
             conclusion=conclusion,
             groundtruth=answer,
             auxiliary={
-                "sample_problem": sample_problem,
+                "sample_info": sample_info,
             },
         )
 

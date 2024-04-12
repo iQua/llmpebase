@@ -1,0 +1,9 @@
+
+# The basic settings for the logging
+
+# path where to save, empty for no saving
+experiment_path: experiments
+checkpoint_path: experiments/checkpoints
+result_path: experiments/results
+logging_path: experiments/loggings
+visualization_path: experiments/visualizations

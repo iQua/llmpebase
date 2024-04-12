@@ -3,6 +3,7 @@ The datasource inference for the BIG-Bench Hard (BBH) dataset.
 The detailed information of it is shown in 
 https://github.com/suzgunmirac/BIG-Bench-Hard
 """
+
 import os
 import json
 import glob
@@ -74,7 +75,7 @@ class BBHDataset(base.BaseDataset):
             data_phase=self.phase,
             data_samples=collect_items,
             category_samples=category_samples,
-            problem_category=problem_category,
+            problem_categories=problem_category,
             data_statistics=DatasetStatistics(
                 num_samples=len(collect_items), category_info=category_info
             ),

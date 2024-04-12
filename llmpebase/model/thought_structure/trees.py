@@ -14,8 +14,8 @@ certain depth is expanded before the tree grows deeper.
 3. Leaf-Wise (Best-First) Growth (LWG):
 Used in LightGBM, this method focuses on expanding the leaf that will reduce the 
 loss the most. It can result in deeper, more asymmetric trees.
-
 """
+
 import logging
 
 import networkx as nx
@@ -30,11 +30,30 @@ class DFGTreeThoughtStructure(base.BaseThoughtStructure):
     or depth-first manner.
     """
 
+    def __init__(
+        self,
+        thought_model,
+        model_config,
+        logging_config,
+        visualizer,
+    ):
+        super().__init__(
+            thought_model=thought_model,
+            model_config=model_config,
+            logging_config=logging_config,
+            visualizer=visualizer,
+        )
+        self.growth_type = "tree-dgf"
+
     def get_grow_node(self):
         """Get the node to be grown next in the tree."""
         # Collect existing nodes with Depth First Search (DFS) algorithm
         dfs_nodes = nx.dfs_preorder_nodes(self.graph, source=self.root.identity)
         node = None
+
+        if self.early_stop():
+            return node
+
         for node_id in dfs_nodes:
             if self.node_pool[node_id].growth == "Growable":
                 node = self.node_pool[node_id]
@@ -47,6 +66,21 @@ class BFGTreeThoughtStructure(base.BaseThoughtStructure):
     A tree thought structure in which the tree is grown in a Breadth-First Growth manner.
     """
 
+    def __init__(
+        self,
+        thought_model,
+        model_config,
+        logging_config,
+        visualizer,
+    ):
+        super().__init__(
+            thought_model=thought_model,
+            model_config=model_config,
+            logging_config=logging_config,
+            visualizer=visualizer,
+        )
+        self.growth_type = "tree-bfg"
+
     def get_grow_node(self):
         """Grow the thought structure in the tree version."""
         # Collect existing nodes with Breath First Search (DFS) algorithm
@@ -58,6 +92,10 @@ class BFGTreeThoughtStructure(base.BaseThoughtStructure):
             for successor in successors
         ]
         node = None
+
+        if self.early_stop():
+            return node
+
         for node_id in bfs_nodes:
             if self.node_pool[node_id].growth == "Growable":
                 node = self.node_pool[node_id]
@@ -71,6 +109,21 @@ class LWGTreeThoughtStructure(base.BaseThoughtStructure):
     best first manner.
     """
 
+    def __init__(
+        self,
+        thought_model,
+        model_config,
+        logging_config,
+        visualizer,
+    ):
+        super().__init__(
+            thought_model=thought_model,
+            model_config=model_config,
+            logging_config=logging_config,
+            visualizer=visualizer,
+        )
+        self.growth_type = "tree-lwg"
+
     def get_grow_node(self):
         """Grow the thought structure in the tree version."""
         # Collect existing nodes with Depth First Search (DFS) algorithm
@@ -80,6 +133,9 @@ class LWGTreeThoughtStructure(base.BaseThoughtStructure):
         # Get the current depth of the tree
         longest_path = dag_longest_path(self.graph)
         num_depth = len(longest_path)
+
+        if self.early_stop():
+            return None
 
         # When the depth reaches the maximum, stop growing
         if num_depth >= self.max_length:
@@ -103,10 +159,10 @@ class LWGTreeThoughtStructure(base.BaseThoughtStructure):
             if node.growth == "Growable":
                 if (
                     node.identity == self.root.identity
-                    or node.thought_score > max_value
+                    or node.evaluation_score > max_value
                 ):
                     max_node = node
-                    max_value = node.thought_score
+                    max_value = node.evaluation_score
         if max_node is not None:
             logging.info(
                 "Node %s has the largest value %s.", max_node.identity, max_value
