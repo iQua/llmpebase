@@ -32,10 +32,10 @@ class AQUAZeroShotCoTPrompting(base.BaseZeroShotCoTPrompting):
 class GameOf24ZeroShotCoTPrompting(base.BaseZeroShotCoTPrompting):
     """The zeroshot prompt of GameOf24."""
 
-    solution_flag: str = "Number in New Set:"
+    solution_flag: str = "Number in New Set of Step 3:"
 
     instruction: str = (
-        "Within the latest step, 'Two Numbers' are selected from the 'Current Set' to perform +,-,*,/, i.e. Operation, to obtain a 'New Number'. Then, 'Current Set' removes these 'Two Numbers' and thus gets 'Remaining Numbers'. Then, 'New Set' will be the combination of 'New Number' and 'Remaining Numbers'. Report the solution when the 'New Set' contains only one number."
+        "Within the latest step, 'Two Numbers' are selected from the 'Current Set' to perform + or - or * or /, i.e. Operation, to obtain a 'New Number'. Then, 'Current Set' removes these 'Two Numbers' and thus gets 'Remaining Numbers'. Then, 'New Set' will be the combination of 'New Number' and 'Remaining Numbers'."
     )
 
     step_format: str = (
@@ -43,7 +43,7 @@ class GameOf24ZeroShotCoTPrompting(base.BaseZeroShotCoTPrompting):
     )
 
     question_prompt_head: str = (
-        f"""In the game of 24, you are given four numbers, and each number can be used only once. The goal is to use basic arithmetic operations (+, -, *, /) to combine these numbers and obtain 24 in the New Set.\nRule: {instruction}\nStep Format: {step_format}.\n"""
+        f"""You are given four numbers and the Rule and Step Format should be followed to address the Game of 24 problem.\nRule: {instruction}\nStep Format: {step_format}.\n"""
     )
 
     question_format = base.BasicPromptFormat(

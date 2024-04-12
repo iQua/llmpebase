@@ -77,7 +77,9 @@ edge_labels_config = {
 class BasicStructureVisualizer:
     """A visualizer to visualize the thought structure."""
 
-    def __init__(self, logging_config: str, save_foldername: str = "thought_structure"):
+    def __init__(
+        self, logging_config: dict, save_foldername: str = "thought_structure"
+    ):
         self.save_path = logging_config["visualization_path"]
         self.base_save_foldername = save_foldername
         self.save_foldername = save_foldername

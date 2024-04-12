@@ -10,6 +10,7 @@ from llmpebase.prompt import (
     BaseSystemPrompts,
     BaseThoughtPrompts,
 )
+from llmpebase.prompt import format_prompt
 
 
 class ThoughtStructurePrompter:
@@ -57,6 +58,7 @@ class ThoughtStructurePrompter:
         with_step_idx: int = False,
         with_flag: int = True,
         with_evaluation_score: bool = True,
+        with_indent: int = 0,
     ) -> str:
         """Organize thoughts chain into the prompt.
 
@@ -67,6 +69,8 @@ class ThoughtStructurePrompter:
         # initial prompt should be the thought of the root noe
         intermediate_steps = []
 
+        indent = "" if with_indent == 0 else "\t" * with_indent
+
         for idx, thought_node in enumerate(chain_nodes):
             step_head = ""
             if with_step_idx:
@@ -76,7 +80,7 @@ class ThoughtStructurePrompter:
                 score = f"Evaluation Score: {thought_node.evaluation_score}"
 
             intermediate_steps.append(
-                f"""\t{step_head}{thought_node.thought}\t{score}"""
+                f"""{indent}{step_head}{thought_node.thought}\t{score}"""
             )
 
         intermediate_steps = "\n".join(intermediate_steps)
@@ -85,7 +89,7 @@ class ThoughtStructurePrompter:
         if with_flag:
             reasoning_chain_prompt = f"""{self.thought_start_flag}\n{reasoning_chain_prompt}\n{self.thought_end_flag}"""
 
-        return reasoning_chain_prompt
+        return format_prompt.format_prompt(reasoning_chain_prompt)
 
     def organize_next_thought_prompt(
         self, chain_nodes: List[base.BasicNode], **kwargs
