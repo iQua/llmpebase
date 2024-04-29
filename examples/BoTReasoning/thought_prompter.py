@@ -24,7 +24,7 @@ class BoTThoughtPrompter(ThoughtStructurePrompter):
     feedback_end_flag: str = """<\\Feedback>"""
 
     experience_system_prompt: str = (
-        """Between <Experience> and <\\Experience>, you are given trial-and-error reasoning experiences containing reasoning trials and their analysis. Before answering, learn from the given experiences to avoid making the same mistakes, follow correct reasoning, and polish the reasoning steps to generate better ones to solve the task."""
+        """Between <Experiences> and <\\Experiences>, you are given trial-and-error reasoning experiences containing reasoning trials and their analysis. Before answering, learn from the given experiences to avoid making the same mistakes, follow correct reasoning, and polish the reasoning steps to generate better ones to solve the task."""
     )
 
     experience_prompt_format = BasicPromptFormat(

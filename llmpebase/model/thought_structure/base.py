@@ -536,7 +536,7 @@ class BaseThoughtStructure:
         self,
         **kwargs,
     ):
-        """Grow the structure by adding new thoughts."""
+        """Build the thought structure by adding thoughts till terminal."""
         # Set the growth index
         growth_idx = 1
 
