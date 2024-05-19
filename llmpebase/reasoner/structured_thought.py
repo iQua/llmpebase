@@ -59,7 +59,7 @@ class StructuredThoughtReasoner:
         # Get the chain and save it
         solution_chains = self.solution_extractor.extract_solution_chains(structure)
         for idx, chain in enumerate(solution_chains):
-            structure.save_thought_path(
+            structure.save_node_path(
                 chain,
                 filename=f"{idx}-th_solution_chain_{chain[0].identity}->{chain[-1].identity}",
             )
@@ -86,7 +86,7 @@ class StructuredThoughtReasoner:
             f"{self.visualizer.base_save_foldername}-{sample_name}"
         )
         self.structure.set_save_foldername(
-            foldername=f"{self.structure.base_save_foldername}-{sample_name}"
+            foldername=f"{self.structure.save_foldername}-{sample_name}"
         )
 
         # Place the task prompt in the root so that all subsequent thought chains

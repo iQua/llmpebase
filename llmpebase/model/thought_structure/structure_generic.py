@@ -72,14 +72,16 @@ class BasicSimilarity(FieldFrozenContainer):
 
 
 @dataclass
-class BasicReasoning(FieldFrozenContainer):
+class BasicPromptAndResponse(FieldFrozenContainer):
     """
     A base reasoning to be used to maintain inference of the thought.
     """
 
-    reasoning_prompt: BasicThoughtPromptFormat = None
+    prompt: BasicThoughtPromptFormat = None
 
-    reasoning_output: str = None
+    response: str = None
+
+    system: str = None
 
 
 @dataclass
@@ -178,7 +180,7 @@ class BasicEdge(FieldFrozenContainer):
     src_node_id: str = None
     dst_node_id: str = None
     edge_type: str = None
-    reasoning: BasicReasoning = None
+    reasoning: BasicPromptAndResponse = None
     evaluation: BasicEvaluation = None
     edge_score: float = None
 

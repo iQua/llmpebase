@@ -1,6 +1,5 @@
 """ A base evaluator to evaluate the performance of the model. """
 
-
 from typing import List, Union
 
 from llmpebase.model.LM.base import BaseLlmRequest

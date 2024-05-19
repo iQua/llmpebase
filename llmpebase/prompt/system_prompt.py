@@ -13,7 +13,7 @@ class BaseSystemPrompts:
     """Basic system prompts."""
 
     generation_prompt: str = (
-        """You are an expert in solving mathematical problems using methodical, step-by-step reasoning, with each response containing one step. Start by reviewing the given problem and any reasoning steps already taken, and then proceed to directly provide the next step. Each step may contain analysis and the corresponding mathematical expression. Please utilize Python Programming as an auxiliary when necessary."""
+        """You are an expert in solving mathematical problems using methodical, step-by-step reasoning, with each response containing one step. Start by reviewing the given problem and any reasoning steps already taken, then directly provide the next reasoning step. Please directly generate the next step, containing the necessary analysis and the corresponding specific mathematical expression. Utilize Python programming as an auxiliary during the next step generation only when necessary. Eventually, the final solution should be a direct answer to the question."""
     )
 
     evaluation_prompt: str = (

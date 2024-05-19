@@ -17,7 +17,7 @@ logging_config = Config.items_to_dict(Config().logging._asdict())
 sample_idx = 4
 structure_path = logging_config["result_path"]
 structure_folder = f"thought_structure_{sample_idx}"
-graph, node_pool, edge_pool = base.BaseThoughtStructure.resume_structure(
+graph, _, node_pool, edge_pool = base.BaseThoughtStructure.load_structure_data(
     location=f"{structure_path}/backups/{structure_folder}"
 )
 visualizer = visualization.TRVisualizer(

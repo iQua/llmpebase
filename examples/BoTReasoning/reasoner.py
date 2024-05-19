@@ -96,7 +96,7 @@ class BoTReasoner(StructuredThoughtReasoner):
                 )
 
                 base_tree.set_save_foldername(
-                    foldername=f"{base_tree.base_save_foldername}-{sample_name}/{iteration_folder}/tree-{tree_idx}"
+                    foldername=f"{base_tree.save_foldername}-{sample_name}/{iteration_folder}/tree-{tree_idx}"
                 )
 
                 # Get the temperature and top_p for the base tree
