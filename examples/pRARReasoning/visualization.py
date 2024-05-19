@@ -109,19 +109,19 @@ node_config = {
         "alpha": 0.9,
     },
     "PolicyRoot": {
-        "node_color": "#F08080",
+        "node_color": "#FFE4E1",
         "node_shape": "o",
         "node_size": 900,
         "alpha": 0.8,
     },
     "PolicyIntermediate": {
-        "node_color": "#CD5C5C",
+        "node_color": "#DB7093",
         "node_shape": "s",
         "node_size": 850,
         "alpha": 0.9,
     },
     "PolicySink": {
-        "node_color": "#CD5C5C",
+        "node_color": "#DB7093",
         "node_shape": "8",
         "node_size": 900,
         "alpha": 0.8,

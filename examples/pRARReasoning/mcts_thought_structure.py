@@ -6,6 +6,7 @@ prompting policy.
 """
 
 import logging
+import math
 import json
 import math
 import random
@@ -85,6 +86,7 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
         self,
     ) -> Tuple[str, str]:
         """Explore the policy with the llm during reasoning."""
+
         # Policy exploration
         # Get the latest node in the policy chain
         cur_policy_node = self.policy_chain[-1]
@@ -94,8 +96,13 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
         chile_policy_nodes = list(chile_policy_nodes)
 
         num_childs = len(chile_policy_nodes)
-
+        logging.info(
+            "Performing the policy exploration for policy node N-%s S-%s:",
+            cur_policy_node.identity,
+            cur_policy_node.step_idx,
+        )
         if compute_explore_prob(num_childs, self.explore_constant) > 0.5:
+            logging.info("  Generating next step by PolicyExclusionReasoning.")
             # Generate the next thought by excluding the current policies
             # thereby allowing LLMs to explore new policies
             next_thoughts, infer_info = (
@@ -113,6 +120,7 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
             edge_type = "PolicyExclusionReasoning"
 
         else:
+            logging.info("  Generating next step by ThoughtGenerationReasoning.")
             # Directly generate the next thought
             next_thoughts, infer_info = self.thought_model.generate_thoughts(
                 thought_chain=self.reasoning_chain,
@@ -158,16 +166,17 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
             growth="Growable",
             edge_type="PolicySummarizationReasoning",
         )
-
+        logging.info("   Generated new policy by PolicySummarizationReasoning.")
         return policy_thought_id, thought_id
 
     def selection(self, cur_thought_node: BasicNode, cur_policy_node: PolicyNode):
         """Perform the selection of MCTS."""
         # Visit the thought_origins of the policy node candidates
+        logging.info("Performing the selection of MCTS.")
+
         policy_node_candidates = self.policy_tree.get_successor_nodes(
             cur_policy_node.identity
         )
-
         candidate_scores = [
             self.compute_values(thought_node=cur_thought_node, policy_node=policy_node)
             for policy_node in policy_node_candidates
@@ -176,7 +185,15 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
 
         best_index = np.argmax(candidate_scores)
 
-        return policy_node_candidates[best_index]
+        select_policy_node = policy_node_candidates[best_index]
+        logging.info(
+            "  Selected the best policy N-%s S-%s for step %s",
+            select_policy_node.identity,
+            select_policy_node.step_idx,
+            cur_thought_node.step_idx,
+        )
+
+        return select_policy_node
 
     def expansion(
         self,
@@ -221,7 +238,14 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
             policy_num_visits=1,
             prev_node_id=cur_policy_node.identity,
             thought_origins=[cur_thought_str],
-            thought_evaluations=[[0, llm_value]],
+            # Add the [num_wins, v_llm, n_visits]
+            thought_evaluations=[[0, llm_value, 1]],
+        )
+
+        logging.info(
+            "  Expanded new policy node N-%s as a child of node N-%s .",
+            policy_node_id,
+            cur_policy_node.identity,
         )
 
         return policy_node_id
@@ -230,8 +254,14 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
         """Perform the simulation, i.e., reasoning, of the MCS."""
         # Continue reasoning until the sink node is reached
         # i.e., the solution is obtained
+        logging.info(
+            "Performing the simulation/rollout of MCTS from N-%s S-%s:",
+            self.reasoning_chain[-1].identity,
+            self.reasoning_chain[-1].step_idx,
+        )
 
         while not self.is_node_sink(self.reasoning_chain[-1].identity):
+
             cur_thought_node = self.reasoning_chain[-1]
             cur_policy_node = self.policy_chain[-1]
             policy_node_candidates = self.policy_tree.get_successor_nodes(
@@ -239,6 +269,7 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
             )
 
             if len(policy_node_candidates) == 0:
+
                 next_thoughts, infer_info = self.thought_model.generate_thoughts(
                     thought_chain=self.reasoning_chain,
                     num_thoughts=1,
@@ -246,7 +277,12 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
                 )
                 next_thought = next_thoughts[0]
                 infer_info = infer_info[0]
+                logging.info(
+                    "  -> Generated next Step %s without policy guidance due to no policy candidates.",
+                    cur_thought_node.step_idx + 1,
+                )
             else:
+
                 # Randomly select a policy to guide the reasoning
                 selected_policy_node = random.choice(policy_node_candidates)
 
@@ -262,7 +298,12 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
                 infer_info = infer_info[0]
                 # Add the policy to the policy chain
                 self.policy_chain.append(selected_policy_node)
-
+                logging.info(
+                    "  -> Generating next Step %s with policy N-%s S-%s guidance.",
+                    cur_thought_node.step_idx + 1,
+                    selected_policy_node.identity,
+                    selected_policy_node.step_idx,
+                )
             # Add the thought to the thought structure as a node
             thought_node_id = self.add_node(
                 thought=next_thought,
@@ -287,6 +328,7 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
 
     def backpropagation(self, is_win: int):
         """Record the correctness of the solution to the policy chain."""
+        logging.info("Performing the backpropagation of MCTS:")
         for policy_node in self.policy_chain:
             node_id = policy_node.identity
             if policy_node.position == "PolicyRoot":
@@ -294,6 +336,11 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
             self.policy_tree.node_pool[node_id].policy_num_visits += 1
             # The latest thought is the one newly added for the policy
             self.policy_tree.node_pool[node_id].thought_evaluations[-1][0] += is_win
+            logging.info(
+                "  -> Updated the policy node N-%s S-%s.",
+                node_id,
+                self.policy_tree.node_pool[node_id].step_idx,
+            )
 
     def build_structure(
         self,
@@ -334,7 +381,10 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
 
             is_exist = "false"
             if len(policy_node_candidates) > 0:
-
+                logging.info(
+                    "Judging whether the new policy exists in successors of N-%s.",
+                    cur_policy_node.identity,
+                )
                 exist_thoughts, infer_info = self.thought_model.compare_policy(
                     target_policy_thought_node=self.node_pool[policy_thought_id],
                     policy_node_pool=policy_node_candidates,
@@ -356,6 +406,7 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
                 )
 
             if "true" in is_exist.lower():
+                logging.info("Selecting best policy as the new policy exists.")
                 # Select the best current policy to guide the reasoning
                 best_policy_node = self.selection(
                     cur_thought_node=cur_thought_node,
@@ -381,11 +432,25 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
                 self.policy_chain.append(best_policy_node)
 
                 # Add the current thought to the policy
-                llm_value = self.thought_model.assess_thought_policy(
+                next_thought_node = self.node_pool[next_thought_id]
+                value_thoughts, infer_info = self.thought_model.assess_thought_policy(
                     thought_chain=self.reasoning_chain,
-                    policy_chain=self.policy_chain,
-                    policy=best_policy_node,
-                    policy_thought=next_thought,
+                    thought_node=next_thought_node,
+                    policy_node=best_policy_node,
+                )
+                llm_value = float(value_thoughts[0])
+                infer_info = infer_info[0]
+                self.add_node(
+                    thought=llm_value,
+                    prev_node_id=next_thought_node.identity,
+                    step_idx=next_thought_node.step_idx,
+                    thought_evaluation=None,
+                    thought_inference=infer_info,
+                    node_name="PolicyAssessmentThought",
+                    position="PolicyAssessmentIntermediate",
+                    step_name="PolicyAssessment",
+                    growth="Un-growable",
+                    edge_type="PolicyAssessmentReasoning",
                 )
                 # Extend the node by adding the thought origin
                 # and the thought evaluation
@@ -395,9 +460,11 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
                 self.policy_tree.extend_node(
                     node_id=best_policy_node.identity,
                     thought_origin=cur_thought_str,
-                    thought_evaluation=(0, llm_value),
+                    # Add the [num_wins, v_llm, n_visits]
+                    thought_evaluation=[0, llm_value, 1],
                 )
             else:
+                logging.info("Performing expansion of MCTS:")
                 added_policy_node_id = self.expansion(
                     cur_policy_node=cur_policy_node,
                     cur_thought_node=cur_thought_node,
@@ -437,6 +504,7 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
             # to the policy tree
             # Thus, in MCTS, we move to the simulation
             if "false" in is_exist.lower():
+                logging.info("After expansion, jumping out toward Simulation.")
                 break
 
         # Perform the simulation of the reasoning
@@ -459,26 +527,24 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
         thought_origins = policy_node.thought_origins
         # A list, each is (num_wins, v_llm)
         thought_evaluations = policy_node.thought_evaluations
-        print(thought_node.thought.question)
-        print(thought_origins)
+
         # Get the indexes of the K-nearest thoughts
         top_idx, distances = self.embedder.get_neighbors(
             query=str(thought_node.thought.question),
             documents=thought_origins,
             num_neighbors=self.num_neighbor_thoughts,
         )
-        print("top_idx: ", top_idx)
-        print("distances: ", distances)
+
         neighbor_evals = [thought_evaluations[idx] for idx in top_idx]
-        # Compute the averaged win rate
-        avg_win = np.mean([score[0] for score in neighbor_evals])
-        v_llm = np.mean([score[1] for score in neighbor_evals])
+        # Compute the averaged win rate and llm
+        # As each thought origin has the format of (num_wins, v_llm, n_visits)
+        # we should compute the inner average before computing the outer average
+        avg_win = np.mean([score[0] / score[3] for score in neighbor_evals])
+        v_llm = np.mean([score[1] / score[3] for score in neighbor_evals])
 
         # Compute the average distance
         v_u = 1 / np.mean(distances)
-        print("avg_win: ", avg_win)
-        print("v_llm: ", v_llm)
-        print("v_u: ", v_u)
+        v_u = 1 if math.isinf(v_u) else v_u
         return avg_win, v_llm, v_u
 
     def compute_ucb_value(

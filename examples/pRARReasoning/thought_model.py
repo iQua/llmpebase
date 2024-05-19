@@ -59,6 +59,40 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
 
         return thoughts, inference_info
 
+    def generate_policy_next_thoughts(
+        self,
+        thought_chain: List[base.BasicNode],
+        policy_chain: List[PolicyNode],
+        policy_node: PolicyNode,
+        num_thoughts: int = 1,
+    ):
+        """Generate thoughts based on the prompt I_G of the p-RAR paper."""
+
+        # Create the reasoning chain prompt
+        prompt = self.prompter.organize_policy_guide_thought_prompt(
+            chain_nodes=thought_chain,
+            policy_chain=policy_chain,
+            guide_policy_node=policy_node,
+        )
+
+        system_prompt = self.prompter.system_prompts.policy_guided_generation_prompt
+
+        responses = self.llm_model.forward(
+            user_prompt=str(prompt),
+            per_request_responses=num_thoughts,
+            sys_prompt=system_prompt,
+        )
+        thoughts = self.llm_model.read_response_contents(responses)
+
+        inference_info = [
+            BasicPromptAndResponse(
+                prompt=prompt, response=thought, system=system_prompt
+            )
+            for thought in thoughts
+        ]
+
+        return thoughts, inference_info
+
     def generate_excluded_policy_thoughts(
         self,
         thought_chain: List[base.BasicNode],
@@ -160,17 +194,24 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
     def assess_thought_policy(
         self,
         thought_chain: List[base.BasicNode],
-        policy_thought_node: base.BasicNode,
         thought_node: base.BasicNode,
+        policy_thought_node: base.BasicNode = None,
+        policy_node: PolicyNode = None,
         num_thoughts: int = 1,
     ):
         """
         Assess the policy of a thought based on the I_A of the p-RAR paper.
+
+        This function handles two cases:
+        1. The policy is provided as a thought node of the thought structure
+        2. The policy is directly from the policy tree as a policy node
+
         """
         prompt = self.prompter.organize_policy_assessment_prompt(
             chain_nodes=thought_chain,
-            policy_thought_node=policy_thought_node,
             thought_node=thought_node,
+            policy_thought_node=policy_thought_node,
+            policy_node=policy_node,
         )
 
         system_prompt = self.prompter.system_prompts.thought_policy_assessment_prompt

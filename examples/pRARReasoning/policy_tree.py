@@ -32,20 +32,37 @@ class BasicPolicyStep(FieldFrozenContainer):
     # This corresponds the Upsilon of the paper
     thought_origins: List[str] = None
     # Rewards of the thought should hold two reward,
-    # 1. n_wins and 2. v_llm
+    # 1. n_wins and 2. v_llm and 3. n_visits
     thought_evaluations: List[List[float]] = None
 
     def extend_thought_origin(self, thought_origin: str):
         """Extend the thought origins."""
         if self.thought_origins is None:
             self.thought_origins = []
-        self.thought_origins.extend(thought_origin)
 
-    def extend_thought_evaluation(self, thought_evaluation: List[float]):
+        if thought_origin not in self.thought_origins:
+            self.thought_origins.append(thought_origin)
+
+        return self.thought_origins.index(thought_origin)
+
+    def extend_thought_evaluation(
+        self, thought_evaluation: List[float], extend_idx: int = None
+    ):
         """Extend the thought evaluations."""
         if self.thought_evaluations is None:
             self.thought_evaluations = []
-        self.thought_evaluations.extend(thought_evaluation)
+
+        if extend_idx >= len(self.thought_evaluations):
+            self.thought_evaluations.append(thought_evaluation)
+        else:
+            # Merge the thought evaluations to the existing one
+            # Add their n_wins, v_llm and n_visits
+            self.thought_evaluations[extend_idx] = [
+                v1 + v2
+                for v1, v2 in zip(
+                    self.thought_evaluations[extend_idx], thought_evaluation
+                )
+            ]
 
 
 @dataclass
@@ -279,17 +296,12 @@ class PolicyTree(base.BaseStructure):
         """
         node = self.node_pool[node_id]
         # Added new thought origins and evaluations
-        node.extend_thought_origin(thought_origin)
-        node.extend_thought_evaluation(thought_evaluation)
+        extend_idx = node.extend_thought_origin(thought_origin)
+        node.extend_thought_evaluation(thought_evaluation, extend_idx)
         node.policy_num_visits += 1
+        self.node_pool[node_id] = node
 
     # def set_node_sink(self, node_id: str, max_length: int = 3):
     #     """Set the node to be the stop node."""
     #     # Set the node to be the stop node
     #     self.node_pool[node_id].set_position("Sink")
-
-
-class PolicyTreeVisualizer(BasicStructureVisualizer):
-    """A visualizer to visualize the policy tree."""
-
-    pass

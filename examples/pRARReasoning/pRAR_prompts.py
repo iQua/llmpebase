@@ -43,7 +43,7 @@ class PolicyPrompts:
     # Braces: 1). Question, 2) First Reasoning Step
     first_policy_summarization_prompt = BasicThoughtPromptFormat(
         head="\n\n{}\nLet's focus on summarize the policy that underpins the first reasoning step.\n",
-        content="\n{}\n",
+        content="\n{}\n\n",
         target="Please review Step 1 within {} and summarize its policy, i.e., Policy 1.",
         notice=" Only direct output summarized policy. Do not include the Policy index in the output.",
         tail="",
@@ -55,7 +55,7 @@ class PolicyPrompts:
     # 6) Chain flag, 7) Policy flag Step index, 8) Step idx, 9) Policy thought flag, 10). Policy index
     policy_summarization_prompt = BasicThoughtPromptFormat(
         head="\n\n{}\nLet's focus on summarize the policy that underpins the reasoning step {}.\n",
-        content="\n{}\n{}\n\n{}",
+        content="\n{}\n{}\n\n{}\n\n",
         target="Please review the reasoning steps within {} and their corresponding policies within {} and proceed to summarize the policy of Step {} within {}, i.e., Policy {}.",
         notice=" Only direct output summarized policy. Do not include the Policy index in the output.",
         tail="",
@@ -80,8 +80,8 @@ class PolicyPrompts:
     #   7) Reasoning chain flag
     assess_next_policy_prompt = BasicThoughtPromptFormat(
         head="{}Let's focus on assessing whether the policy can guide the generation of an effective next reasoning step.\n",
-        content="\n{}\n\n{}\n{}",
-        target="Please review the reasoning steps within the tag {} and the generated next Step {} within {} guided by the Policy {} within the tag {}, then assess this Policy {}.",
+        content="\n{}\n\n{}\n{}\n\n",
+        target="Please review the reasoning steps already taken within the tag {} and the generated next Step {} within {} guided by the Policy {} within the tag {}, then assess this Policy {}.",
         notice=" Only output the assessment score ranging from 0 to 1, while a higher score means a better policy as reasoning guidance.",
         tail="",
         prompt="",
@@ -93,7 +93,7 @@ class PolicyPrompts:
     #   5) Policy index, 6) Policy pool flag 7) Policy index
     compare_policy_prompt = BasicThoughtPromptFormat(
         head="Let's focus on whether the given policy exists in the policy pool.\n",
-        content="\n{}\n\n{}",
+        content="\n{}\n\n{}\n\n",
         target="Please judge whether the Policy {} within the tag {} already exists in the policies within the tag {}.",
         notice="Only output True if exists, or False if not.",
         tail="",
@@ -142,7 +142,7 @@ class PolicyThoughtGenerationPrompts(ThoughtGenerationPrompts):
     # 5) Reasoning chain flag, 6) Policy chain flag, 6) Policy index,
     # 7) Policy flag 8) Step index
     policy_guide_next_step_prompt = BasicThoughtPromptFormat(
-        head="{}Let's focus on following the policy to directly generate the next possible reasoning step for the reasoning steps below.\n",
+        head="{}Let's focus on following the policy to directly generate the next reasoning step for the reasoning steps below.\n",
         content="\n{}\n{}\n\n{}\n\n",
         target="Please review the reasoning steps within the tag {} along with their policies within the tag {}, then follow the Policy {} within the tag {} to proceed to directly generate the best next step, i.e., Step {}.",
         notice=" Only output the generated step. Do not include the Step index in the output.",
@@ -168,7 +168,7 @@ class PolicyThoughtGenerationPrompts(ThoughtGenerationPrompts):
     #   8) Policy candidate flag 9) Step index
     exclusive_policy_next_step_prompt = BasicThoughtPromptFormat(
         head="{}Let's focus on avoiding using the given policies to carefully and directly generate the next possible reasoning step for the reasoning steps below.\n",
-        content="\n{}\n{}\n\n{}",
+        content="\n{}\n{}\n\n{}\n\n",
         target="Please review the reasoning steps within the tag {} and their policies within the tag {}, then specifically avoid repeating all Policy {} listed within tag {} to proceed to directly generate the best next step, i.e., Step {}.",
         notice=" Only output the generated step. Do not include the Step index in the output.",
         tail="",

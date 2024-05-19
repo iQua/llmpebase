@@ -122,20 +122,14 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
 
         # The chain only contain the first step
         if len(chain_nodes) == 1:
-            # Create the prompt for the policy of the first step
-            policy_prompt = self.organize_node_block_prompt(
-                nodes=[guide_policy_node],
-                content_attr="policy",
-                head_format=self.policy_prompts.policy_head,
-                start_flag=self.policy_prompts.policy_start_flag,
-                end_flag=self.policy_prompts.policy_start_flag,
-            )
 
             generation_prompt = BasicThoughtPromptFormat(
                 **self.generation_prompts.policy_guide_first_step_prompt
             )
             generation_prompt.head = generation_prompt.head.format(root_prompt)
-            generation_prompt.content = generation_prompt.content.format(policy_prompt)
+            generation_prompt.content = generation_prompt.content.format(
+                policy_guide_prompt
+            )
             generation_prompt.target = generation_prompt.target.format(
                 self.policy_start_flag
             )
@@ -152,6 +146,7 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
             self.thought_chain_start_flag,
             self.policy_prompts.policy_chain_start_flag,
             guide_policy_node.step_idx,
+            self.policy_prompts.policy_start_flag,
             len(chain_nodes),
         )
 
@@ -335,8 +330,9 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
     def organize_policy_assessment_prompt(
         self,
         chain_nodes: List[base.BasicNode],
-        policy_thought_node: base.BasicNode,
         thought_node: base.BasicNode,
+        policy_thought_node: base.BasicNode = None,
+        policy_node: PolicyNode = None,
     ) -> BasicThoughtPromptFormat:
         """
         Organizing the prompt for assessing the policy.
@@ -344,13 +340,27 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
         root_prompt = str(chain_nodes[0].thought)
 
         # Create the prompt for the policy thought
-        policy_thought_prompt = self.organize_node_block_prompt(
-            nodes=[policy_thought_node],
-            content_attr="thought",
-            head_format=self.policy_prompts.policy_head,
-            start_flag=self.policy_prompts.policy_assessment_start_flag,
-            end_flag=self.policy_prompts.policy_assessment_end_flag,
-        )
+        assess_policy_prompt = None
+        assess_policy_step_idx = None
+        if policy_thought_node is not None:
+            assess_policy_prompt = self.organize_node_block_prompt(
+                nodes=[policy_thought_node],
+                content_attr="thought",
+                head_format=self.policy_prompts.policy_head,
+                start_flag=self.policy_prompts.policy_assessment_start_flag,
+                end_flag=self.policy_prompts.policy_assessment_end_flag,
+            )
+            assess_policy_step_idx = policy_thought_node.step_idx
+        if policy_node is not None:
+            assess_policy_prompt = self.organize_node_block_prompt(
+                nodes=[policy_node],
+                content_attr="policy",
+                head_format=self.policy_prompts.policy_head,
+                start_flag=self.policy_prompts.policy_assessment_start_flag,
+                end_flag=self.policy_prompts.policy_assessment_end_flag,
+            )
+            assess_policy_step_idx = policy_node.step_idx
+        assert assess_policy_prompt is not None
 
         # Create the prompt for the thought
         thought_prompt = self.organize_node_block_prompt(
@@ -368,10 +378,10 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
             )
             generation_prompt.head = generation_prompt.head.format(root_prompt)
             generation_prompt.content = generation_prompt.content.format(
-                thought_prompt, policy_thought_prompt
+                thought_prompt, assess_policy_prompt
             )
             generation_prompt.target = generation_prompt.target.format(
-                policy_thought_node.step_idx,
+                assess_policy_step_idx,
                 self.policy_prompts.policy_assessment_start_flag,
                 self.thought_chain_start_flag,
                 self.policy_prompts.policy_assessment_start_flag,
@@ -393,14 +403,14 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
         )
         generation_prompt.head = generation_prompt.head.format(root_prompt)
         generation_prompt.content = generation_prompt.content.format(
-            thought_chain_prompt, thought_prompt, policy_thought_prompt
+            thought_chain_prompt, thought_prompt, assess_policy_prompt
         )
         generation_prompt.target = generation_prompt.target.format(
             self.thought_chain_start_flag,
             thought_node.step_idx,
             self.policy_prompts.policy_guided_thought_chain_start_flag,
-            policy_thought_node.step_idx,
+            assess_policy_step_idx,
             self.policy_prompts.policy_assessment_start_flag,
-            policy_thought_node.step_idx,
+            assess_policy_step_idx,
         )
         return generation_prompt
