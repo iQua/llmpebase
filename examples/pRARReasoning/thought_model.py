@@ -36,6 +36,8 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
         Generate the thoughts normally based on the I_G^{prime} of the p-RAR paper.
         """
 
+        generation_config = self.model_config["generation_settings"]
+        self.llm_model.generation_config.update(generation_config)
         # Create the reasoning chain prompt
         prompt = self.prompter.organize_next_thought_prompt(
             chain_nodes=thought_chain, policy_chain=policy_chain
@@ -67,7 +69,10 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
         num_thoughts: int = 1,
     ):
         """Generate thoughts based on the prompt I_G of the p-RAR paper."""
-
+        generation_config = self.model_config["optimization"]["mcts"][
+            "generation_settings"
+        ]["policy_guided_generation"]
+        self.llm_model.generation_config.update(generation_config)
         # Create the reasoning chain prompt
         prompt = self.prompter.organize_policy_guide_thought_prompt(
             chain_nodes=thought_chain,
@@ -101,7 +106,10 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
         policy_exclusion_candidates: List[PolicyNode] = None,
     ):
         """Generate thoughts based on the prompt I_G of the p-RAR paper."""
-
+        generation_config = self.model_config["optimization"]["mcts"][
+            "generation_settings"
+        ]["policy_exclusion_generation"]
+        self.llm_model.generation_config.update(generation_config)
         # Create the reasoning chain prompt
         prompt = self.prompter.organize_policy_exclusive_thought_prompt(
             chain_nodes=thought_chain,
@@ -135,7 +143,10 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
         num_thoughts: int = 1,
     ):
         """Summarize the policy from a thought."""
-
+        generation_config = self.model_config["optimization"]["mcts"][
+            "generation_settings"
+        ]["policy_summarization"]
+        self.llm_model.generation_config.update(generation_config)
         prompt = self.prompter.organize_policy_summary_prompt(
             chain_nodes=thought_chain,
             policy_chain=policy_chain,
@@ -167,7 +178,10 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
         num_thoughts: int = 1,
     ):
         """Compare whether the target policy exists in the policy pool."""
-
+        generation_config = self.model_config["optimization"]["mcts"][
+            "generation_settings"
+        ]["policy_comparison"]
+        self.llm_model.generation_config.update(generation_config)
         prompt = self.prompter.organize_policy_compare_prompt(
             policy_nodes=policy_node_pool,
             target_policy_thought_node=target_policy_thought_node,
@@ -207,6 +221,12 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
         2. The policy is directly from the policy tree as a policy node
 
         """
+
+        generation_config = self.model_config["optimization"]["mcts"][
+            "generation_settings"
+        ]["thought_policy_assessment"]
+        self.llm_model.generation_config.update(generation_config)
+
         prompt = self.prompter.organize_policy_assessment_prompt(
             chain_nodes=thought_chain,
             thought_node=thought_node,

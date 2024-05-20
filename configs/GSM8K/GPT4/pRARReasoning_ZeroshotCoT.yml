@@ -29,7 +29,8 @@ model:
 
   # The core settings of the llm model
   generation_settings:
-    temperature: 0.7
+    temperature: 0.5
+    top_p: 0.5
     max_tokens: 1000
     # n here is n_completions_per_prompt
     n: 1
@@ -56,6 +57,34 @@ model:
     mcts:
       policy_exploration_constant: 5
       num_neighbor_thoughts: 10
+
+      generation_settings:
+        policy_summarization: 
+          temperature: 0.4
+          top_p: 0.4
+          max_tokens: 1000
+
+        policy_exclusion_generation:
+          temperature: 0.4
+          top_p: 0.4
+          max_tokens: 1000
+        
+        thought_policy_assessment:
+          temperature: 0.2
+          top_p: 0.2
+          max_tokens: 1000
+        
+        policy_comparison:
+          temperature: 0.2
+          top_p: 0.2
+          max_tokens: 1000
+
+        policy_guided_generation:
+          temperature: 0.4
+          top_p: 0.4
+          max_tokens: 1000
+
+
 
   pretrained_models_path: experiments/pretrained_models
 

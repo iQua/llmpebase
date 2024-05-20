@@ -33,6 +33,8 @@ class LlmThoughtModel:
         self.llm_model = llm_model
         self.prompter = prompter
 
+        self.model_config = model_config
+
     def generate_thoughts(
         self, thought_chain: List[base.BasicNode], num_thoughts: int = 1, **kwargs
     ) -> Tuple[List[str], List[BasicPromptAndResponse]]:

@@ -101,7 +101,10 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
             cur_policy_node.identity,
             cur_policy_node.step_idx,
         )
-        if compute_explore_prob(num_childs, self.explore_constant) > 0.5:
+        if (
+            num_childs > 0  # There should have policy candidates
+            and compute_explore_prob(num_childs, self.explore_constant) > 0.5
+        ):
             logging.info("  Generating next step by PolicyExclusionReasoning.")
             # Generate the next thought by excluding the current policies
             # thereby allowing LLMs to explore new policies
@@ -539,8 +542,8 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
         # Compute the averaged win rate and llm
         # As each thought origin has the format of (num_wins, v_llm, n_visits)
         # we should compute the inner average before computing the outer average
-        avg_win = np.mean([score[0] / score[3] for score in neighbor_evals])
-        v_llm = np.mean([score[1] / score[3] for score in neighbor_evals])
+        avg_win = np.mean([score[0] / score[2] for score in neighbor_evals])
+        v_llm = np.mean([score[1] / score[2] for score in neighbor_evals])
 
         # Compute the average distance
         v_u = 1 / np.mean(distances)
