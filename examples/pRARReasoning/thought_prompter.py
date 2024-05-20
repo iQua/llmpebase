@@ -2,6 +2,7 @@
 The thought prompter for the pRAR.
 """
 
+import copy
 from typing import List
 
 import pRAR_prompts
@@ -203,7 +204,10 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
             return generation_prompt
 
         chain_prompt = self.organize_chain_prompt(
-            chain_nodes[1:], with_flag=True, with_evaluation_score=False
+            chain_nodes[1:],
+            with_flag=True,
+            with_evaluation_score=False,
+            with_step_idx=True,
         )
 
         generation_prompt = BasicThoughtPromptFormat(
@@ -230,7 +234,12 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
         policy_thought_node: base.BasicNode,
     ) -> BasicThoughtPromptFormat:
         """Organizing the prompt for the policy summary."""
-        root_prompt = str(chain_nodes[0].thought)
+        root_prompt = copy.deepcopy(chain_nodes[0].thought)
+        root_prompt.head = ""
+        root_prompt.notice = ""
+        root_prompt.solution_flag = ""
+        root_prompt.answer = ""
+        root_prompt = str(root_prompt)
 
         # Create the prompt for the policy chain
         policy_chain_prompt = ""
@@ -248,8 +257,8 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
             nodes=[policy_thought_node],
             content_attr="thought",
             head_format=self.step_head,
-            start_flag=self.thought_chain_start_flag,
-            end_flag=self.thought_chain_end_flag,
+            start_flag=self.policy_prompts.step_start_flag,
+            end_flag=self.policy_prompts.step_end_flag,
         )
 
         # The chain only contain the first step
@@ -262,12 +271,15 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
                 policy_thought_prompt
             )
             generation_prompt.target = generation_prompt.target.format(
-                self.thought_chain_start_flag
+                self.policy_prompts.step_start_flag
             )
             return generation_prompt
 
         chain_prompt = self.organize_chain_prompt(
-            chain_nodes[1:], with_flag=True, with_evaluation_score=False
+            chain_nodes[1:],
+            with_flag=True,
+            with_evaluation_score=False,
+            with_step_idx=True,
         )
 
         generation_prompt = BasicThoughtPromptFormat(
@@ -280,10 +292,10 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
             chain_prompt, policy_chain_prompt, policy_thought_prompt
         )
         generation_prompt.target = generation_prompt.target.format(
-            self.generation_prompts.thought_chain_start_flag,
+            self.thought_chain_start_flag,
             self.policy_prompts.policy_chain_start_flag,
             policy_thought_node.step_idx,
-            self.generation_prompts.thought_chain_start_flag,
+            self.thought_chain_start_flag,
             policy_thought_node.step_idx,
         )
 
@@ -337,7 +349,12 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
         """
         Organizing the prompt for assessing the policy.
         """
-        root_prompt = str(chain_nodes[0].thought)
+        root_prompt = copy.deepcopy(chain_nodes[0].thought)
+        root_prompt.head = ""
+        root_prompt.notice = ""
+        root_prompt.solution_flag = ""
+        root_prompt.answer = ""
+        root_prompt = str(root_prompt)
 
         # Create the prompt for the policy thought
         assess_policy_prompt = None
@@ -367,8 +384,8 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
             nodes=[thought_node],
             content_attr="thought",
             head_format=self.step_head,
-            start_flag=self.policy_prompts.policy_guided_thought_chain_start_flag,
-            end_flag=self.policy_prompts.policy_guided_thought_chain_end_flag,
+            start_flag=self.policy_prompts.step_start_flag,
+            end_flag=self.policy_prompts.step_end_flag,
         )
 
         # Create the prompt for the policy assessment of the first step
@@ -383,7 +400,7 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
             generation_prompt.target = generation_prompt.target.format(
                 assess_policy_step_idx,
                 self.policy_prompts.policy_assessment_start_flag,
-                self.thought_chain_start_flag,
+                self.policy_prompts.step_start_flag,
                 self.policy_prompts.policy_assessment_start_flag,
             )
             return generation_prompt
@@ -408,7 +425,7 @@ class PolicyThoughtPrompter(ThoughtStructurePrompter):
         generation_prompt.target = generation_prompt.target.format(
             self.thought_chain_start_flag,
             thought_node.step_idx,
-            self.policy_prompts.policy_guided_thought_chain_start_flag,
+            self.policy_prompts.step_start_flag,
             assess_policy_step_idx,
             self.policy_prompts.policy_assessment_start_flag,
             assess_policy_step_idx,

@@ -25,7 +25,7 @@ class PolicySystemPrompts(BaseSystemPrompts):
 
     # Corresponding to the I_C of the p-RAR paper
     policy_comparison_prompt: str = (
-        """As a professional mathematician, your expertise lies in judging whether a policy exists in a policy pool containing various policies. Each policy presents a general-purpose reasoning instruction in generating the reasoning step and is a high-level, question-agnostic principle that facilitates deducing a single logical reasoning step. Start by reviewing policies in the pool, then directly judge whether the given policy already exists. The output should be either True or False."""
+        """As a professional policy comparison expert, your expertise lies in judging whether a policy exists in a policy pool containing various policies. Remember that policy is a general-purpose reasoning instruction and is a high-level, question-agnostic principle. Please perform the comparison in terms of the logic, high-level ideas, theorems, or rules. Please compare the given policy with each of the policies in the pool. Once there is a similar one, return True. Start by reviewing policies in the pool, then directly judge whether the given policy already exists. The output should be either True or False."""
     )
 
     # Corresponding to the I_G^{prime} of the p-RAR paper

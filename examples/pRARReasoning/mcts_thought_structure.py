@@ -284,6 +284,9 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
                     "  -> Generated next Step %s without policy guidance due to no policy candidates.",
                     cur_thought_node.step_idx + 1,
                 )
+                # Note that the policy of this thought should be summarized
+                # For convenience, we summarize the policy of the thought
+                # below.
             else:
 
                 # Randomly select a policy to guide the reasoning
@@ -316,6 +319,38 @@ class MCTSPolicyStructure(base.BaseThoughtStructure):
             )
             # Add the thought node to the reasoning chain
             thought_node = self.node_pool[thought_node_id]
+            # Summarize the policy of the thought when there is no policy
+            # used during this thought generation
+            if len(policy_node_candidates) == 0:
+                # Summarize the policy from the generated thought
+                new_policy, infer_info = self.thought_model.summarize_policy(
+                    thought_chain=self.reasoning_chain,
+                    policy_chain=self.policy_chain,
+                    policy_thought_node=self.node_pool[thought_node_id],
+                    num_thoughts=1,
+                )
+                new_policy = new_policy[0]
+                policy_thought_id = self.add_node(
+                    thought=new_policy,
+                    prev_node_id=thought_node_id,
+                    step_idx=self.node_pool[thought_node_id].step_idx,
+                    thought_evaluation=None,
+                    thought_inference=infer_info,
+                    node_name="PolicySummarizationThought",
+                    step_name="PolicySummarization",
+                    position="PolicySummarizationIntermediate",
+                    growth="Growable",
+                    edge_type="PolicySummarizationReasoning",
+                )
+                policy_node_id = self.expansion(
+                    cur_policy_node=cur_policy_node,
+                    cur_thought_node=cur_thought_node,
+                    policy_thought_node=self.node_pool[policy_thought_id],
+                    next_thought_node=self.node_pool[thought_node_id],
+                )
+                selected_policy_node = self.policy_tree.node_pool[policy_node_id]
+                self.policy_chain.append(selected_policy_node)
+
             self.reasoning_chain.append(thought_node)
 
             self.save_structure()

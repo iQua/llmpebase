@@ -33,19 +33,19 @@ class PolicyPrompts:
     policy_start_flag: str = """<Policy>"""
     policy_end_flag: str = """<\\Policy>"""
 
-    policy_guided_thought_chain_start_flag: str = """<Step>"""
-    policy_guided_thought_chain_end_flag: str = """<\\Step>"""
-
     # The head of each step
     policy_head: str = "Policy {}."
+
+    step_start_flag: str = """<Step>"""
+    step_end_flag: str = """<\\Step>"""
 
     # Corresponding to the I_S of the p-RAR paper
     # Braces: 1). Question, 2) First Reasoning Step
     first_policy_summarization_prompt = BasicThoughtPromptFormat(
-        head="\n\n{}\nLet's focus on summarize the policy that underpins the first reasoning step.\n",
+        head="{}\nFor the given question, let's focus on summarize the policy that underpins the first reasoning step.\n",
         content="\n{}\n\n",
         target="Please review Step 1 within {} and summarize its policy, i.e., Policy 1.",
-        notice=" Only direct output summarized policy. Do not include the Policy index in the output.",
+        notice=" Only direct output summarized policy. Do not include the Policy index in the output. Remember that the policy is a high-level, question-agnostic principle. Do not include any question or reasoning step content in the policy.",
         tail="",
         prompt="",
     )
@@ -54,10 +54,10 @@ class PolicyPrompts:
     # 3) Reasoning Chain, 4) Policy Chain, 5) Policy thought
     # 6) Chain flag, 7) Policy flag Step index, 8) Step idx, 9) Policy thought flag, 10). Policy index
     policy_summarization_prompt = BasicThoughtPromptFormat(
-        head="\n\n{}\nLet's focus on summarize the policy that underpins the reasoning step {}.\n",
+        head="{}\nFor the given question, let's focus on summarize the policy that underpins the reasoning step {}.\n",
         content="\n{}\n{}\n\n{}\n\n",
         target="Please review the reasoning steps within {} and their corresponding policies within {} and proceed to summarize the policy of Step {} within {}, i.e., Policy {}.",
-        notice=" Only direct output summarized policy. Do not include the Policy index in the output.",
+        notice=" Only direct output summarized policy. Do not include the Policy index in the output. Remember that the policy is a high-level, question-agnostic principle. Do not include any question or reasoning step content in the policy.",
         tail="",
         prompt="",
     )
@@ -67,7 +67,7 @@ class PolicyPrompts:
     #   2) Generated Thought, 3) Policy Assessment
     #   3) Policy candidates flag
     assess_first_policy_prompt = BasicThoughtPromptFormat(
-        head="{}Let's focus on assessing whether the policy guides the generation of an effective first step.\n",
+        head="{}\nFor the given question, let's focus on assessing whether the policy guides the generation of an effective first step.\n",
         content="{}\n{}\n\n",
         target="Please assess Policy {} within {}. Notice that the reasoning Step 1 within {} is guided by the Policy 1 within {}.",
         notice=" Only output the assessment score ranging from 0 to 1, while a higher score means a better policy as reasoning guidance.",
@@ -79,7 +79,7 @@ class PolicyPrompts:
     #   3) Reasoning chain 5) Generated Thought 6) Policy Assessment
     #   7) Reasoning chain flag
     assess_next_policy_prompt = BasicThoughtPromptFormat(
-        head="{}Let's focus on assessing whether the policy can guide the generation of an effective next reasoning step.\n",
+        head="{}\nFor the given question, Let's focus on assessing whether the policy can guide the generation of an effective next reasoning step.\n",
         content="\n{}\n\n{}\n{}\n\n",
         target="Please review the reasoning steps already taken within the tag {} and the generated next Step {} within {} guided by the Policy {} within the tag {}, then assess this Policy {}.",
         notice=" Only output the assessment score ranging from 0 to 1, while a higher score means a better policy as reasoning guidance.",
@@ -95,7 +95,7 @@ class PolicyPrompts:
         head="Let's focus on whether the given policy exists in the policy pool.\n",
         content="\n{}\n\n{}\n\n",
         target="Please judge whether the Policy {} within the tag {} already exists in the policies within the tag {}.",
-        notice="Only output True if exists, or False if not.",
+        notice="Only output True if exists, or False if not. Remember that policy is a high-level, question-agnostic principle. Do not focus on text details but on the logic, high-level ideas, theorems, or rules.",
         tail="",
         prompt="",
     )
