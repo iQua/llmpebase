@@ -1,11 +1,14 @@
 """
-A running pipeline for the policy optimization phase of p-RAG.
+A running pipeline for the plan optimization phase of p-RAG.
 """
+
+import random
+import logging
 
 from llmpebase.pipeline import Pipeline
 
 
-class PolicyOptimizationPipeline(Pipeline):
+class PlanOptimizationPipeline(Pipeline):
     """
     A pipeline to accumulate the experiences for the SnowBall.
     """
@@ -18,8 +21,20 @@ class PolicyOptimizationPipeline(Pipeline):
     def execute(self):
         """Execute the pipeline to obtain the results."""
         n_epochs = self.optimization_config["epochs"]
+        num_train_samples = (
+            len(self.trainset)
+            if "num_train_samples" not in self.optimization_config
+            else self.optimization_config["num_train_samples"]
+        )
+
+        num_total_train_samples = len(self.trainset)
+        trainset_idxs = random.sample(range(num_total_train_samples), num_train_samples)
+        logging.info("Training on %d samples.", len(trainset_idxs))
+
         for epoch in range(1, n_epochs + 1):
             for idx, sample in enumerate(self.trainset):
+                if idx not in trainset_idxs:
+                    continue
                 sample_info = sample["auxiliary"]["sample_info"]
                 sample_id = sample_info["sample_id"]
                 record_name = f"Epoch {epoch}-Idx {idx}-ID<{sample_id}>"
@@ -51,12 +66,12 @@ class PolicyOptimizationPipeline(Pipeline):
                 measurements = self.evaluator.forward(results, groundtruths)
 
                 # After getting the results, backpropagate the results
-                # to update the policy tree
+                # to update the plan tree
                 self.reasoner.structure.backpropagation(measurements["num_correct"])
 
-                # Save the policy tree to the policy base
-                self.reasoner.policy_operator.save_policy_tree(
-                    self.reasoner.structure.policy_tree, sample_info
+                # Save the plan tree to the plan base
+                self.reasoner.plan_operator.save_plan_tree(
+                    self.reasoner.structure.plan_tree, sample_info
                 )
 
                 output = {

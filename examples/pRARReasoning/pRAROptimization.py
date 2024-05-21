@@ -7,7 +7,7 @@ import pRAR_prompts
 import thought_prompter
 import thought_model
 import reasoner
-from optimize_pipeline import PolicyOptimizationPipeline
+from optimize_pipeline import PlanOptimizationPipeline
 from visualization import PRARVisualizer, node_config, edge_config
 
 from llmpebase.model import define_model
@@ -27,22 +27,22 @@ def _main():
     llm_model = define_model(model_config=model_config)
 
     # Define the prompts for the thought structure
-    system_prompts = pRAR_system_prompts.PolicySystemPrompts
-    policy_prompts = pRAR_prompts.PolicyPrompts
-    policy_thought_prompts = pRAR_prompts.BasePolicyThoughtPrompts
+    system_prompts = pRAR_system_prompts.PlanSystemPrompts
+    plan_prompts = pRAR_prompts.PlanPrompts
+    plan_thought_prompts = pRAR_prompts.BasePlanThoughtPrompts
 
     # Define the thought model
-    prar_thought_prompter = thought_prompter.PolicyThoughtPrompter(
+    prar_thought_prompter = thought_prompter.PlanThoughtPrompter(
         system_prompts=system_prompts,
-        thought_prompts=policy_thought_prompts,
-        policy_prompts=policy_prompts,
+        thought_prompts=plan_thought_prompts,
+        plan_prompts=plan_prompts,
     )
 
-    prar_thought_model = thought_model.PolicyThoughtModel(
+    prar_thought_model = thought_model.PlanThoughtModel(
         llm_model=llm_model, model_config=model_config, prompter=prar_thought_prompter
     )
 
-    prar_reasoner = reasoner.PolicyThoughtReasoner(
+    prar_reasoner = reasoner.PlanThoughtReasoner(
         thought_model=prar_thought_model,
         model_config=model_config,
         logging_config=logging_config,
@@ -53,7 +53,7 @@ def _main():
         solution_extractor=None,
     )
 
-    pipeline = PolicyOptimizationPipeline(reasoner=prar_reasoner)
+    pipeline = PlanOptimizationPipeline(reasoner=prar_reasoner)
     pipeline.setup()
     pipeline.load_data()
     pipeline.execute()

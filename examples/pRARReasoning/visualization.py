@@ -10,40 +10,40 @@ p-RAR approach contains many types of nodes with the 'node_name':
             1). Root Node
             2). Intermediate Node
             3). NormalGenerationThought
-            4). PolicySummarizationThought
-            5). PolicyExclusionThought
-            6). PolicyAssessmentThought
-            7). PolicyExistenceThought
+            4). PlanSummarizationThought
+            5). PlanExclusionThought
+            6). PlanAssessmentThought
+            7). PlanExistenceThought
         with 'position':
             1). Root
             2). Intermediate
             3). Sink
             4). NormalGenerationIntermediate: s, skyblue
-            5). PolicySummarizationIntermediate: p, lavender
-            6). PolicyExclusionIntermediate: s, royalblue
-            7). PolicyAssessmentIntermediate: h, beige
-            8). PolicyExistenceIntermediate: d, darkgray
+            5). PlanSummarizationIntermediate: p, lavender
+            6). PlanExclusionIntermediate: s, royalblue
+            7). PlanAssessmentIntermediate: h, beige
+            8). PlanExistenceIntermediate: d, darkgray
 
 
-    - For the policy tree
+    - For the plan tree
         with 'node_name':
-            1). Root Policy Node
-            2). IntermediatePolicy Node
+            1). Root Plan Node
+            2). IntermediatePlan Node
         with 'position':
-            1). PolicyRoot
-            2). PolicyIntermediate
-            3). PolicySink
+            1). PlanRoot
+            2). PlanIntermediate
+            3). PlanSink
 
 p-RAR approach contains many types of edges with the 'edge_type':
     - For the thought structure
         1). Reasoning
         2). ThoughtGenerationReasoning 
-        3). PolicySummarizationReasoning
-        4). PolicyExclusionReasoning
-        5). PolicyAssessmentReasoning
-        6). PolicyExistenceReasoning
-    - For the policy tree
-        1). Policy Forwarding
+        3). PlanSummarizationReasoning
+        4). PlanExclusionReasoning
+        5). PlanAssessmentReasoning
+        6). PlanExistenceReasoning
+    - For the plan tree
+        1). Plan Forwarding
 """
 
 from typing import List
@@ -84,43 +84,43 @@ node_config = {
         "node_size": 1000,
         "alpha": 0.9,
     },
-    "PolicySummarizationIntermediate": {
+    "PlanSummarizationIntermediate": {
         "node_color": "#E6E6FA",
         "node_shape": "p",
         "node_size": 1000,
         "alpha": 0.9,
     },
-    "PolicyExclusionIntermediate": {
+    "PlanExclusionIntermediate": {
         "node_color": "#4169E1",
         "node_shape": "s",
         "node_size": 1000,
         "alpha": 0.9,
     },
-    "PolicyAssessmentIntermediate": {
+    "PlanAssessmentIntermediate": {
         "node_color": "#F5F5DC",
         "node_shape": "h",
         "node_size": 1000,
         "alpha": 0.9,
     },
-    "PolicyExistenceIntermediate": {
+    "PlanExistenceIntermediate": {
         "node_color": "#A9A9A9",
         "node_shape": "d",
         "node_size": 1000,
         "alpha": 0.9,
     },
-    "PolicyRoot": {
+    "PlanRoot": {
         "node_color": "#FFE4E1",
         "node_shape": "o",
         "node_size": 900,
         "alpha": 0.8,
     },
-    "PolicyIntermediate": {
+    "PlanIntermediate": {
         "node_color": "#DB7093",
         "node_shape": "s",
         "node_size": 850,
         "alpha": 0.9,
     },
-    "PolicySink": {
+    "PlanSink": {
         "node_color": "#DB7093",
         "node_shape": "8",
         "node_size": 900,
@@ -153,43 +153,43 @@ edge_config = {
         "style": "dashdot",
         "arrowsize": 10,
     },
-    "PolicySummarizationIntermediate": {
+    "PlanSummarizationIntermediate": {
         "edge_color": "black",
         "width": 1.5,
         "style": "dashdot",
         "arrowsize": 8,
     },
-    "PolicyExclusionIntermediate": {
+    "PlanExclusionIntermediate": {
         "edge_color": "black",
         "width": 1.5,
         "style": "dashed",
         "arrowsize": 8,
     },
-    "PolicyAssessmentIntermediate": {
+    "PlanAssessmentIntermediate": {
         "edge_color": "black",
         "width": 1.5,
         "style": "dashed",
         "arrowsize": 8,
     },
-    "PolicyExistenceIntermediate": {
+    "PlanExistenceIntermediate": {
         "edge_color": "black",
         "width": 1.5,
         "style": "dashed",
         "arrowsize": 8,
     },
-    "PolicyRoot": {
+    "PlanRoot": {
         "edge_color": "gray",
         "width": 1.5,
         "style": "solid",
         "arrowsize": 10,
     },
-    "PolicyIntermediate": {
+    "PlanIntermediate": {
         "edge_color": "gray",
         "width": 1.5,
         "style": "solid",
         "arrowsize": 10,
     },
-    "PolicySink": {
+    "PlanSink": {
         "edge_color": "gray",
         "width": 1.5,
         "style": "solid",
@@ -209,22 +209,22 @@ class PRARVisualizer(BasicStructureVisualizer):
             node = node_pool[node_id]
             if node.position == "Root":
                 labels[node.identity] = "Q"
-            if node.position == "PolicyRoot":
+            if node.position == "PlanRoot":
                 labels[node.identity] = "Task"
 
-            if node.position == "PolicySummarizationIntermediate":
+            if node.position == "PlanSummarizationIntermediate":
                 labels[node.identity] = f"N-{node.identity}\nIS P-{node.step_idx}"
 
             if node.position == "NormalGenerationIntermediate":
                 labels[node.identity] = f"N-{node.identity}\nS-{node.step_idx}"
 
-            if node.position == "PolicyExclusionIntermediate":
+            if node.position == "PlanExclusionIntermediate":
                 labels[node.identity] = f"N-{node.identity}\nIE S-{node.step_idx}"
 
-            if node.position == "PolicyAssessmentIntermediate":
+            if node.position == "PlanAssessmentIntermediate":
                 labels[node.identity] = f"N-{node.identity}\nIA S-{node.step_idx}"
 
-            if node.position == "PolicyExistenceIntermediate":
+            if node.position == "PlanExistenceIntermediate":
                 labels[node.identity] = f"N-{node.identity}\nIC S-{node.step_idx}"
 
             if node.position == "Intermediate":
@@ -233,10 +233,10 @@ class PRARVisualizer(BasicStructureVisualizer):
             if node.position == "Sink":
                 labels[node.identity] = f"N-{node.identity}\nS-{node.step_idx}"
 
-            if node.position == "PolicyIntermediate":
+            if node.position == "PlanIntermediate":
                 labels[node.identity] = f"N-{node.identity}\nP-{node.step_idx}"
 
-            if node.position == "PolicySink":
+            if node.position == "PlanSink":
                 labels[node.identity] = f"N-{node.identity}\nP-{node.step_idx}"
 
         return labels

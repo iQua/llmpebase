@@ -5,15 +5,15 @@ A reasoner is a module to organize all components to perform reasoning.
 from typing import List
 
 from embedder import GPTEmbedder
-from mcts_thought_structure import MCTSPolicyStructure
-from policy_operator import PolicyOperator
+from mcts_thought_structure import MCTSPlanStructure
+from plan_operator import PlanOperator
 
 from llmpebase.reasoner import structured_thought
 from llmpebase.model.prompting.base import BasicSamplePrompt
 
 
-class PolicyThoughtReasoner(structured_thought.StructuredThoughtReasoner):
-    """A reasoner for the p-RAR method to perform a policy-guided reasoning."""
+class PlanThoughtReasoner(structured_thought.StructuredThoughtReasoner):
+    """A reasoner for the p-RAR method to perform a plan-guided reasoning."""
 
     def __init__(
         self,
@@ -22,7 +22,7 @@ class PolicyThoughtReasoner(structured_thought.StructuredThoughtReasoner):
         logging_config,
         visualizer,
         solution_extractor,
-        policy_operator: PolicyOperator = None,
+        plan_operator: PlanOperator = None,
     ):
         super().__init__(
             thought_model=thought_model,
@@ -32,10 +32,10 @@ class PolicyThoughtReasoner(structured_thought.StructuredThoughtReasoner):
             solution_extractor=solution_extractor,
         )
 
-        self.policy_operator = (
-            policy_operator
-            if policy_operator is not None
-            else PolicyOperator(logging_config=self.logging_config)
+        self.plan_operator = (
+            plan_operator
+            if plan_operator is not None
+            else PlanOperator(logging_config=self.logging_config)
         )
 
     def define_structure(self):
@@ -43,7 +43,7 @@ class PolicyThoughtReasoner(structured_thought.StructuredThoughtReasoner):
         # Define the embedder for the mcts reasoning
         embedder = GPTEmbedder(model_config=self.model_config)
 
-        return MCTSPolicyStructure(
+        return MCTSPlanStructure(
             thought_model=self.thought_model,
             model_config=self.model_config,
             logging_config=self.logging_config,
@@ -58,14 +58,12 @@ class PolicyThoughtReasoner(structured_thought.StructuredThoughtReasoner):
         sample_info: dict = None,
     ) -> List[str]:
         """Forward the reasoning in the thought structure."""
-        # One must load the specific policy tree to obtain the policy tree before reasoning
+        # One must load the specific plan tree to obtain the plan tree before reasoning
 
-        # Load the policy tree if it exists
-        loaded_policy_tree = self.policy_operator.load_policy_tree(
-            sample_info=sample_info
-        )
-        # Set the policy tree to the thought structure of the reasoner
-        self.structure.set_policy_tree(loaded_policy_tree)
+        # Load the plan tree if it exists
+        loaded_plan_tree = self.plan_operator.load_plan_tree(sample_info=sample_info)
+        # Set the plan tree to the thought structure of the reasoner
+        self.structure.set_plan_tree(loaded_plan_tree)
 
         # Set the save path and folder for visualization and thought structure
         self.visualizer.set_save_foldername(

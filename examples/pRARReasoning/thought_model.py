@@ -5,8 +5,8 @@ Implementation of Thought model for the pRAR Reasoning.
 from collections import namedtuple
 from typing import List, Tuple
 
-from policy_tree import PolicyNode
-from thought_prompter import PolicyThoughtPrompter
+from plan_tree import PlanNode
+from thought_prompter import PlanThoughtPrompter
 
 
 from llmpebase.model.thought_structure.structure_generic import (
@@ -19,9 +19,9 @@ from llmpebase.model.thought_structure import thought_model
 InferenceInfo = namedtuple("InferenceInfo", {"input_prompt", "output"})
 
 
-class PolicyThoughtModel(thought_model.LlmThoughtModel):
+class PlanThoughtModel(thought_model.LlmThoughtModel):
     """
-    A thought model to organize and utilize the policy to generate
+    A thought model to organize and utilize the plan to generate
     thoughts.
     """
 
@@ -29,7 +29,7 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
         self,
         thought_chain: List[base.BasicNode],
         num_thoughts: int = 1,
-        policy_chain: List[PolicyNode] = None,
+        plan_chain: List[PlanNode] = None,
         **kwargs
     ) -> Tuple[List[str], List[BasicPromptAndResponse]]:
         """
@@ -40,7 +40,7 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
         self.llm_model.generation_config.update(generation_config)
         # Create the reasoning chain prompt
         prompt = self.prompter.organize_next_thought_prompt(
-            chain_nodes=thought_chain, policy_chain=policy_chain
+            chain_nodes=thought_chain, plan_chain=plan_chain
         )
 
         # Equip the model with the normal thought generation configuration
@@ -61,26 +61,26 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
 
         return thoughts, inference_info
 
-    def generate_policy_next_thoughts(
+    def generate_plan_next_thoughts(
         self,
         thought_chain: List[base.BasicNode],
-        policy_chain: List[PolicyNode],
-        policy_node: PolicyNode,
+        plan_chain: List[PlanNode],
+        plan_node: PlanNode,
         num_thoughts: int = 1,
     ):
         """Generate thoughts based on the prompt I_G of the p-RAR paper."""
         generation_config = self.model_config["optimization"]["mcts"][
             "generation_settings"
-        ]["policy_guided_generation"]
+        ]["plan_guided_generation"]
         self.llm_model.generation_config.update(generation_config)
         # Create the reasoning chain prompt
-        prompt = self.prompter.organize_policy_guide_thought_prompt(
+        prompt = self.prompter.organize_plan_guide_thought_prompt(
             chain_nodes=thought_chain,
-            policy_chain=policy_chain,
-            guide_policy_node=policy_node,
+            plan_chain=plan_chain,
+            guide_plan_node=plan_node,
         )
 
-        system_prompt = self.prompter.system_prompts.policy_guided_generation_prompt
+        system_prompt = self.prompter.system_prompts.plan_guided_generation_prompt
 
         responses = self.llm_model.forward(
             user_prompt=str(prompt),
@@ -98,26 +98,26 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
 
         return thoughts, inference_info
 
-    def generate_excluded_policy_thoughts(
+    def generate_excluded_plan_thoughts(
         self,
         thought_chain: List[base.BasicNode],
         num_thoughts: int = 1,
-        policy_chain: List[PolicyNode] = None,
-        policy_exclusion_candidates: List[PolicyNode] = None,
+        plan_chain: List[PlanNode] = None,
+        plan_exclusion_candidates: List[PlanNode] = None,
     ):
         """Generate thoughts based on the prompt I_G of the p-RAR paper."""
         generation_config = self.model_config["optimization"]["mcts"][
             "generation_settings"
-        ]["policy_exclusion_generation"]
+        ]["plan_exclusion_generation"]
         self.llm_model.generation_config.update(generation_config)
         # Create the reasoning chain prompt
-        prompt = self.prompter.organize_policy_exclusive_thought_prompt(
+        prompt = self.prompter.organize_plan_exclusive_thought_prompt(
             chain_nodes=thought_chain,
-            policy_chain=policy_chain,
-            policy_exclusion_candidates=policy_exclusion_candidates,
+            plan_chain=plan_chain,
+            plan_exclusion_candidates=plan_exclusion_candidates,
         )
 
-        system_prompt = self.prompter.system_prompts.policy_exclusion_generation_prompt
+        system_prompt = self.prompter.system_prompts.plan_exclusion_generation_prompt
 
         responses = self.llm_model.forward(
             user_prompt=str(prompt),
@@ -135,25 +135,25 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
 
         return thoughts, inference_info
 
-    def summarize_policy(
+    def summarize_plan(
         self,
         thought_chain: List[base.BasicNode],
-        policy_chain: List[PolicyNode] = None,
-        policy_thought_node: base.BasicNode = None,
+        plan_chain: List[PlanNode] = None,
+        plan_thought_node: base.BasicNode = None,
         num_thoughts: int = 1,
     ):
-        """Summarize the policy from a thought."""
+        """Summarize the plan from a thought."""
         generation_config = self.model_config["optimization"]["mcts"][
             "generation_settings"
-        ]["policy_summarization"]
+        ]["plan_summarization"]
         self.llm_model.generation_config.update(generation_config)
-        prompt = self.prompter.organize_policy_summary_prompt(
+        prompt = self.prompter.organize_plan_summary_prompt(
             chain_nodes=thought_chain,
-            policy_chain=policy_chain,
-            policy_thought_node=policy_thought_node,
+            plan_chain=plan_chain,
+            plan_thought_node=plan_thought_node,
         )
 
-        system_prompt = self.prompter.system_prompts.policy_summarization_prompt
+        system_prompt = self.prompter.system_prompts.plan_summarization_prompt
 
         responses = self.llm_model.forward(
             user_prompt=str(prompt),
@@ -171,23 +171,23 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
 
         return thoughts, inference_info
 
-    def compare_policy(
+    def compare_plan(
         self,
-        target_policy_thought_node: base.BasicNode,
-        policy_node_pool: List[PolicyNode],
+        target_plan_thought_node: base.BasicNode,
+        plan_node_pool: List[PlanNode],
         num_thoughts: int = 1,
     ):
-        """Compare whether the target policy exists in the policy pool."""
+        """Compare whether the target plan exists in the plan pool."""
         generation_config = self.model_config["optimization"]["mcts"][
             "generation_settings"
-        ]["policy_comparison"]
+        ]["plan_comparison"]
         self.llm_model.generation_config.update(generation_config)
-        prompt = self.prompter.organize_policy_compare_prompt(
-            policy_nodes=policy_node_pool,
-            target_policy_thought_node=target_policy_thought_node,
+        prompt = self.prompter.organize_plan_compare_prompt(
+            plan_nodes=plan_node_pool,
+            target_plan_thought_node=target_plan_thought_node,
         )
 
-        system_prompt = self.prompter.system_prompts.policy_comparison_prompt
+        system_prompt = self.prompter.system_prompts.plan_comparison_prompt
 
         responses = self.llm_model.forward(
             user_prompt=str(prompt),
@@ -205,36 +205,36 @@ class PolicyThoughtModel(thought_model.LlmThoughtModel):
 
         return thoughts, inference_info
 
-    def assess_thought_policy(
+    def assess_thought_plan(
         self,
         thought_chain: List[base.BasicNode],
         thought_node: base.BasicNode,
-        policy_thought_node: base.BasicNode = None,
-        policy_node: PolicyNode = None,
+        plan_thought_node: base.BasicNode = None,
+        plan_node: PlanNode = None,
         num_thoughts: int = 1,
     ):
         """
-        Assess the policy of a thought based on the I_A of the p-RAR paper.
+        Assess the plan of a thought based on the I_A of the p-RAR paper.
 
         This function handles two cases:
-        1. The policy is provided as a thought node of the thought structure
-        2. The policy is directly from the policy tree as a policy node
+        1. The plan is provided as a thought node of the thought structure
+        2. The plan is directly from the plan tree as a plan node
 
         """
 
         generation_config = self.model_config["optimization"]["mcts"][
             "generation_settings"
-        ]["thought_policy_assessment"]
+        ]["thought_plan_assessment"]
         self.llm_model.generation_config.update(generation_config)
 
-        prompt = self.prompter.organize_policy_assessment_prompt(
+        prompt = self.prompter.organize_plan_assessment_prompt(
             chain_nodes=thought_chain,
             thought_node=thought_node,
-            policy_thought_node=policy_thought_node,
-            policy_node=policy_node,
+            plan_thought_node=plan_thought_node,
+            plan_node=plan_node,
         )
 
-        system_prompt = self.prompter.system_prompts.thought_policy_assessment_prompt
+        system_prompt = self.prompter.system_prompts.thought_plan_assessment_prompt
 
         responses = self.llm_model.forward(
             user_prompt=str(prompt),

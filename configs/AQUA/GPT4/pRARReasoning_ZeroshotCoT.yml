@@ -1,6 +1,6 @@
 data:
  
-  data_name: GSM8K
+  data_name: AQUA
   data_path: data
 
   # One may need to download the GSM8k dataset
@@ -53,6 +53,7 @@ model:
     max_score_difference: null # 0.1
 
   optimization:
+    num_train_samples: 800
     epochs: 5
     mcts:
       plan_exploration_constant: 5
