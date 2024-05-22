@@ -57,6 +57,7 @@ class BaseStructure:
         # The visualizer to visualize the thought structure
         self.visualizer = visualizer
 
+        self.logging_config = logging_config
         self.save_path = logging_config["result_path"]
         self.base_save_foldername = "thought_structure"
         self.save_foldername = "thought_structure"

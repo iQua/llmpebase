@@ -231,7 +231,7 @@ class PlanThoughtPrompter(ThoughtStructurePrompter):
         self,
         chain_nodes: List[base.BasicNode],
         plan_chain: List[PlanNode],
-        plan_thought_node: base.BasicNode,
+        thought_node: base.BasicNode,
     ) -> BasicThoughtPromptFormat:
         """Organizing the prompt for the plan summary."""
         root_prompt = copy.deepcopy(chain_nodes[0].thought)
@@ -254,7 +254,7 @@ class PlanThoughtPrompter(ThoughtStructurePrompter):
 
         # Create the plan thought prompt
         plan_thought_prompt = self.organize_node_block_prompt(
-            nodes=[plan_thought_node],
+            nodes=[thought_node],
             content_attr="thought",
             head_format=self.step_head,
             start_flag=self.plan_prompts.step_start_flag,
@@ -286,7 +286,7 @@ class PlanThoughtPrompter(ThoughtStructurePrompter):
             **self.plan_prompts.plan_summarization_prompt
         )
         generation_prompt.head = generation_prompt.head.format(
-            root_prompt, plan_thought_node.step_idx
+            root_prompt, thought_node.step_idx
         )
         generation_prompt.content = generation_prompt.content.format(
             chain_prompt, plan_chain_prompt, plan_thought_prompt
@@ -294,15 +294,15 @@ class PlanThoughtPrompter(ThoughtStructurePrompter):
         generation_prompt.target = generation_prompt.target.format(
             self.thought_chain_start_flag,
             self.plan_prompts.plan_chain_start_flag,
-            plan_thought_node.step_idx,
+            thought_node.step_idx,
             self.thought_chain_start_flag,
-            plan_thought_node.step_idx,
+            thought_node.step_idx,
         )
 
         return generation_prompt
 
     def organize_plan_compare_prompt(
-        self, plan_nodes: List[PlanNode], target_plan_thought_node: base.BasicNode
+        self, plan_nodes: List[PlanNode], target_thought_plan_node: base.BasicNode
     ) -> BasicThoughtPromptFormat:
         """Organizing the prompt for comparing the plan."""
         # Create the prompt for the plan chain
@@ -317,7 +317,7 @@ class PlanThoughtPrompter(ThoughtStructurePrompter):
         )
         # Create the prompt for the target plan
         target_plan_prompt = self.organize_node_block_prompt(
-            nodes=[target_plan_thought_node],
+            nodes=[target_thought_plan_node],
             content_attr="thought",
             head_format=self.plan_prompts.plan_head,
             start_flag=self.plan_prompts.plan_start_flag,
@@ -332,7 +332,7 @@ class PlanThoughtPrompter(ThoughtStructurePrompter):
             plan_pool_prompt, target_plan_prompt
         )
         generation_prompt.target = generation_prompt.target.format(
-            target_plan_thought_node.step_idx,
+            target_thought_plan_node.step_idx,
             self.plan_prompts.plan_start_flag,
             self.plan_prompts.plan_comparison_start_flag,
         )
@@ -343,11 +343,15 @@ class PlanThoughtPrompter(ThoughtStructurePrompter):
         self,
         chain_nodes: List[base.BasicNode],
         thought_node: base.BasicNode,
-        plan_thought_node: base.BasicNode = None,
+        thought_plan_node: base.BasicNode = None,
         plan_node: PlanNode = None,
     ) -> BasicThoughtPromptFormat:
         """
         Organizing the prompt for assessing the plan.
+        :param thought_plan_node: The thought node that presents a plan.
+        :param plan_node: The plan node that presents a plan.
+
+        We can assess either the thought_plan_node or plan_node
         """
         root_prompt = copy.deepcopy(chain_nodes[0].thought)
         root_prompt.head = ""
@@ -359,15 +363,15 @@ class PlanThoughtPrompter(ThoughtStructurePrompter):
         # Create the prompt for the plan thought
         assess_plan_prompt = None
         assess_plan_step_idx = None
-        if plan_thought_node is not None:
+        if thought_plan_node is not None:
             assess_plan_prompt = self.organize_node_block_prompt(
-                nodes=[plan_thought_node],
+                nodes=[thought_plan_node],
                 content_attr="thought",
                 head_format=self.plan_prompts.plan_head,
                 start_flag=self.plan_prompts.plan_assessment_start_flag,
                 end_flag=self.plan_prompts.plan_assessment_end_flag,
             )
-            assess_plan_step_idx = plan_thought_node.step_idx
+            assess_plan_step_idx = thought_plan_node.step_idx
         if plan_node is not None:
             assess_plan_prompt = self.organize_node_block_prompt(
                 nodes=[plan_node],

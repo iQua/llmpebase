@@ -115,7 +115,7 @@ node_config = {
         "alpha": 0.8,
     },
     "PlanIntermediate": {
-        "node_color": "#DB7093",
+        "node_color": "#DCDCDC",
         "node_shape": "s",
         "node_size": 850,
         "alpha": 0.9,

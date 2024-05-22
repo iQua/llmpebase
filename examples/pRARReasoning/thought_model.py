@@ -139,7 +139,7 @@ class PlanThoughtModel(thought_model.LlmThoughtModel):
         self,
         thought_chain: List[base.BasicNode],
         plan_chain: List[PlanNode] = None,
-        plan_thought_node: base.BasicNode = None,
+        thought_plan_node: base.BasicNode = None,
         num_thoughts: int = 1,
     ):
         """Summarize the plan from a thought."""
@@ -150,7 +150,7 @@ class PlanThoughtModel(thought_model.LlmThoughtModel):
         prompt = self.prompter.organize_plan_summary_prompt(
             chain_nodes=thought_chain,
             plan_chain=plan_chain,
-            plan_thought_node=plan_thought_node,
+            thought_node=thought_plan_node,
         )
 
         system_prompt = self.prompter.system_prompts.plan_summarization_prompt
@@ -173,7 +173,7 @@ class PlanThoughtModel(thought_model.LlmThoughtModel):
 
     def compare_plan(
         self,
-        target_plan_thought_node: base.BasicNode,
+        target_thought_plan_node: base.BasicNode,
         plan_node_pool: List[PlanNode],
         num_thoughts: int = 1,
     ):
@@ -184,7 +184,7 @@ class PlanThoughtModel(thought_model.LlmThoughtModel):
         self.llm_model.generation_config.update(generation_config)
         prompt = self.prompter.organize_plan_compare_prompt(
             plan_nodes=plan_node_pool,
-            target_plan_thought_node=target_plan_thought_node,
+            target_thought_plan_node=target_thought_plan_node,
         )
 
         system_prompt = self.prompter.system_prompts.plan_comparison_prompt
@@ -209,7 +209,7 @@ class PlanThoughtModel(thought_model.LlmThoughtModel):
         self,
         thought_chain: List[base.BasicNode],
         thought_node: base.BasicNode,
-        plan_thought_node: base.BasicNode = None,
+        thought_plan_node: base.BasicNode = None,
         plan_node: PlanNode = None,
         num_thoughts: int = 1,
     ):
@@ -230,7 +230,7 @@ class PlanThoughtModel(thought_model.LlmThoughtModel):
         prompt = self.prompter.organize_plan_assessment_prompt(
             chain_nodes=thought_chain,
             thought_node=thought_node,
-            plan_thought_node=plan_thought_node,
+            thought_plan_node=thought_plan_node,
             plan_node=plan_node,
         )
 

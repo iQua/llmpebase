@@ -150,12 +150,12 @@ class MCTSPlanStructure(base.BaseThoughtStructure):
         new_plan, infer_info = self.thought_model.summarize_plan(
             thought_chain=self.reasoning_chain,
             plan_chain=self.plan_chain,
-            plan_thought_node=self.node_pool[thought_id],
+            thought_plan_node=self.node_pool[thought_id],
             num_thoughts=1,
         )
         new_plan = new_plan[0]
 
-        plan_thought_id = self.add_node(
+        thought_plan_id = self.add_node(
             thought=new_plan,
             prev_node_id=thought_id,
             step_idx=self.node_pool[thought_id].step_idx,
@@ -168,7 +168,7 @@ class MCTSPlanStructure(base.BaseThoughtStructure):
             edge_type="PlanSummarizationReasoning",
         )
         logging.info("   Generated new plan by PlanSummarizationReasoning.")
-        return plan_thought_id, thought_id
+        return thought_plan_id, thought_id
 
     def selection(self, cur_thought_node: BasicNode, cur_plan_node: PlanNode):
         """Perform the selection of MCTS."""
@@ -200,7 +200,7 @@ class MCTSPlanStructure(base.BaseThoughtStructure):
         self,
         cur_plan_node: PlanNode,
         cur_thought_node: BasicNode,
-        plan_thought_node: BasicNode,
+        thought_plan_node: BasicNode,
         next_thought_node: BasicNode,
     ):
         """Perform the expansion of MCTS."""
@@ -208,7 +208,7 @@ class MCTSPlanStructure(base.BaseThoughtStructure):
         # Correspond to the I_A of the p-RAR paper
         thoughts, infer_info = self.thought_model.assess_thought_plan(
             thought_chain=self.reasoning_chain,
-            plan_thought_node=plan_thought_node,
+            thought_plan_node=thought_plan_node,
             thought_node=next_thought_node,
         )
         try:
@@ -219,8 +219,8 @@ class MCTSPlanStructure(base.BaseThoughtStructure):
         # Add the assessment to the thought structure
         self.add_node(
             thought=llm_value,
-            prev_node_id=plan_thought_node.identity,
-            step_idx=plan_thought_node.step_idx,
+            prev_node_id=thought_plan_node.identity,
+            step_idx=thought_plan_node.step_idx,
             thought_evaluation=None,
             thought_inference=infer_info[0],
             node_name="PlanAssessmentThought",
@@ -235,7 +235,7 @@ class MCTSPlanStructure(base.BaseThoughtStructure):
         if cur_thought_node.step_idx == 0:
             cur_thought_str = str(cur_thought_node.thought.question)
         plan_node_id = self.plan_tree.add_node(
-            plan=plan_thought_node.thought,
+            plan=thought_plan_node.thought,
             plan_num_visits=1,
             prev_node_id=cur_plan_node.identity,
             thought_origins=[cur_thought_str],
@@ -324,11 +324,11 @@ class MCTSPlanStructure(base.BaseThoughtStructure):
                 new_plan, infer_info = self.thought_model.summarize_plan(
                     thought_chain=self.reasoning_chain,
                     plan_chain=self.plan_chain,
-                    plan_thought_node=self.node_pool[thought_node_id],
+                    thought_plan_node=self.node_pool[thought_node_id],
                     num_thoughts=1,
                 )
                 new_plan = new_plan[0]
-                plan_thought_id = self.add_node(
+                thought_plan_id = self.add_node(
                     thought=new_plan,
                     prev_node_id=thought_node_id,
                     step_idx=self.node_pool[thought_node_id].step_idx,
@@ -343,7 +343,7 @@ class MCTSPlanStructure(base.BaseThoughtStructure):
                 plan_node_id = self.expansion(
                     cur_plan_node=cur_plan_node,
                     cur_thought_node=cur_thought_node,
-                    plan_thought_node=self.node_pool[plan_thought_id],
+                    thought_plan_node=self.node_pool[thought_plan_id],
                     next_thought_node=self.node_pool[thought_node_id],
                 )
                 selected_plan_node = self.plan_tree.node_pool[plan_node_id]
@@ -407,7 +407,7 @@ class MCTSPlanStructure(base.BaseThoughtStructure):
             # Note that this process will be two nodes to the thought structure
             # 1. Added a thought node, either exploration or normal generation
             # 2. Added a plan summarization thought
-            plan_thought_id, next_thought_id = self.plan_exploration()
+            thought_plan_id, next_thought_id = self.plan_exploration()
 
             # Check whether the plan exists in the child of
             # the current plan node
@@ -422,7 +422,7 @@ class MCTSPlanStructure(base.BaseThoughtStructure):
                     cur_plan_node.identity,
                 )
                 exist_thoughts, infer_info = self.thought_model.compare_plan(
-                    target_plan_thought_node=self.node_pool[plan_thought_id],
+                    target_thought_plan_node=self.node_pool[thought_plan_id],
                     plan_node_pool=plan_node_candidates,
                 )
                 is_exist = exist_thoughts[0]
@@ -430,8 +430,8 @@ class MCTSPlanStructure(base.BaseThoughtStructure):
                 # Add the plan existence comparison to the thought structure
                 self.add_node(
                     thought=is_exist,
-                    prev_node_id=plan_thought_id,
-                    step_idx=self.node_pool[plan_thought_id].step_idx,
+                    prev_node_id=thought_plan_id,
+                    step_idx=self.node_pool[thought_plan_id].step_idx,
                     thought_evaluation=None,
                     thought_inference=infer_info,
                     node_name="PlanExistenceThought",
@@ -504,7 +504,7 @@ class MCTSPlanStructure(base.BaseThoughtStructure):
                 added_plan_node_id = self.expansion(
                     cur_plan_node=cur_plan_node,
                     cur_thought_node=cur_thought_node,
-                    plan_thought_node=self.node_pool[plan_thought_id],
+                    thought_plan_node=self.node_pool[thought_plan_id],
                     next_thought_node=self.node_pool[next_thought_id],
                 )
                 # Add the new plan to the plan chain

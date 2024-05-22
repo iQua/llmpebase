@@ -29,13 +29,18 @@ class PlanOptimizationPipeline(Pipeline):
 
         num_total_train_samples = len(self.trainset)
         trainset_idxs = random.sample(range(num_total_train_samples), num_train_samples)
+        trainset_idxs = sorted(trainset_idxs)
         logging.info("Training on %d samples.", len(trainset_idxs))
 
         for epoch in range(1, n_epochs + 1):
             for idx, sample in enumerate(self.trainset):
                 if idx not in trainset_idxs:
                     continue
+
                 sample_info = sample["auxiliary"]["sample_info"]
+
+                if "Physics" not in sample_info["sample_field"]:
+                    continue
                 sample_id = sample_info["sample_id"]
                 record_name = f"Epoch {epoch}-Idx {idx}-ID<{sample_id}>"
                 if record_name in self.exist_records:
