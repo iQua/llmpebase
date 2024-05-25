@@ -78,7 +78,10 @@ class BasicStructureVisualizer:
     """A visualizer to visualize the thought structure."""
 
     def __init__(
-        self, logging_config: dict, save_foldername: str = "thought_structure"
+        self,
+        logging_config: dict,
+        save_foldername: str = "thought_structure",
+        plot_config: dict = None,
     ):
         self.save_path = logging_config["visualization_path"]
         self.base_save_foldername = save_foldername
@@ -89,6 +92,28 @@ class BasicStructureVisualizer:
             if "thought_structure" not in logging_config
             or "layout" not in logging_config["thought_structure"]
             else logging_config["thought_structure"]["layout"]
+        )
+        plot_config = {} if plot_config is None else plot_config
+
+        self.node_config = (
+            node_config
+            if "node_config" not in plot_config
+            else plot_config["node_config"]
+        )
+        self.edge_config = (
+            edge_config
+            if "edge_config" not in plot_config
+            else plot_config["edge_config"]
+        )
+        self.node_labels_config = (
+            node_labels_config
+            if "node_labels_config" not in plot_config
+            else plot_config["node_labels_config"]
+        )
+        self.edge_labels_config = (
+            edge_labels_config
+            if "edge_labels_config" not in plot_config
+            else plot_config["edge_labels_config"]
         )
 
     def draw_node(
@@ -106,7 +131,7 @@ class BasicStructureVisualizer:
             pos,
             nodelist=[node_id],
             ax=ax,
-            **node_config[pos_type],
+            **self.node_config[pos_type],
         )
         return ax
 
@@ -131,9 +156,9 @@ class BasicStructureVisualizer:
             pos,
             edgelist=edges,
             ax=ax,
-            node_size=node_config[pos_type]["node_size"],
+            node_size=self.node_config[pos_type]["node_size"],
             # node_shape=node_config[pos_type]["node_shape"],
-            **edge_config[pos_type],
+            **self.edge_config[pos_type],
         )
 
         return ax
@@ -164,7 +189,7 @@ class BasicStructureVisualizer:
         # Plot the labels of the edges
         labels = self.create_edge_draw_labels(graph=graph, node_pool=node_pool)
         nx.draw_networkx_edge_labels(
-            graph, pos, edge_labels=labels, ax=ax, **edge_labels_config
+            graph, pos, edge_labels=labels, ax=ax, **self.edge_labels_config
         )
 
         return ax
@@ -193,7 +218,7 @@ class BasicStructureVisualizer:
 
         # Plot the labels of the nodes
         labels = self.create_node_draw_labels(graph=graph, node_pool=node_pool)
-        nx.draw_networkx_labels(graph, pos, labels, ax=ax, **node_labels_config)
+        nx.draw_networkx_labels(graph, pos, labels, ax=ax, **self.node_labels_config)
 
         # Plot the labels of the edges
         ax = self.draw_edge_labels(graph=graph, node_pool=node_pool, pos=pos, ax=ax)

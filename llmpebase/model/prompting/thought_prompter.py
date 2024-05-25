@@ -17,11 +17,12 @@ class ThoughtStructurePrompter:
     """A base class to organize the prompt of the thought structure."""
 
     # Flags for the start and end of the thought chain
-    thought_start_flag: str = "<Steps>"
-    thought_end_flag: str = "<\\Steps>"
+    thought_chain_start_flag: str = "<Step Chain>"
+    thought_chain_end_flag: str = "<\\Step Chain>"
 
     # The head of each step
-    step_head: str = "Step {}: "
+    step_head: str = "Step {}. "
+
     # Required System prompts
     generation_system_prompt: str = None
     evaluation_system_prompt: str = None
@@ -51,6 +52,42 @@ class ThoughtStructurePrompter:
         self.generation_prompts = thought_prompts.generation
         self.evaluation_prompts = thought_prompts.evaluation
         self.similarity_prompts = thought_prompts.similarity
+
+    def organize_node_block_prompt(
+        self,
+        nodes: List[base.BasicNode],
+        content_attr: str,
+        head_format: str,
+        start_flag: str = None,
+        end_flag: str = None,
+        with_index: bool = False,
+        with_indent: int = 0,
+    ):
+        """
+        Organize the block of nodes in the prompt.
+
+        This is used as a general purpose block prompt organize function.
+        """
+        # initial prompt should be the thought of the root noe
+        indent = "" if with_indent == 0 else "\t" * with_indent
+        block_content = []
+        for idx, node in enumerate(nodes):
+            item_head = "" if head_format is None else head_format
+            if head_format is not "":
+                item_head = item_head.format(node.step_idx)
+            if with_index:
+                item_head = f"""({idx+1}). {item_head}"""
+
+            node_content = getattr(node, content_attr)
+            block_content.append(f"""{indent}{item_head} {node_content}""")
+
+        block_content = "\n".join(block_content)
+        block_content = f"""{block_content}"""
+
+        if start_flag is not None:
+            block_content = f"""{start_flag}\n{block_content}\n{end_flag}"""
+
+        return format_prompt.format_prompt(block_content)
 
     def organize_chain_prompt(
         self,
@@ -87,7 +124,7 @@ class ThoughtStructurePrompter:
         reasoning_chain_prompt = f"""{intermediate_steps}"""
 
         if with_flag:
-            reasoning_chain_prompt = f"""{self.thought_start_flag}\n{reasoning_chain_prompt}\n{self.thought_end_flag}"""
+            reasoning_chain_prompt = f"""{self.thought_chain_start_flag}\n{reasoning_chain_prompt}\n{self.thought_chain_end_flag}"""
 
         return format_prompt.format_prompt(reasoning_chain_prompt)
 
@@ -97,7 +134,7 @@ class ThoughtStructurePrompter:
         """Generating the prompt for next thought."""
         root_prompt = str(chain_nodes[0].thought)
 
-        # The chain only contain the first step
+        # The chain only contain the root, i.e., question.
         if len(chain_nodes) == 1:
             generation_prompt = BasicThoughtPromptFormat(
                 **self.generation_prompts.first_step_prompt
@@ -116,7 +153,7 @@ class ThoughtStructurePrompter:
         generation_prompt.head = generation_prompt.head.format(root_prompt)
         generation_prompt.content = generation_prompt.content.format(chain_prompt)
         generation_prompt.target = generation_prompt.target.format(
-            self.thought_start_flag, self.thought_end_flag, len(chain_nodes)
+            self.thought_chain_start_flag, self.thought_chain_end_flag, len(chain_nodes)
         )
 
         return generation_prompt

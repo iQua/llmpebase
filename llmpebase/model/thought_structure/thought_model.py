@@ -12,7 +12,7 @@ from llmpebase.model.prompting.thought_prompter import ThoughtStructurePrompter
 from llmpebase.model.thought_structure.structure_generic import (
     BasicEvaluation,
     BasicSimilarity,
-    BasicReasoning,
+    BasicPromptAndResponse,
 )
 from llmpebase.model.thought_structure import base
 from llmpebase.extractor.re_extraction import extract_solution
@@ -33,9 +33,11 @@ class LlmThoughtModel:
         self.llm_model = llm_model
         self.prompter = prompter
 
+        self.model_config = model_config
+
     def generate_thoughts(
         self, thought_chain: List[base.BasicNode], num_thoughts: int = 1, **kwargs
-    ) -> Tuple[List[str], List[BasicReasoning]]:
+    ) -> Tuple[List[str], List[BasicPromptAndResponse]]:
         """Generate the thoughts based on the thought chain."""
         prompt = self.prompter.organize_next_thought_prompt(
             chain_nodes=thought_chain, **kwargs
@@ -49,7 +51,7 @@ class LlmThoughtModel:
         thoughts = self.llm_model.read_response_contents(responses)
 
         reasoning = [
-            BasicReasoning(reasoning_prompt=prompt, reasoning_output=thought)
+            BasicPromptAndResponse(prompt=prompt, response=thought)
             for thought in thoughts
         ]
 

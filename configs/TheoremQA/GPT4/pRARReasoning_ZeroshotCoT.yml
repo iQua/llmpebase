@@ -1,0 +1,124 @@
+data:
+ 
+  data_name: TheoremQA
+  data_path: data
+
+  # One may need to download the TheoremQA dataset
+  download_url: null
+
+  extractor:
+    purpose: groundtruth
+    style: re
+  
+environment:
+
+  # The name of the project
+  project_name: LLMPE 
+  
+  # Fix the see for reproducible
+  seed: 15
+  
+model:
+
+  model_name: gpt-4 # "gpt-3.5-turbo","gpt-4"
+  model_type: gpt
+
+  prompt_type: zeroshot_cot 
+
+  authorization_path: ./.env
+
+  # The core settings of the llm model
+  generation_settings:
+    temperature: 0.5
+    top_p: 0.5
+    max_tokens: 1000
+    # n here is n_completions_per_prompt
+    n: 1
+    stop: null 
+
+  embedder:
+    # The embedding model name
+    model_name: text-embedding-3-small
+    distance_metric: cosine
+
+  thought_structure:
+    num_next_steps: 1
+    # Note that the length computation includes the root node
+    # Set the length to be longer to reach the final solution
+    # and the chain growth in the thought structure will be stopped 
+    # when reach the solution is reached in the node.
+    max_length: 30
+    max_stops: 1
+    min_thought_similarity: null # 0.95
+    max_score_difference: null # 0.1
+
+  optimization:
+    num_train_samples: 700
+    epochs: 5
+    mcts:
+      plan_exploration_constant: 5
+      num_neighbor_thoughts: 10
+
+      generation_settings:
+        plan_summarization: 
+          temperature: 0.4
+          top_p: 0.4
+          max_tokens: 1000
+
+        plan_exclusion_generation:
+          temperature: 0.4
+          top_p: 0.4
+          max_tokens: 1000
+        
+        thought_plan_assessment:
+          temperature: 0.2
+          top_p: 0.2
+          max_tokens: 1000
+        
+        plan_comparison:
+          temperature: 0.2
+          top_p: 0.2
+          max_tokens: 1000
+
+        plan_guided_generation:
+          temperature: 0.4
+          top_p: 0.4
+          max_tokens: 1000
+
+  retrieval:
+    
+
+
+  pretrained_models_path: experiments/pretrained_models
+
+
+train:
+
+
+logging:
+  # path where to save, empty for no saving
+  experiment_path: experiments
+  checkpoint_path: experiments/checkpoints
+  result_path: experiments/results
+  logging_path: experiments/loggings
+  visualization_path: experiments/visualizations
+
+  thought_structure:
+    layout: dot # dot, fdp, circo, neato, osage, sfdp, twopi
+
+
+evaluation:
+  
+  # basic, llm
+  style: basic
+
+  extractor:
+    purpose: result
+    # re, llm
+    style: llm
+
+   
+
+
+
+

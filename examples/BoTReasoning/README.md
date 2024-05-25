@@ -13,20 +13,20 @@ The structure of our proposed Boosting of Thoughts (BoT) under `examples/BoTReas
     ├── aggregator                       # Aggregator for the solution ensemble
 
 
-## Boosting of Thoughts (BoT) algorithm
+## Boosting of Thoughts (BoT) reasoning
 
-Following the commends below to run the BoT algorithm on different datasets:
+Following the commands below to run the BoT reasoning on different datasets:
 
 ```console
-python examples/BoTReasoning/BoTReasoning.py -c configs/GameOf24/GPT4/BoT_ZeroshotCoT.yml -b ICLR
+python examples/BoTReasoning/BoTReasoning.py -c configs/GameOf24/GPT4/BoTReasoning_ZeroshotCoT.yml -b ICLR
 
-python examples/BoTReasoning/BoTReasoning.py -c configs/GSM8K/GPT4/BoT_ZeroshotCoT.yml -b ICLR
+python examples/BoTReasoning/BoTReasoning.py -c configs/GSM8K/GPT4/BoTReasoning_ZeroshotCoT.yml -b ICLR
 
-python examples/BoTReasoning/BoTReasoning.py -c configs/SVAMP/GPT4/BoT_ZeroshotCoT.yml -b ICLR
+python examples/BoTReasoning/BoTReasoning.py -c configs/SVAMP/GPT4/BoTReasoning_ZeroshotCoT.yml -b ICLR
 
-python examples/BoTReasoning/BoTReasoning.py -c configs/AQUA/GPT4/BoT_ZeroshotCoT.yml -b ICLR
+python examples/BoTReasoning/BoTReasoning.py -c configs/AQUA/GPT4/BoTReasoning_ZeroshotCoT.yml -b ICLR
 
-python examples/BoTReasoning/BoTReasoning.py -c configs/MATH/GPT4/BoT_ZeroshotCoT.yml -b ICLR
+python examples/BoTReasoning/BoTReasoning.py -c configs/MATH/GPT4/BoTReasoning_ZeroshotCoT.yml -b ICLR
 
-python examples/BoTReasoning/BoTReasoning.py -c configs/TheoremQA/GPT4/BoT_ZeroshotCoT.yml -b ICLR
+python examples/BoTReasoning/BoTReasoning.py -c configs/TheoremQA/GPT4/BoTReasoning_ZeroshotCoT.yml -b ICLR
 ```

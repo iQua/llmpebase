@@ -1,9 +1,9 @@
 data:
  
-  data_name: MATH
+  data_name: TheoremQA
   data_path: data
 
-  # One may need to download the MATH dataset
+  # One may need to download the TheoremQA dataset
   download_url: null
 
   extractor:
