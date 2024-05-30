@@ -152,7 +152,9 @@ class Pipeline:
                 sample, self.trainset, self.model_config
             )
 
-            contents = self.reasoner.forward(prompt_sample, sample_name=record_name)
+            contents = self.reasoner.forward(
+                prompt_sample, sample_name=record_name, sample_info=sample_info
+            )
             assert isinstance(contents, list)
 
             results = [

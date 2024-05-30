@@ -28,10 +28,10 @@ model:
   # This is the very initial generation setting
   # to be used to define the llm model
   generation_settings:
-    temperature: 0.7
+    temperature: 0.3
     max_tokens: 500
     stop: null 
-    top_p: 0.7
+    top_p: 0.3
 
   bot_settings:
     aggregation_type: best_first
@@ -51,7 +51,7 @@ model:
     thought_structure:
       num_next_steps: 2
       max_length: 4
-      max_stops: 8
+      max_stops: 4
       min_thought_similarity: null
       max_score_difference: 0.1
 

@@ -12,17 +12,18 @@ import glob
 import logging
 from typing import List, Union, Dict
 
-import torch
 import networkx as nx
 
 from llmpebase.model.prompting.base import BasicSamplePrompt
 from llmpebase.model.thought_structure.visualization import BasicStructureVisualizer
-from llmpebase.model.thought_structure.structure_generic import BasicNode, BasicEdge
 from llmpebase.model.thought_structure.structure_generic import (
+    BasicNode,
+    BasicEdge,
     BasicEvaluation,
     BasicSimilarity,
     BasicPromptAndResponse,
 )
+from llmpebase.model.thought_structure.thought_model import LlmThoughtModel
 
 
 class BaseStructure:
@@ -256,7 +257,7 @@ class BaseThoughtStructure(BaseStructure):
 
     def __init__(
         self,
-        thought_model: torch.nn.Module,
+        thought_model: LlmThoughtModel,
         model_config: dict,
         logging_config: dict,
         visualizer: BasicStructureVisualizer = None,

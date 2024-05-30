@@ -30,3 +30,17 @@ python examples/BoTReasoning/BoTReasoning.py -c configs/MATH/GPT4/BoTReasoning_Z
 
 python examples/BoTReasoning/BoTReasoning.py -c configs/TheoremQA/GPT4/BoTReasoning_ZeroshotCoT.yml -b ICLR
 ```
+
+```console
+python examples/BoTReasoning/BoTReasoning.py -c configs/GameOf24/GPT3.5/BoTReasoning_ZeroshotCoT.yml -b ICLR
+
+python examples/BoTReasoning/BoTReasoning.py -c configs/GSM8K/GPT3.5/BoTReasoning_ZeroshotCoT.yml -b ICLR
+
+python examples/BoTReasoning/BoTReasoning.py -c configs/SVAMP/GPT3.5/BoTReasoning_ZeroshotCoT.yml -b ICLR
+
+python examples/BoTReasoning/BoTReasoning.py -c configs/AQUA/GPT3.5/BoTReasoning_ZeroshotCoT.yml -b ICLR
+
+python examples/BoTReasoning/BoTReasoning.py -c configs/MATH/GPT3.5/BoTReasoning_ZeroshotCoT.yml -b ICLR
+
+python examples/BoTReasoning/BoTReasoning.py -c configs/TheoremQA/GPT3.5/BoTReasoning_ZeroshotCoT.yml -b ICLR
+```

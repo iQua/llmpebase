@@ -89,11 +89,11 @@ class ReasoningChainAggregator:
 
         logging.info(
             """
-            Aggregating #structures %d, each containing #chains %s with strategy %s.
+            Aggregating (%s) %d structures, individual containing %s chains .
             """,
+            self.aggregation_type,
             len(structure_chains),
             [len(chains) for chains in structure_chains.values()],
-            self.aggregation_type,
         )
 
         self.aggregation_state = {}
