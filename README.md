@@ -84,3 +84,9 @@ Anyone can run `examples/` of `llmpebase` by executing the following three steps
     $ python examples/ChainOfThought/ChainOfThought.py -c configs/GSM8K/ZeroCoT_chatgpt.yml -b LLMPEBASE
     ```
     See documents under `examples/` for more details.
+
+## References
+
+[1]. Chen, Sijia and Li, Baochun and Niu, Di, Boosting of thoughts: Trial-and-error problem solving with large language models, ICLR24. See `examples/BoTReasoning`
+
+[2]. Chen, Sijia and Li, Baochun, Toward Adaptive Reasoning in Large Language Models with Thought Rollback, ICML24. See `examples/TRReasoning`
