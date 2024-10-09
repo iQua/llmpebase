@@ -48,7 +48,8 @@ Commonsense reasoning:
 - Few-shot prompting
 - Chain-of-Thought (CoT) prompting
 - Zero-shot prompting
-- Thought prompting
+- BoT prompting
+- TR prompting
 
 ## Thought structures
 
