@@ -89,4 +89,4 @@ Anyone can run `examples/` of `llmpebase` by executing the following three steps
 
 [1]. Chen, Sijia and Li, Baochun and Niu, Di, Boosting of thoughts: Trial-and-error problem solving with large language models, ICLR24. See `examples/BoTReasoning`
 
-[2]. Chen, Sijia and Li, Baochun, Toward Adaptive Reasoning in Large Language Models with Thought Rollback, ICML24. See `examples/TRReasoning`
+[2]. Chen, Sijia and Li, Baochun, Toward Adaptive Reasoning in Large Language Models with Thought Rollback, ICML24. See `examples/ThoughtRollback`
