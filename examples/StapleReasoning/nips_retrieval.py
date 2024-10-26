@@ -2,14 +2,14 @@
 The main running session of retrieving the p-RAG.
 """
 
-import pRAR_system_prompts
-import pRAR_prompts
+import staple_system_prompts
+import staple_prompts
 import thought_prompter
 import thought_model
 import nips_reasoner
 from retrieval_pipeline import PlanRetrievalPipeline
 
-from visualization import PRARVisualizer, node_config, edge_config
+from visualization import StapleVisualizer, node_config, edge_config
 
 from llmpebase.model import define_model
 
@@ -27,33 +27,33 @@ def _main():
     llm_model = define_model(model_config=model_config)
 
     # Define the prompts for the thought structure
-    system_prompts = pRAR_system_prompts.PlanSystemPrompts
-    plan_prompts = pRAR_prompts.PlanPrompts
-    plan_thought_prompts = pRAR_prompts.BasePlanThoughtPrompts
+    system_prompts = staple_system_prompts.PlanSystemPrompts
+    plan_prompts = staple_prompts.PlanPrompts
+    plan_thought_prompts = staple_prompts.BasePlanThoughtPrompts
 
     # Define the thought model
-    prar_thought_prompter = thought_prompter.PlanThoughtPrompter(
+    staple_thought_prompter = thought_prompter.PlanThoughtPrompter(
         system_prompts=system_prompts,
         thought_prompts=plan_thought_prompts,
         plan_prompts=plan_prompts,
     )
 
-    prar_thought_model = thought_model.PlanThoughtModel(
-        llm_model=llm_model, model_config=model_config, prompter=prar_thought_prompter
+    staple_thought_model = thought_model.PlanThoughtModel(
+        llm_model=llm_model, model_config=model_config, prompter=staple_thought_prompter
     )
 
-    para_reasoner = nips_reasoner.NIPSPlanThoughtReasoner(
-        thought_model=prar_thought_model,
+    staple_reasoner = nips_reasoner.NIPSPlanThoughtReasoner(
+        thought_model=staple_thought_model,
         model_config=model_config,
         logging_config=logging_config,
-        visualizer=PRARVisualizer(
+        visualizer=StapleVisualizer(
             logging_config=logging_config,
             plot_config={"node_config": node_config, "edge_config": edge_config},
         ),
         solution_extractor=None,
     )
 
-    pipeline = PlanRetrievalPipeline(reasoner=para_reasoner)
+    pipeline = PlanRetrievalPipeline(reasoner=staple_reasoner)
     pipeline.setup()
     pipeline.load_data()
     pipeline.execute()

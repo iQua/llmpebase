@@ -28,9 +28,9 @@ class ChainOutcomeCommentPrompts:
     # second {} is the chain_end_flag
     feedback_prompt = BasicThoughtPromptFormat(
         head="Comment on the given reasoning chain for addressing the question.\n\n{}\nReasoning chain:\n{}\n{}\n{}\n\n\n",
-        content="Please review the reasoning steps between {} and {} and thus summarize the analysis for each step, especially the one with errors.\n",
+        content="Please review the reasoning steps between {} and {} to report any errors if they exist.",
         target="\n",
-        notice="",
+        notice="Do not repeat each step but use step idx as reference.",
         tail="",
         prompt="",
     )
@@ -41,7 +41,7 @@ class Gameof24ChainOutcomeCommentPrompts(ChainOutcomeCommentPrompts):
 
     feedback_prompt = BasicThoughtPromptFormat(
         head="Comment on the given reasoning chain for addressing the question of Game of 24.\n\n{}\nReasoning chain:\n{}\n{}\n{}\n\n\n",
-        content="Please review three reasoning steps between {} and {}, thus summarize the analysis and advice.\n",
+        content="Please review the reasoning steps between {} and {} to report any errors if they exist.",
         target="\n",
         notice="Do not repeat each step but use step idx as reference.",
         tail="",

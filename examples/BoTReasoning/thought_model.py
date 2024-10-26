@@ -43,3 +43,23 @@ class BoTThoughtModel(thought_model.LlmThoughtModel):
     def clean_experience(self):
         """Clean the experience container."""
         self.experience_container = []
+
+    def evaluate_thoughts(
+        self,
+        thoughts,
+        thought_chain,
+        n_request: int = 1,
+    ):
+        """Evaluate the thoughts based on the thought chain."""
+        # Always set the generation to be the default one during evaluation
+        # Do not include too much randomness
+        ext_temperature = self.llm_model.generation_config["temperature"]
+        ext_top_p = self.llm_model.generation_config["top_p"]
+        self.llm_model.generation_config.update({"temperature": 0.2, "top_p": 0.2})
+        eval_outputs = super().evaluate_thoughts(thoughts, thought_chain, n_request)
+
+        # Restore the generation configuration
+        self.llm_model.generation_config.update(
+            {"temperature": ext_temperature, "top_p": ext_top_p}
+        )
+        return eval_outputs

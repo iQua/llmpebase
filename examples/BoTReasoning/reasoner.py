@@ -136,21 +136,16 @@ class BoTReasoner(StructuredThoughtReasoner):
                 # One can access the final reasoning chain by the index
                 solution_strs = self.get_solution_paths(structure=base_tree)
 
-                stop_flag, final_solution_idx = stop_func(
+                stop_flag, _ = stop_func(
                     solution_strs, solution_chains=base_tree_chains[tree_idx]
                 )
 
                 if stop_flag:
-                    final_sol_str = solution_strs[final_solution_idx]
                     logging.info(
-                        "Early stop at iteration %d with tree %d", iter_idx, tree_idx
+                        "Early stop at %d-th tree within %d-th iteration",
+                        tree_idx,
+                        iter_idx,
                     )
-                    logging.info(
-                        "From %d-th reasoning chain, Solution:\n%s",
-                        final_solution_idx,
-                        final_sol_str,
-                    )
-
                     early_stop_flag = True
                     break
 
@@ -196,7 +191,11 @@ class BoTReasoner(StructuredThoughtReasoner):
             if early_stopper.stop_via_comment(feedback):
                 logging.info("Early stop at iteration %d after comment", iter_idx)
                 logging.info("From aggregated chain, Solution: %s\n", solution_str)
-                break
+                early_stop_flag = True
+            else:
+                # The comment has the highest priority so that once there is any error in the comment, the reasoning will continue.
+                logging.info("Close early stop at iteration %d after comment", iter_idx)
+                early_stop_flag = False
 
             if early_stop_flag:
                 break

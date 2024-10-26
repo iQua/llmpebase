@@ -14,7 +14,7 @@ from llmpebase.prompt import (
 from llmpebase.prompt import format_prompt
 
 
-def match_step_head(step_head, thought):
+def match_head(step_head, thought):
     """Match the step head in the thought."""
     step_head = step_head.replace(".", "")
     step_head = step_head.strip()
@@ -91,6 +91,9 @@ class ThoughtStructurePrompter:
             item_head = "" if head_format is None else head_format
             if head_format is not "":
                 item_head = item_head.format(node.step_idx)
+                if match_head(item_head, getattr(node, content_attr)):
+                    item_head = ""
+
             if with_index:
                 item_head = f"""({idx+1}). {item_head}"""
 
@@ -131,7 +134,7 @@ class ThoughtStructurePrompter:
             thought = thought_node.thought
             if with_step_idx:
                 step_head = self.step_head.format(idx + 1)
-                if match_step_head(step_head, thought):
+                if match_head(step_head, thought):
                     step_head = ""
 
             score = ""

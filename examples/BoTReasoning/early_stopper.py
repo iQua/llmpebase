@@ -2,11 +2,21 @@
 The implementation of early stopping.
 """
 
+import re
 import logging
 from typing import List
 
 
 from llmpebase.model.thought_structure import base
+
+
+def extract_target_number(solution_str: str):
+    """Extract the target number after the string 'New Set' from the solution string."""
+    target_number = re.findall(r"New Set: (\d+)", solution_str)
+    if target_number:
+        return int(target_number[0])
+    else:
+        return None
 
 
 def stop_via_gameof24(
@@ -62,6 +72,8 @@ def stop_via_comment(comment_feedback: str):
         or "incorrect" in comment_feedback
         or "redundant" in comment_feedback
         or "unnecessary" in comment_feedback
+        or "do not solve" in comment_feedback
+        or "does not meet the requirement" in comment_feedback
     ):
         is_stop = True
     return is_stop
@@ -71,8 +83,8 @@ def get(sample_info: dict):
     """Get the information of the sample."""
     sample_dataset = sample_info["sample_dataset"]
     if "GameOf24" in sample_dataset:
-        logging.info("Early stop for Game of 24.")
+        logging.info("Get Early stop function for Game of 24.")
         return stop_via_gameof24
     else:
-        logging.info("Early stop via evaluation.")
+        logging.info("Get Early stop function with evaluation.")
         return stop_via_evaluation

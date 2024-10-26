@@ -5,7 +5,8 @@ the Thought Rollback.
 
 from typing import List
 
-import data_prompts
+import tr_system_prompts
+import tr_thought_prompts
 
 from llmpebase.model.prompting import thought_prompter
 
@@ -21,41 +22,20 @@ from llmpebase.prompt.generic import (
 class TRStructurePrompt(thought_prompter.ThoughtStructurePrompter):
     """A prompt to support the rollback in thought structure with the Thought Rollback."""
 
-    # The flag to indicate the block of the experience
-    # obtained before rolling back
-    analysis_flag = "#" * 20
-
-    # The system prompt for the generation of the thought rollback
-    reasoning_analysis_system_prompt = """You are a mathematician specializing in checking and analyzing the reasoning process containing multiple intermediate reasoning steps proposed to address a math question. Please check the correctness of the overall reasoning logic and each reasoning step regarding mathematical logic and rationality."""
-    # The system prompt for the rollback controller to get which step to rollback to
-    rollback_system_prompt = """You are a mathematician specializing in identifying the unnecessary, wrong, illogical, unreasonable, or vague reasoning steps based on the given analysis of a reasoning process. You should summarize the analysis to give the index of these bad steps."""
-
-    # A format to organize the experiences from rollbacks as the demonstrations
-    # to be included in the root prompt
-    experience_flag = """######### The {}-th Experience with Analysis #########"""
-    rollback_experience_prompt_format = BasicPromptFormat(
-        head="Experience containing previously made mistakes:\n",
-        content="\n{}\n",
-        notice="",
-        tail="Consider the analysis in the above experience to avoid making similar mistakes during reasoning for the question.\n\n",
-        prompt="",
-    )
-
-    # To include the experience in the system prompt
-    generation_system_prompt: str = (
-        """You possess expertise in solving mathematical problems through a systematic, step-by-step reasoning process during which you are dedicated to preventing repeating any errors analyzed in experiences. Your objective is to address the question using a series of reasoning steps delivered in multiple responses, with each response containing one reasoning step. It is crucial to avoid repeating errors mentioned in the given experiences. Begin by reading the provided reasoning steps and then proceed to generate the most appropriate next step in the response, ensuring that the logical progression steadily leads towards a solution."""
-    )
-
-    rollback_solution_flag = "Bad step index:"
-    intermediate_analysis_prompt_format = data_prompts.rollback_prompt_formats[
-        "Intermediate"
-    ]
-    sink_analysis_prompt_format = data_prompts.rollback_prompt_formats["Sink"]
-
-    rollback_controller_prompt_prompt = data_prompts.rollback_controller_prompt_format
-
     rollback_analysis_prompt = None
     rollback_controller_prompt = None
+
+    # We present the init function here show what system and thought prompts
+    # are required.
+    def __init__(
+        self,
+        system_prompts: tr_system_prompts.RollbackSystemPrompts,
+        thought_prompts: tr_thought_prompts.BaseRollbackThoughtPrompts,
+        rollback_prompts: tr_thought_prompts.RollbackPrompts,
+    ):
+        super().__init__(system_prompts, thought_prompts)
+
+        self.rollback_prompts = rollback_prompts
 
     def organize_experience_prompt(
         self,
@@ -121,7 +101,7 @@ class TRStructurePrompt(thought_prompter.ThoughtStructurePrompter):
 
         # Otherwise, add the experience as demonstrations to the root prompt
         experience_prompt = [
-            f"{self.experience_flag.format(idx)}\n{exp[0]}\n\nAnalysis:{exp[1]}\n{self.analysis_flag}\n"
+            f"{self.rollback_prompts.experience_start_flag.format(idx)}\n{exp[0]}\n\nAnalysis:{exp[1]}\n{self.analysis_flag}\n"
             for idx, exp in enumerate(experiences)
         ]
         experience_prompt = "\n".join(experience_prompt)

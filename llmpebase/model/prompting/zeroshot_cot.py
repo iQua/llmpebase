@@ -32,7 +32,7 @@ class AQUAZeroShotCoTPrompting(base.BaseZeroShotCoTPrompting):
 class GameOf24ZeroShotCoTPrompting(base.BaseZeroShotCoTPrompting):
     """The zeroshot prompt of GameOf24."""
 
-    solution_flag: str = "Number in New Set of Step 3:"
+    solution_flag: str = ""
 
     instruction: str = (
         "Within the latest step, 'Two Numbers' are selected from the 'Current Set' to perform + or - or * or /, i.e. Operation, to obtain a 'New Number'. Then, 'Current Set' removes these 'Two Numbers' and thus gets 'Remaining Numbers'. Then, 'New Set' will be the combination of 'New Number' and 'Remaining Numbers'."
