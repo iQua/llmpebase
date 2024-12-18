@@ -114,7 +114,6 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         # When the number of sink nodes reaches the limit, no further
         # reasoning will be performed
         sink_nodes = self.get_sink_nodes()
-        print(f"Number of solutions: {len(sink_nodes)}")
         if len(sink_nodes) >= self.num_max_solutions:
             return None
 
@@ -227,7 +226,7 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
                 src_node_id=node.identity,
                 dst_node_id=rollback_node.identity,
                 reasoning=self.thought_model.prompter.rollback_controller_prompt,
-                evaluation=self.thought_model.prompter.rollback_analysis_prompt,
+                evaluation=self.thought_model.prompter.rollback_controller_prompt,
                 edge_score=1.0,
                 auxiliary={
                     "AnalysisSteps": self.thought_model.prompter.organize_chain_prompt(

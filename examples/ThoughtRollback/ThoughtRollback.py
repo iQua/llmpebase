@@ -9,6 +9,7 @@ import visualization
 import tr_thought_prompts
 import tr_system_prompts
 
+
 from llmpebase.pipeline import Pipeline
 from llmpebase.model import define_model
 from llmpebase.prompt import get_system_prompts, get_thought_prompts
@@ -26,7 +27,8 @@ def _main():
 
     # system_prompts = get_system_prompts(data_config)
     system_prompts = tr_system_prompts.RollbackSystemPrompts()
-    thought_prompts = get_thought_prompts(data_config)
+    # thought_prompts = get_thought_prompts(data_config)
+    thought_prompts = tr_thought_prompts.BaseRollbackThoughtPrompts()
     llm_model = define_model(model_config=model_config)
     prompter = thought_prompter.TRStructurePrompt(
         system_prompts=system_prompts,

@@ -106,7 +106,7 @@ class TRStructurePrompt(thought_prompter.ThoughtStructurePrompter):
         experience_prompt = "\n".join(experience_prompt)
         # Add the experience to the demonstrations of the root prompt
         experience_demos = BasicPromptFormat(
-            **self.rollback_prompts.rollback_experience_prompt_format
+            **self.thought_prompts.generation.rollback_experience_prompt_format
         )
         experience_demos.content = experience_demos.content.format(experience_prompt)
 

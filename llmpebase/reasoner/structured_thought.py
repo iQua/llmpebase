@@ -88,6 +88,7 @@ class StructuredThoughtReasoner:
         self.visualizer.set_save_foldername(
             f"{self.visualizer.base_save_foldername}-{sample_name}"
         )
+        self.structure.save_foldername = self.structure.base_save_foldername
         self.structure.set_save_foldername(
             foldername=f"{self.structure.save_foldername}-{sample_name}"
         )
