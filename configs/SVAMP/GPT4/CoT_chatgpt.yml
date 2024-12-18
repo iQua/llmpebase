@@ -17,7 +17,9 @@ environment:
   
 model:
 
-  model_name: gpt-4 # "gpt-3.5-turbo","gpt-4"
+    # "gpt-3.5-turbo","gpt-4",
+  # gpt-4-1106-preview, gpt-4-0125-preview
+  model_name: gpt-4-1106-preview
   model_type: gpt
 
   prompt_type: cot

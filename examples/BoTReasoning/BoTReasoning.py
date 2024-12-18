@@ -6,6 +6,7 @@ import reasoner
 import commenter
 import thought_prompter
 import thought_model
+import bot_pipeline
 
 from llmpebase.model import define_model
 from llmpebase.prompt import (
@@ -65,7 +66,7 @@ def _main():
         visualizer=BasicStructureVisualizer(logging_config=logging_config),
     )
 
-    pipeline = Pipeline(reasoner=bot)
+    pipeline = bot_pipeline.BoTPipeline(reasoner=bot)
     pipeline.setup()
     pipeline.load_data()
     pipeline.execute()

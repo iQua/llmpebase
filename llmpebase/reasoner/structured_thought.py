@@ -78,13 +78,17 @@ class StructuredThoughtReasoner:
         return solution_strs
 
     def forward(
-        self, prompt_sample: BasicSamplePrompt, sample_name: str = "0-0"
+        self,
+        prompt_sample: BasicSamplePrompt,
+        sample_name: str = "0-0",
+        sample_info: dict = None,
     ) -> List[str]:
         """Forward the reasoning in the thought structure."""
         # Set the save path and folder for visualization and thought structure
         self.visualizer.set_save_foldername(
             f"{self.visualizer.base_save_foldername}-{sample_name}"
         )
+        self.structure.save_foldername = self.structure.base_save_foldername
         self.structure.set_save_foldername(
             foldername=f"{self.structure.save_foldername}-{sample_name}"
         )

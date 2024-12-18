@@ -66,7 +66,7 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         # facilitate the subsequent reasoning.
         self.do_experience_rollback = config["do_experience_rollback"]
 
-    def set_node_growth(self, node_id: str):
+    def set_node_growth(self, node_id: str, num_next_nodes: int = 1):
         """Set the node to be the growable one."""
 
         # Need to know that before setting the node growth,
@@ -114,7 +114,6 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         # When the number of sink nodes reaches the limit, no further
         # reasoning will be performed
         sink_nodes = self.get_sink_nodes()
-        print(f"Number of solutions: {len(sink_nodes)}")
         if len(sink_nodes) >= self.num_max_solutions:
             return None
 
@@ -227,7 +226,7 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
                 src_node_id=node.identity,
                 dst_node_id=rollback_node.identity,
                 reasoning=self.thought_model.prompter.rollback_controller_prompt,
-                evaluation=self.thought_model.prompter.rollback_analysis_prompt,
+                evaluation=self.thought_model.prompter.rollback_controller_prompt,
                 edge_score=1.0,
                 auxiliary={
                     "AnalysisSteps": self.thought_model.prompter.organize_chain_prompt(
@@ -279,7 +278,8 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         self,
         thought: str,
         prev_node_id: str,
-        thought_score: float = 1.0,
+        thought_evaluation=None,
+        thought_inference=None,
         edge_weight: float = 1.0,
         **kwargs,
     ) -> str:
@@ -288,7 +288,8 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         node_id = super().add_node(
             thought=thought,
             prev_node_id=prev_node_id,
-            thought_score=thought_score,
+            thought_evaluation=thought_evaluation,
+            thought_inference=thought_inference,
             edge_weight=edge_weight,
             **kwargs,
         )

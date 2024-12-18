@@ -1,5 +1,5 @@
 """
-Implementation of Thought model for the pRAR Reasoning.
+Implementation of Thought model for the staple Reasoning.
 """
 
 from collections import namedtuple

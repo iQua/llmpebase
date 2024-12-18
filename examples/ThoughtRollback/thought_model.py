@@ -1,6 +1,7 @@
 """
 The implementation of the thought model used to build the thought structure.
 """
+
 import re
 from typing import List
 
@@ -45,24 +46,24 @@ class TRThoughtModel(thought_model.LlmThoughtModel):
         responses = self.llm_model.forward(
             user_prompt=str(analysis_prompt),
             per_request_responses=1,
-            sys_prompt=self.prompter.reasoning_analysis_system_prompt,
+            sys_prompt=self.prompter.system_prompts.reasoning_analysis_system_prompt,
         )
         reasoning_analysis = self.llm_model.read_response_contents(responses)[0]
 
         # Second, get the rollback index
-        rollback_prompt = self.prompter.organize_prompt_controller_prompt(
-            chain_nodes=thought_chain, reasoning_analysis=reasoning_analysis
-        )
-        responses = self.llm_model.forward(
-            user_prompt=str(rollback_prompt),
-            per_request_responses=1,
-            sys_prompt=self.prompter.rollback_system_prompt,
-        )
+        # rollback_prompt = self.prompter.organize_prompt_controller_prompt(
+        #     chain_nodes=thought_chain, reasoning_analysis=reasoning_analysis
+        # )
+        # responses = self.llm_model.forward(
+        #     user_prompt=str(rollback_prompt),
+        #     per_request_responses=1,
+        #     sys_prompt=self.prompter.rollback_system_prompt,
+        # )
         rollback_result = self.llm_model.read_response_contents(responses)[0]
         # Get the step idx that rollback to
         # This index is the step of thought_chain[1:]
         rollback_step_idxes = self.extract_rollback_index(
-            rollback_result, self.prompter.rollback_solution_flag
+            rollback_result, self.prompter.rollback_prompts.rollback_solution_flag
         )
         # print("*" * 30)
         # print(analysis_prompt)

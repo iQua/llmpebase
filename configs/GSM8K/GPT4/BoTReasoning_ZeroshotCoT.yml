@@ -21,7 +21,9 @@ environment:
   
 model:
 
-  model_name: gpt-4 # "gpt-3.5-turbo","gpt-4"
+    # "gpt-3.5-turbo","gpt-4",
+  # gpt-4-1106-preview, gpt-4-0125-preview
+  model_name: gpt-4-1106-preview
   model_type: gpt
 
   prompt_type: zeroshot_cot 
@@ -40,7 +42,7 @@ model:
     aggregation_type: best_first
 
     n_iteration: 10
-    num_trees: 5
+    num_trees: 15
 
     growth_types: 
       - dfg
@@ -53,8 +55,8 @@ model:
 
     thought_structure:
       num_next_steps: 2
-      max_length: 6
-      max_stops: 8
+      max_length: 30
+      max_stops: 4
       min_thought_similarity: null
       max_score_difference: 0.1
 

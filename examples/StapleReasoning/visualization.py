@@ -198,7 +198,7 @@ edge_config = {
 }
 
 
-class PRARVisualizer(BasicStructureVisualizer):
+class StapleVisualizer(BasicStructureVisualizer):
     """The visualizer for the p-RAR thought structure."""
 
     def create_node_draw_labels(self, graph: nx.DiGraph, node_pool: List[BasicNode]):

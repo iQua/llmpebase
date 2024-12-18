@@ -10,6 +10,7 @@ from typing import Union
 import logging
 
 import torch
+from torch.utils.data import DataLoader
 
 from llmpebase.model.LM.base import BaseLlmRequest
 from llmpebase.model.prompting.base import BasePrompting
@@ -75,6 +76,10 @@ class Pipeline:
         self.testset = None
         self.valset = None
 
+        self.testset_loader = None
+        self.trainset_loader = None
+        self.valset_loader = None
+
         # Record the results
         self.recorder = None
 
@@ -130,19 +135,29 @@ class Pipeline:
 
     def load_data(self):
         """Load the datasets for the pipeline."""
-
         if self.dataset is None:
             self.dataset = define_dataset(self.data_config)
 
         if self.trainset is None:
             self.trainset = self.dataset.get_train_set()
+            self.trainset_loader = DataLoader(
+                self.trainset,
+                batch_size=1,
+                shuffle=False,
+                collate_fn=lambda batch: batch[0],
+            )
         if self.testset is None:
             self.testset = self.dataset.get_test_set()
+            self.testset_loader = DataLoader(
+                self.trainset,
+                batch_size=1,
+                shuffle=False,
+                collate_fn=lambda batch: batch[0],
+            )
 
     def execute(self):
         """Execute the pipeline to obtain the results."""
-
-        for idx, sample in enumerate(self.testset):
+        for idx, sample in enumerate(self.testset_loader):
             sample_info = sample["auxiliary"]["sample_info"]
             sample_id = sample_info["sample_id"]
             record_name = f"{idx}-ID<{sample_id}>"
@@ -152,7 +167,9 @@ class Pipeline:
                 sample, self.trainset, self.model_config
             )
 
-            contents = self.reasoner.forward(prompt_sample, sample_name=record_name)
+            contents = self.reasoner.forward(
+                prompt_sample, sample_name=record_name, sample_info=sample_info
+            )
             assert isinstance(contents, list)
 
             results = [

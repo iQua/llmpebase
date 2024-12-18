@@ -1,6 +1,6 @@
 from nips_thought_structure import NIPSPlanStructure
 from plan_tree import PlanTree, PlanNode
-from visualization import PRARVisualizer, node_config, edge_config
+from visualization import stapleVisualizer, node_config, edge_config
 
 import networkx as nx
 from llmpebase.model.thought_structure import base
@@ -14,7 +14,7 @@ if __name__ == "__main__":
     logging_config = {"result_path": plot_path, "visualization_path": plot_path}
     plan_tree = PlanTree(
         logging_config=logging_config,
-        visualizer=PRARVisualizer(
+        visualizer=stapleVisualizer(
             logging_config=logging_config,
             plot_config={"node_config": node_config, "edge_config": edge_config},
         ),

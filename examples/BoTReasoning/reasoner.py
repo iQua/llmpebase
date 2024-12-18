@@ -2,10 +2,12 @@
 The implementation of the Boosting of Thoughts (BoT).
 """
 
+import logging
 import random
 from typing import List, Union, Tuple
 
 import aggregator
+import early_stopper
 
 from llmpebase.model.prompting.base import BasicSamplePrompt
 from llmpebase.model.thought_structure import trees
@@ -70,13 +72,20 @@ class BoTReasoner(StructuredThoughtReasoner):
         ]
 
     def forward(
-        self, prompt_sample: BasicSamplePrompt, sample_name: str = "0-0"
+        self,
+        prompt_sample: BasicSamplePrompt,
+        sample_name: str = "0-0",
+        sample_info: dict = None,
     ) -> List[str]:
         """Forward the reasoning in the chain structure."""
 
         # First clean the old experiences
         self.thought_model.clean_experience()
 
+        # Get the early stop functions
+        stop_func = early_stopper.get(sample_info)
+        early_stop_flag = False
+        solution_str = ""
         for iter_idx in range(self.num_iterations):
 
             # Create the visualization path
@@ -96,7 +105,7 @@ class BoTReasoner(StructuredThoughtReasoner):
                 )
 
                 base_tree.set_save_foldername(
-                    foldername=f"{base_tree.save_foldername}-{sample_name}/{iteration_folder}/tree-{tree_idx}"
+                    foldername=f"{base_tree.base_save_foldername}-{sample_name}/{iteration_folder}/tree-{tree_idx}"
                 )
 
                 # Get the temperature and top_p for the base tree
@@ -121,6 +130,24 @@ class BoTReasoner(StructuredThoughtReasoner):
                 base_tree_chains[tree_idx] = (
                     self.solution_extractor.extract_solution_chains(base_tree)
                 )
+                # Judge whether to stop the reasoning
+                # Get the solutions from the structure
+                # Also save the chains to the disk
+                # One can access the final reasoning chain by the index
+                solution_strs = self.get_solution_paths(structure=base_tree)
+
+                stop_flag, _ = stop_func(
+                    solution_strs, solution_chains=base_tree_chains[tree_idx]
+                )
+
+                if stop_flag:
+                    logging.info(
+                        "Early stop at %d-th tree within %d-th iteration",
+                        tree_idx,
+                        iter_idx,
+                    )
+                    early_stop_flag = True
+                    break
 
             # Perform the aggregation of the solutions
             aggregated_chain = self.aggregator.perform_aggregation(
@@ -135,7 +162,7 @@ class BoTReasoner(StructuredThoughtReasoner):
             # Convert the chain to a solution str
             solution_str = self.thought_model.prompter.organize_chain_prompt(
                 chain_nodes=aggregated_chain[1:],
-                with_step_idx=False,
+                with_step_idx=True,
                 with_flag=False,
                 with_evaluation_score=False,
             )
@@ -144,6 +171,7 @@ class BoTReasoner(StructuredThoughtReasoner):
             feedback = self.comment_model.comment_reasoning_chain(
                 prompt_sample, solution_str
             )
+
             self.comment_model.save_state(
                 location=f"{self.visualizer.base_save_foldername}-{sample_name}/{iteration_folder}",
                 file_name="commenter-state",
@@ -154,7 +182,23 @@ class BoTReasoner(StructuredThoughtReasoner):
 
             # Clean the structure after the reasoning
             for _, base_tree in self.structure:
-                base_tree.reset_structure()
+                # To avoid the issue caused by the early stop
+                if base_tree.graph is not None:
+                    base_tree.reset_structure()
+
+            # A common way to stop the reasoning
+            # If the comment gives all correct feedback, then stop.
+            if early_stopper.stop_via_comment(feedback):
+                logging.info("Early stop at iteration %d after comment", iter_idx)
+                logging.info("From aggregated chain, Solution: %s\n", solution_str)
+                early_stop_flag = True
+            else:
+                # The comment has the highest priority so that once there is any error in the comment, the reasoning will continue.
+                logging.info("Close early stop at iteration %d after comment", iter_idx)
+                early_stop_flag = False
+
+            if early_stop_flag:
+                break
 
         return [solution_str]
 
@@ -171,4 +215,6 @@ class BoTReasoner(StructuredThoughtReasoner):
         # Reset the thought structure
         # Clean the structure after the reasoning
         for _, base_tree in self.structure:
-            base_tree.reset_structure()
+            if base_tree.graph is not None:
+                # To avoid the issue caused by the early stop
+                base_tree.reset_structure()

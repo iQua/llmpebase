@@ -25,6 +25,7 @@ class BasicEvaluation(FieldFrozenContainer):
     evaluation_scores: List[float] = None
     evaluation_contents: List[str] = None
     evaluation_outputs: List[str] = None
+    system_prompt: str = None
 
     def score(self):
         """Get the evaluation score."""
@@ -55,6 +56,7 @@ class BasicSimilarity(FieldFrozenContainer):
     similarity_scores: List[str] = None
     similarity_contents: List[str] = None
     similarity_outputs: List[str] = None
+    system_prompt: str = None
 
     def score(self):
         """Get the evaluation score."""

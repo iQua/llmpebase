@@ -1,18 +1,19 @@
 """
-The thought prompter for the pRAR.
+The thought prompter for the staple.
 """
 
 import copy
 from typing import List
 
-import pRAR_prompts
-import pRAR_system_prompts
+import staple_prompts
+import staple_system_prompts
 from plan_tree import PlanNode
 
 from llmpebase.model.thought_structure import base
 from llmpebase.prompt.generic import BasicThoughtPromptFormat
 from llmpebase.model.prompting.thought_prompter import ThoughtStructurePrompter
-from llmpebase.prompt import format_prompt
+
+# from llmpebase.prompt import format_prompt
 
 
 class PlanThoughtPrompter(ThoughtStructurePrompter):
@@ -24,9 +25,9 @@ class PlanThoughtPrompter(ThoughtStructurePrompter):
     # are required.
     def __init__(
         self,
-        system_prompts: pRAR_system_prompts.PlanSystemPrompts,
-        thought_prompts: pRAR_prompts.BasePlanThoughtPrompts,
-        plan_prompts: pRAR_prompts.PlanPrompts,
+        system_prompts: staple_system_prompts.PlanSystemPrompts,
+        thought_prompts: staple_prompts.BasePlanThoughtPrompts,
+        plan_prompts: staple_prompts.PlanPrompts,
     ):
         super().__init__(system_prompts, thought_prompts)
 

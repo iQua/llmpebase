@@ -2,6 +2,7 @@
 Implementation of prompts for thought structure.
 """
 
+import re
 from typing import List
 
 from llmpebase.model.thought_structure import base
@@ -11,6 +12,21 @@ from llmpebase.prompt import (
     BaseThoughtPrompts,
 )
 from llmpebase.prompt import format_prompt
+
+
+def match_head(step_head, thought):
+    """Match the step head in the thought."""
+    step_head = step_head.replace(".", "")
+    step_head = step_head.strip()
+
+    # Escape special characters in step_head and compile a case-insensitive regex pattern
+    pattern = re.compile(re.escape(step_head), re.IGNORECASE)
+
+    # Search for the pattern in the thought
+    match = pattern.search(thought)
+
+    # Return True if a match is found, otherwise False
+    return match is not None
 
 
 class ThoughtStructurePrompter:
@@ -75,6 +91,9 @@ class ThoughtStructurePrompter:
             item_head = "" if head_format is None else head_format
             if head_format is not "":
                 item_head = item_head.format(node.step_idx)
+                if match_head(item_head, getattr(node, content_attr)):
+                    item_head = ""
+
             if with_index:
                 item_head = f"""({idx+1}). {item_head}"""
 
@@ -102,6 +121,8 @@ class ThoughtStructurePrompter:
         :param chain_nodes: A list of thought nodes in the chain.
         :param with_step_idx: Whether to include the step index in the prompt.
         :param with_flag: Whether to include the start and end flag in the prompt.
+        :param is_adaptive_step_idx: Whether include the step idx adaptively,
+         i.e.,
         """
         # initial prompt should be the thought of the root noe
         intermediate_steps = []
@@ -110,15 +131,17 @@ class ThoughtStructurePrompter:
 
         for idx, thought_node in enumerate(chain_nodes):
             step_head = ""
+            thought = thought_node.thought
             if with_step_idx:
                 step_head = self.step_head.format(idx + 1)
+                if match_head(step_head, thought):
+                    step_head = ""
+
             score = ""
             if thought_node.evaluation_score is not None and with_evaluation_score:
                 score = f"Evaluation Score: {thought_node.evaluation_score}"
 
-            intermediate_steps.append(
-                f"""{indent}{step_head}{thought_node.thought}\t{score}"""
-            )
+            intermediate_steps.append(f"""{indent}{step_head}{thought}\t{score}""")
 
         intermediate_steps = "\n".join(intermediate_steps)
         reasoning_chain_prompt = f"""{intermediate_steps}"""
@@ -144,7 +167,10 @@ class ThoughtStructurePrompter:
             return generation_prompt
 
         chain_prompt = self.organize_chain_prompt(
-            chain_nodes[1:], with_flag=True, with_evaluation_score=False
+            chain_nodes[1:],
+            with_step_idx=True,
+            with_flag=True,
+            with_evaluation_score=False,
         )
 
         generation_prompt = BasicThoughtPromptFormat(
@@ -153,9 +179,8 @@ class ThoughtStructurePrompter:
         generation_prompt.head = generation_prompt.head.format(root_prompt)
         generation_prompt.content = generation_prompt.content.format(chain_prompt)
         generation_prompt.target = generation_prompt.target.format(
-            self.thought_chain_start_flag, self.thought_chain_end_flag, len(chain_nodes)
+            self.thought_chain_start_flag, len(chain_nodes)
         )
-
         return generation_prompt
 
     def organize_evaluation_prompt(
@@ -179,7 +204,10 @@ class ThoughtStructurePrompter:
             **self.evaluation_prompts.current_step_prompt
         )
         chain_prompt = self.organize_chain_prompt(
-            chain_nodes[1:], with_flag=True, with_evaluation_score=False
+            chain_nodes[1:],
+            with_step_idx=True,
+            with_flag=True,
+            with_evaluation_score=False,
         )
         # +1 here to include the new thought, i.e., the latest reasoning step
         # to evaluate

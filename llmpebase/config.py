@@ -101,10 +101,6 @@ class Config:
     def __new__(cls):
         if cls._instance is None:
             parser = argparse.ArgumentParser()
-            parser.add_argument("-i", "--id", type=str, help="Unique client ID.")
-            parser.add_argument(
-                "-p", "--port", type=str, help="The port number for running a server."
-            )
             parser.add_argument(
                 "-c",
                 "--config",
@@ -120,19 +116,6 @@ class Config:
                 help="The base path for datasets and models.",
             )
             parser.add_argument(
-                "-s",
-                "--server",
-                type=str,
-                default=None,
-                help="The server hostname and port number.",
-            )
-            parser.add_argument(
-                "-d",
-                "--download",
-                action="store_true",
-                help="Download the dataset to prepare for a training session.",
-            )
-            parser.add_argument(
                 "-r",
                 "--resume",
                 action="store_true",
@@ -144,11 +127,6 @@ class Config:
 
             args = parser.parse_args()
             Config.args = args
-
-            if Config.args.id is not None:
-                Config.args.id = int(args.id)
-            if Config.args.port is not None:
-                Config.args.port = int(args.port)
 
             cls._instance = super(Config, cls).__new__(cls)
 

@@ -46,6 +46,7 @@ class ReasoningChainAggregator:
                 sum([float(node.evaluation_score) for node in chain[1:]])
                 for chain in chains
             ]
+            chain_scores = [0] if len(chain_scores) == 0 else chain_scores
             max_value = max(chain_scores)
             if max_value > best_score:
                 chain_idx = chain_scores.index(max_value)
@@ -89,11 +90,11 @@ class ReasoningChainAggregator:
 
         logging.info(
             """
-            Aggregating #structures %d, each containing #chains %s with strategy %s.
+            Aggregating (%s) %d structures, individual containing %s chains .
             """,
+            self.aggregation_type,
             len(structure_chains),
             [len(chains) for chains in structure_chains.values()],
-            self.aggregation_type,
         )
 
         self.aggregation_state = {}
