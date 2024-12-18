@@ -12,7 +12,8 @@ import tr_system_prompts
 
 from llmpebase.pipeline import Pipeline
 from llmpebase.model import define_model
-from llmpebase.prompt import get_system_prompts, get_thought_prompts
+
+# from llmpebase.prompt import get_system_prompts, get_thought_prompts
 
 
 from llmpebase.config import Config
@@ -23,7 +24,7 @@ def _main():
     # Set the basic llm model to be used by each component
     model_config = Config.items_to_dict(Config().model._asdict())
     logging_config = Config.items_to_dict(Config().logging._asdict())
-    data_config = Config.items_to_dict(Config().data._asdict())
+    # data_config = Config.items_to_dict(Config().data._asdict())
 
     # system_prompts = get_system_prompts(data_config)
     system_prompts = tr_system_prompts.RollbackSystemPrompts()
