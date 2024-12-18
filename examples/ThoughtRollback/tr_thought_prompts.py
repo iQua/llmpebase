@@ -31,7 +31,7 @@ class RollbackPrompts:
 
     reasoning_analysis_prompt_format = BasicThoughtPromptFormat(
         head="{}Toward addressing the given question, below is a reasoning process containing {} already taken steps:\n",
-        content="\n\n{}\n{}\n{}\n\n",
+        content="\n\n{}\n\n",
         target="""Please review the reasoning process within {}, then directly generate the error report and output the indexes of the identified mistaken steps after '{}'.\n""",
         notice="Output empty string when no steps are given. Do not repeat the reasoning step but use step idx as reference. Output only the error analysis.\n",
         tail="",

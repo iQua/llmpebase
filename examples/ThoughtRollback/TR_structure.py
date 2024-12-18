@@ -66,7 +66,7 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         # facilitate the subsequent reasoning.
         self.do_experience_rollback = config["do_experience_rollback"]
 
-    def set_node_growth(self, node_id: str):
+    def set_node_growth(self, node_id: str, num_next_nodes: int = 1):
         """Set the node to be the growable one."""
 
         # Need to know that before setting the node growth,
@@ -279,7 +279,8 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         self,
         thought: str,
         prev_node_id: str,
-        thought_score: float = 1.0,
+        thought_evaluation=None,
+        thought_inference=None,
         edge_weight: float = 1.0,
         **kwargs,
     ) -> str:
@@ -288,7 +289,8 @@ class ThoughtRollbackStructure(trees.DFGTreeThoughtStructure):
         node_id = super().add_node(
             thought=thought,
             prev_node_id=prev_node_id,
-            thought_score=thought_score,
+            thought_evaluation=thought_evaluation,
+            thought_inference=thought_inference,
             edge_weight=edge_weight,
             **kwargs,
         )
