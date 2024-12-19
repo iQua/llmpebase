@@ -213,7 +213,7 @@ Output:
 
 ```
 
-The solution is obtained by running from the node ID 0 to the node ID 31, as presented in this figure.
+The solution is obtained by performing reasoning from node ID 0 to node ID 31, as presented in this figure.
 
 ![Visual Reasoning process](demo/built_structure.png)
 
