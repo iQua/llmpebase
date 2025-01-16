@@ -1,5 +1,5 @@
 # Overview
-`llmpebase` is a unified platform to support experiments for prompt engineering in large language models (LLMs). This codebase is designed to be _easy to use_ and to ensure a fair comparison. With the components provided by this codebase, one can easily implement a new prompt engineering algorithm and apply it to a task for evaluation.
+`llmpebase` is a unified platform to support experiments for performing different reasoning methods for large language models (LLMs) in problem solving. This codebase is designed to be _easy to use_ and to ensure a fair comparison. With the components provided by this codebase, one can easily implement a new reasoning algorithm and apply it to different datasets from various tasks for evaluation.
 
 ## Code structure
 The structure of `llmpebase` is 
